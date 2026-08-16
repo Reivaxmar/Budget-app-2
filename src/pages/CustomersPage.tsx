@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { customerRepositoryClient } from '../db/customerRepositoryClient';
+import { customerRepository } from '../db/repository';
 import { Customer } from '../domain/models';
+import './CustomersPage.css';
 
 const CustomersPage: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -24,7 +25,7 @@ const CustomersPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await customerRepositoryClient.findMany();
+      const data = await customerRepository.findMany();
       setCustomers(data);
     } catch (err) {
       console.error('Failed to load customers:', err);
@@ -97,10 +98,10 @@ const CustomersPage: React.FC = () => {
     try {
       if (isEditing && selectedCustomer) {
         // Update existing customer
-        await customerRepositoryClient.update(selectedCustomer.id, formData as Partial<Omit<Customer, 'id'>>);
+        await customerRepository.update(selectedCustomer.id, formData as Partial<Omit<Customer, 'id'>>);
       } else {
         // Create new customer
-        await customerRepositoryClient.create(formData as Omit<Customer, 'id'>);
+        await customerRepository.create(formData as Omit<Customer, 'id'>);
       }
       // Close form and reload list
       setFormVisible(false);
@@ -115,7 +116,7 @@ const CustomersPage: React.FC = () => {
   const handleDeleteCustomer = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
       try {
-        await customerRepositoryClient.delete(id);
+        await customerRepository.delete(id);
         await loadCustomers();
       } catch (err) {
         console.error('Failed to delete customer:', err);
@@ -138,72 +139,68 @@ const CustomersPage: React.FC = () => {
   });
 
   return (
-    <div style={{ backgroundColor: 'white', minHeight: '100vh', padding: '1rem' }}>
+    <div className="customers-page">
       <h1>Customers</h1>
       {/* Search bar */}
-      <div style={{ marginBottom: '1rem' }}>
+      <div className="search-bar">
         <input
           type="text"
           placeholder="Search customers..."
           value={searchTerm}
           onChange={handleSearchChange}
-          style={{ padding: '0.5rem', width: '300px' }}
+          className="search-input"
         />
-        <button onClick={handleCreateCustomer} style={{ marginLeft: '0.5rem' }}>
+        <button onClick={handleCreateCustomer} className="add-button">
           Add Customer
         </button>
       </div>
 
       {/* Error message */}
-      {error && (
-        <div style={{ backgroundColor: '#ffebee', color: '#c62828', padding: '0.5rem', marginBottom: '1rem' }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="error-message">{error}</div>}
 
       {/* Loading state */}
       {loading && <p>Loading customers...</p>}
 
       {/* Customers table */}
       {!loading && (
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table>
           <thead>
             <tr>
-              <th style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '2px solid #ddd' }}>Name</th>
-              <th style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '2px solid #ddd' }}>Address</th>
-              <th style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '2px solid #ddd' }}>Email</th>
-              <th style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '2px solid #ddd' }}>Phone</th>
-              <th style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '2px solid #ddd' }}>Tax ID</th>
-              <th style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '2px solid #ddd' }}>Notes</th>
-              <th style={{ textAlign: 'left', padding: '0.5rem', borderBottom: '2px solid #ddd' }}>Actions</th>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Tax ID</th>
+              <th>Notes</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredCustomers.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '1rem' }}>
+                <td colSpan="7" className="no-customers">
                   No customers found.
                 </td>
               </tr>
             ) : (
               filteredCustomers.map((customer) => (
-                <tr key={customer.id} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '0.5rem' }}>{customer.name}</td>
-                  <td style={{ padding: '0.5rem' }}>{customer.address}</td>
-                  <td style={{ padding: '0.5rem' }}>{customer.email}</td>
-                  <td style={{ padding: '0.5rem' }}>{customer.phone || ''}</td>
-                  <td style={{ padding: '0.5rem' }}>{customer.taxId || ''}</td>
-                  <td style={{ padding: '0.5rem' }}>{customer.notes || ''}</td>
-                  <td style={{ padding: '0.5rem' }}>
+                <tr key={customer.id}>
+                  <td>{customer.name}</td>
+                  <td>{customer.address}</td>
+                  <td>{customer.email}</td>
+                  <td>{customer.phone || ''}</td>
+                  <td>{customer.taxId || ''}</td>
+                  <td>{customer.notes || ''}</td>
+                  <td>
                     <button
                       onClick={() => handleEditCustomer(customer)}
-                      style={{ marginRight: '0.5rem' }}
+                      className="actions-button"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeleteCustomer(customer.id)}
-                      style={{ backgroundColor: '#ffebee', color: '#c62828' }}
+                      className="delete-button"
                     >
                       Delete
                     </button>
@@ -217,29 +214,11 @@ const CustomersPage: React.FC = () => {
 
       {/* Customer Form Modal */}
       {formVisible && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '2rem',
-            borderRadius: '8px',
-            width: '400px',
-            maxWidth: '90%',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-          }}>
+        <div className="modal-overlay">
+          <div className="modal-content">
             <h2>{isEditing ? 'Edit Customer' : 'Add Customer'}</h2>
-            <form onSubmit={handleSaveCustomer} style={{ marginTop: '1rem' }}>
-              <div style={{ marginBottom: '1rem' }}>
+            <form onSubmit={handleSaveCustomer} className="customer-form">
+              <div className="form-group">
                 <label>
                   Name:
                   <input
@@ -248,11 +227,10 @@ const CustomersPage: React.FC = () => {
                     value={formData.name || ''}
                     onChange={handleFormChange}
                     required
-                    style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
                   />
                 </label>
               </div>
-              <div style={{ marginBottom: '1rem' }}>
+              <div className="form-group">
                 <label>
                   Address:
                   <input
@@ -261,11 +239,10 @@ const CustomersPage: React.FC = () => {
                     value={formData.address || ''}
                     onChange={handleFormChange}
                     required
-                    style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
                   />
                 </label>
               </div>
-              <div style={{ marginBottom: '1rem' }}>
+              <div className="form-group">
                 <label>
                   Email:
                   <input
@@ -274,11 +251,10 @@ const CustomersPage: React.FC = () => {
                     value={formData.email || ''}
                     onChange={handleFormChange}
                     required
-                    style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
                   />
                 </label>
               </div>
-              <div style={{ marginBottom: '1rem' }}>
+              <div className="form-group">
                 <label>
                   Phone:
                   <input
@@ -286,11 +262,10 @@ const CustomersPage: React.FC = () => {
                     name="phone"
                     value={formData.phone || ''}
                     onChange={handleFormChange}
-                    style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
                   />
                 </label>
               </div>
-              <div style={{ marginBottom: '1rem' }}>
+              <div className="form-group">
                 <label>
                   Tax ID:
                   <input
@@ -298,30 +273,28 @@ const CustomersPage: React.FC = () => {
                     name="taxId"
                     value={formData.taxId || ''}
                     onChange={handleFormChange}
-                    style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
                   />
                 </label>
               </div>
-              <div style={{ marginBottom: '1rem' }}>
+              <div className="form-group">
                 <label>
                   Notes:
                   <textarea
                     name="notes"
                     value={formData.notes || ''}
                     onChange={handleFormChange}
-                    style={{ width: '100%', height: '80px', padding: '0.5rem', marginTop: '0.25rem' }}
                   />
                 </label>
               </div>
-              <div style={{ textAlign: 'right', marginTop: '1.5rem' }}>
+              <div className="form-actions">
                 <button
                   type="button"
                   onClick={() => setFormVisible(false)}
-                  style={{ marginRight: '0.5rem' }}
+                  className="cancel-button"
                 >
                   Cancel
                 </button>
-                <button type="submit">
+                <button type="submit" className="submit-button">
                   {isEditing ? 'Update' : 'Create'}
                 </button>
               </div>
