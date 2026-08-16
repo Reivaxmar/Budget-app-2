@@ -1,4 +1,5 @@
-# Construction Estimate & Quote Management Application  
+# Construction Estimate & Quote Management Application
+
 ## Product & Technical Specification
 
 **Document purpose:** Define a maintainable, extensible application that automates the creation of professional construction estimates/quotes while preserving the flexibility of a document editor.

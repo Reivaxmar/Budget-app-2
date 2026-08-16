@@ -109,7 +109,6 @@ Deterministic document renderer
 Professional PDF
 ```
 
-
 ## Extra stuff
 
 When finishing, always take a look at the `README.md` file to check that everything is explain correctly.
