@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { customerRepository } from '../db/repository';
+import { customerRepositoryClient } from '../db/customerRepositoryClient';
 import { Customer } from '../domain/models';
 
 const CustomersPage: React.FC = () => {
@@ -24,7 +24,7 @@ const CustomersPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await customerRepository.findMany();
+      const data = await customerRepositoryClient.findMany();
       setCustomers(data);
     } catch (err) {
       console.error('Failed to load customers:', err);
@@ -97,10 +97,10 @@ const CustomersPage: React.FC = () => {
     try {
       if (isEditing && selectedCustomer) {
         // Update existing customer
-        await customerRepository.update(selectedCustomer.id, formData as Partial<Omit<Customer, 'id'>>);
+        await customerRepositoryClient.update(selectedCustomer.id, formData as Partial<Omit<Customer, 'id'>>);
       } else {
         // Create new customer
-        await customerRepository.create(formData as Omit<Customer, 'id'>);
+        await customerRepositoryClient.create(formData as Omit<Customer, 'id'>);
       }
       // Close form and reload list
       setFormVisible(false);
@@ -115,7 +115,7 @@ const CustomersPage: React.FC = () => {
   const handleDeleteCustomer = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
       try {
-        await customerRepository.delete(id);
+        await customerRepositoryClient.delete(id);
         await loadCustomers();
       } catch (err) {
         console.error('Failed to delete customer:', err);
@@ -181,7 +181,7 @@ const CustomersPage: React.FC = () => {
           <tbody>
             {filteredCustomers.length === 0 ? (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '1rem' }}>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '1rem' }}>
                   No customers found.
                 </td>
               </tr>

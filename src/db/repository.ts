@@ -7,14 +7,14 @@ import {
   templates,
   userProfiles,
   standardTexts,
-  type Customer,
-  type Estimate,
-  type Chapter,
-  type LineItem,
-  type Template,
-  type UserProfile,
-  type StandardText,
 } from './schema'
+import type { Customer } from '../domain/models'
+import type { Estimate } from '../domain/models'
+import type { Chapter } from '../domain/models'
+import type { LineItem } from '../domain/models'
+import type { Template } from '../domain/models'
+import type { UserProfile } from '../domain/models'
+import type { StandardText } from '../domain/models'
 import { eq, asc } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 
@@ -39,8 +39,11 @@ export const customerRepository = {
       .returning()
 
     return {
-      ...result,
+      id: result.id,
+      name: result.name,
+      address: result.address,
       phone: toDomainString(result.phone),
+      email: toDomainString(result.email),
       taxId: toDomainString(result.taxId),
       notes: toDomainString(result.notes),
     } as Customer
@@ -55,8 +58,11 @@ export const customerRepository = {
     if (!result) return null
 
     return {
-      ...result,
+      id: result.id,
+      name: result.name,
+      address: result.address,
       phone: toDomainString(result.phone),
+      email: toDomainString(result.email),
       taxId: toDomainString(result.taxId),
       notes: toDomainString(result.notes),
     } as Customer
@@ -65,8 +71,11 @@ export const customerRepository = {
   findMany: async () => {
     const results = await db.select().from(customers).all()
     return results.map((r) => ({
-      ...r,
+      id: r.id,
+      name: r.name,
+      address: r.address,
       phone: toDomainString(r.phone),
+      email: toDomainString(r.email),
       taxId: toDomainString(r.taxId),
       notes: toDomainString(r.notes),
     })) as Customer[]
@@ -87,8 +96,11 @@ export const customerRepository = {
       .returning()
 
     return {
-      ...result,
+      id: result.id,
+      name: result.name,
+      address: result.address,
       phone: toDomainString(result.phone),
+      email: toDomainString(result.email),
       taxId: toDomainString(result.taxId),
       notes: toDomainString(result.notes),
     } as Customer
