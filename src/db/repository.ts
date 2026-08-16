@@ -16,7 +16,17 @@ import type { Template } from '../domain/models'
 import type { UserProfile } from '../domain/models'
 import type { StandardText } from '../domain/models'
 import { eq, asc } from 'drizzle-orm'
-import { randomUUID } from 'crypto'
+// Use browser crypto API for randomUUID in Tauri frontend
+const randomUUID = () => {
+  // @ts-ignore: crypto is available on window in browser/Tauri
+  if (typeof crypto !== 'undefined') {
+    return crypto.randomUUID()
+  }
+  // Fallback for Node.js (if ever used)
+  // @ts-ignore: require is available in Node.js
+  const { randomUUID: nodeRandomUUID } = require('crypto')
+  return nodeRandomUUID()
+}
 
 // Helper to convert nullable fields to empty string for domain model
 const toDomainString = (value: string | null): string => value ?? ''

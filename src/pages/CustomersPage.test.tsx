@@ -2,6 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import CustomerPage from './CustomersPage';
 import { customerRepository } from '../db/repository';
+import { Customer } from '../domain/models';
 import '@testing-library/jest-dom';
 
 // Mock the customerRepository
@@ -36,10 +37,9 @@ describe('CustomersPage', () => {
 
   it('displays loading state initially', async () => {
     // Mock findMany to return a promise that resolves after a delay
-    (customerRepository.findMany as ReturnType<typeof vi.mock>).mockImplementation(() => {
-      return new Promise(resolve => {
-        setTimeout(() => resolve(mockCustomers), 10);
-      });
+    vi.mocked(customerRepository.findMany).mockImplementation(async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+      return mockCustomers;
     });
 
     render(<CustomerPage />);
@@ -48,7 +48,7 @@ describe('CustomersPage', () => {
   });
 
   it('displays customer list after loading', async () => {
-    (customerRepository.findMany as ReturnType<typeof vi.mock>).mockResolvedValue(mockCustomers);
+    vi.mocked(customerRepository.findMany).mockResolvedValue(mockCustomers);
 
     render(<CustomerPage />);
     // Wait for loading to finish and customers to appear
@@ -58,7 +58,7 @@ describe('CustomersPage', () => {
   });
 
   it('allows searching customers', async () => {
-    (customerRepository.findMany as ReturnType<typeof vi.mock>).mockResolvedValue(mockCustomers);
+    vi.mocked(customerRepository.findMany).mockResolvedValue(mockCustomers);
 
     render(<CustomerPage />);
     await waitFor(() => expect(screen.getByText('Test Customer 1')).toBeInTheDocument());
@@ -73,7 +73,7 @@ describe('CustomersPage', () => {
   });
 
   it('opens create customer form when Add Customer button clicked', async () => {
-    (customerRepository.findMany as ReturnType<typeof vi.mock>).mockResolvedValue([]);
+    vi.mocked(customerRepository.findMany).mockResolvedValue([]);
 
     render(<CustomerPage />);
     await waitFor(() => {
@@ -91,7 +91,7 @@ describe('CustomersPage', () => {
   });
 
   it('validates required fields when submitting form', async () => {
-    (customerRepository.findMany as ReturnType<typeof vi.mock>).mockResolvedValue([]);
+    vi.mocked(customerRepository.findMany).mockResolvedValue([]);
 
     render(<CustomerPage />);
     await waitFor(() => {
@@ -118,8 +118,8 @@ describe('CustomersPage', () => {
       taxId: 'TAX789',
       notes: 'New notes',
     };
-    (customerRepository.findMany as ReturnType<typeof vi.mock>).mockResolvedValue([]);
-    (customerRepository.create as ReturnType<typeof vi.mock>).mockResolvedValue({
+    vi.mocked(customerRepository.findMany).mockResolvedValue([]);
+    vi.mocked(customerRepository.create).mockResolvedValue({
       ...newCustomer,
       id: 'new-id',
     });
@@ -170,8 +170,8 @@ describe('CustomersPage', () => {
       name: 'Updated Name',
       address: 'Updated Address',
     };
-    (customerRepository.findMany as ReturnType<typeof vi.mock>).mockResolvedValue([existingCustomer]);
-    (customerRepository.update as ReturnType<typeof vi.mock>).mockResolvedValue({
+    vi.mocked(customerRepository.findMany).mockResolvedValue([existingCustomer]);
+    vi.mocked(customerRepository.update).mockResolvedValue({
       ...existingCustomer,
       ...updatedData,
     });
@@ -219,8 +219,8 @@ describe('CustomersPage', () => {
       taxId: 'TAXDEL',
       notes: '',
     };
-    (customerRepository.findMany as ReturnType<typeof vi.mock>).mockResolvedValue([customerToDelete]);
-    (customerRepository.delete as ReturnType<typeof vi.mock>).mockResolvedValue(undefined);
+    vi.mocked(customerRepository.findMany).mockResolvedValue([customerToDelete]);
+    vi.mocked(customerRepository.delete).mockResolvedValue(undefined);
 
     render(<CustomerPage />);
     await waitFor(() => {
