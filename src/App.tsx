@@ -4,7 +4,8 @@ import './App.css'
 
 // Import page components
 import DashboardPage from './pages/DashboardPage'
-import EstimatesPage from './pages/EstimatesPage'
+import EstimatesListPage from './pages/EstimatesListPage'
+import EstimateEditorPage from './pages/EstimateEditorPage'
 import ItemLibraryPage from './pages/ItemLibraryPage'
 import TemplatesPage from './pages/TemplatesPage'
 import CompanyProfilePage from './pages/CompanyProfilePage'
@@ -82,7 +83,9 @@ const MainLayout: React.FC = () => {
           <Suspense fallback={<p>Loading...</p>}>
             <Routes>
               <Route path="/" element={<DashboardPage />} />
-              <Route path="/estimates" element={<EstimatesPage />} />
+              <Route path="/estimates" element={<EstimatesListPage />} />
+              <Route path="/estimates/new" element={<EstimateEditorPage />} />
+              <Route path="/estimates/:id/edit" element={<EstimateEditorPage />} />
               <Route path="/customers" element={<CustomersPage />} />
               <Route path="/item-library" element={<ItemLibraryPage />} />
               <Route path="/templates" element={<TemplatesPage />} />

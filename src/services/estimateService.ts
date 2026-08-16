@@ -7,7 +7,7 @@ import { Estimate, Chapter, LineItem } from '../domain/models';
  * @param year - The year for the estimate
  * @returns The generated estimate number
  */
-async function generateEstimateNumber(year: number): Promise<string> {
+export async function generateEstimateNumber(year: number): Promise<string> {
   // Get all estimates for the given year to find the maximum sequence number
   const estimates = await estimateRepository.findMany();
   const yearEstimates = estimates.filter(est => est.year === year);
@@ -188,3 +188,15 @@ export interface ChapterWithLineItems extends Chapter {
 export interface EstimateWithDetails extends Estimate {
   chapters: ChapterWithLineItems[];
 }
+
+// Service object for convenient access
+export const estimateService = {
+  createEstimate,
+  getEstimateWithDetails,
+  updateEstimateHeader,
+  deleteEstimate,
+  duplicateEstimate,
+  calculateEstimateTotal,
+  calculateChapterTotal,
+  generateEstimateNumber,
+};
