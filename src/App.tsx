@@ -1,51 +1,68 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import React from 'react'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import './App.css'
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+// Import page components
+import DashboardPage from './pages/DashboardPage'
+import EstimatesPage from './pages/EstimatesPage'
+import CustomersPage from './pages/CustomersPage'
+import ItemLibraryPage from './pages/ItemLibraryPage'
+import TemplatesPage from './pages/TemplatesPage'
+import CompanyProfilePage from './pages/CompanyProfilePage'
+import SettingsPage from './pages/SettingsPage'
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
-
+const MainLayout: React.FC = () => {
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank" rel="noreferrer">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank" rel="noreferrer">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
-  );
+    <div className="app">
+      <header className="app-header">
+        <h1>Construction Estimate & Quote Management</h1>
+      </header>
+      <nav className="app-nav">
+        <ul>
+          <li>
+            <Link to="/">Dashboard</Link>
+          </li>
+          <li>
+            <Link to="/estimates">Estimates</Link>
+          </li>
+          <li>
+            <Link to="/customers">Customers</Link>
+          </li>
+          <li>
+            <Link to="/item-library">Item Library</Link>
+          </li>
+          <li>
+            <Link to="/templates">Templates</Link>
+          </li>
+          <li>
+            <Link to="/company-profile">Company / User Profile</Link>
+          </li>
+          <li>
+            <Link to="/settings">Settings</Link>
+          </li>
+        </ul>
+      </nav>
+      <main className="app-main">
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/estimates" element={<EstimatesPage />} />
+          <Route path="/customers" element={<CustomersPage />} />
+          <Route path="/item-library" element={<ItemLibraryPage />} />
+          <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/company-profile" element={<CompanyProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Routes>
+      </main>
+    </div>
+  )
 }
 
-export default App;
+function App() {
+  return (
+    <BrowserRouter>
+      <MainLayout />
+    </BrowserRouter>
+  )
+}
+
+export default App
