@@ -145,38 +145,6 @@ const CompanyProfilePage: React.FC = () => {
               />
             </label>
           </div>
-          <div className="form-group">
-            <label>
-              {t('companyProfile.fields.standardNoteTitle')}
-              <input
-                type="text"
-                value={settings.standardNote.title}
-                onChange={(e) =>
-                  setSettings((prev) =>
-                    prev
-                      ? { ...prev, standardNote: { ...prev.standardNote, title: e.target.value } }
-                      : prev
-                  )
-                }
-              />
-            </label>
-          </div>
-          <div className="form-group">
-            <label>
-              {t('companyProfile.fields.standardNoteContent')}
-              <textarea
-                rows={4}
-                value={settings.standardNote.content}
-                onChange={(e) =>
-                  setSettings((prev) =>
-                    prev
-                      ? { ...prev, standardNote: { ...prev.standardNote, content: e.target.value } }
-                      : prev
-                  )
-                }
-              />
-            </label>
-          </div>
         </fieldset>
 
         <div className="form-actions">

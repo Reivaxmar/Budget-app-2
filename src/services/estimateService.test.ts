@@ -21,6 +21,10 @@ const baseEstimateInput = {
   creationDate: '2026-08-15',
   status: 'draft',
   taxRate: 21,
+  introduction: '',
+  templateId: 'template-1',
+  finalNoteTitle: '',
+  finalNoteContent: '',
 };
 
 describe('estimateService', () => {

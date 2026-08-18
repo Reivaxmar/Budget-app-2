@@ -94,6 +94,10 @@ describe('EstimateEditorPage — inline customer creation and single save notifi
       creationDate: new Date('2026-01-01').toISOString(),
       status: 'draft',
       taxRate: 0,
+      introduction: '',
+      templateId: 'template-1',
+      finalNoteTitle: '',
+      finalNoteContent: '',
     };
 
     const chapter: Chapter = {

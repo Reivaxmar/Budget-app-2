@@ -28,6 +28,7 @@ export const estimates = sqliteTable('estimates', {
   creationDate: text('creation_date').notNull(), // ISO string
   status: text('status').notNull().default('draft'),
   taxRate: real('tax_rate').notNull().default(0),
+  introduction: text('introduction').notNull().default(''),
 })
 
 // Chapters table

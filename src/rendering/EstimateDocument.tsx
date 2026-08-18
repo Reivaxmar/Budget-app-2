@@ -22,12 +22,14 @@ function buildStyles(template: DocumentTemplateConfig) {
       fontFamily: typography.fontFamily,
       fontSize: typography.baseFontSize,
       color: colors.text,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
-    coverTopRight: {
+    coverTopLeft: {
       position: 'absolute',
       top: margin,
-      right: margin,
-      textAlign: 'right',
+      left: margin,
+      textAlign: 'left',
     },
     coverSlogan: {
       position: 'absolute',
@@ -38,28 +40,43 @@ function buildStyles(template: DocumentTemplateConfig) {
       fontStyle: 'italic',
       color: colors.muted,
     },
-    coverTitleBlock: {
-      marginTop: 220,
-    },
-    coverEstimateNumber: {
-      fontSize: typography.titleFontSize,
-      fontWeight: 700,
-      marginBottom: 12,
-    },
     coverLabel: {
       fontSize: typography.baseFontSize,
       color: colors.muted,
       textTransform: 'uppercase',
       marginBottom: 2,
     },
-    coverCustomerBlock: {
-      marginTop: 32,
-      fontSize: typography.baseFontSize + 2,
-      lineHeight: 1.5,
-    },
     coverSubjectBlock: {
-      marginTop: 24,
-      fontSize: typography.baseFontSize + 2,
+      maxWidth: '80%',
+      alignItems: 'center',
+    },
+    coverSubjectText: {
+      fontSize: typography.titleFontSize,
+      fontWeight: 700,
+      textAlign: 'center',
+    },
+
+    introSection: {
+      marginBottom: 28,
+    },
+    introSectionTitle: {
+      fontSize: typography.headingFontSize,
+      fontWeight: 700,
+      marginBottom: 8,
+    },
+    introFieldRow: {
+      flexDirection: 'row',
+      marginBottom: 4,
+    },
+    introFieldLabel: {
+      width: 110,
+      color: colors.muted,
+      textTransform: 'uppercase',
+      fontSize: typography.baseFontSize - 1,
+    },
+    introText: {
+      fontSize: typography.baseFontSize,
+      lineHeight: 1.5,
     },
 
     page: {
@@ -167,11 +184,9 @@ function buildStyles(template: DocumentTemplateConfig) {
     },
     signatureBlock: {
       marginTop: 40,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
     },
     signatureBox: {
-      width: '45%',
+      width: '50%',
     },
     signatureLabel: {
       fontSize: typography.baseFontSize,
@@ -225,36 +240,42 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
     : formatDate(estimate.creationDate);
   const columns = template.table.columns;
 
+  const headerBlock = template.header.showEstimateNumberAndDate && (
+    <View style={styles.header} fixed>
+      <Text>Estimate No. {estimate.estimateNumber}</Text>
+      <Text>{dateLabel}</Text>
+    </View>
+  );
+
+  const footerBlock = (template.footer.showPageNumbers || template.footer.showCompanyInfo) && (
+    <View style={styles.footer} fixed>
+      {template.footer.showCompanyInfo ? (
+        <Text>
+          {company.address}, {company.postalCode} · {company.phone} · {company.email}
+        </Text>
+      ) : (
+        <Text />
+      )}
+      {template.footer.showPageNumbers ? (
+        <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
+      ) : null}
+    </View>
+  );
+
   return (
     <Document title={`Estimate ${estimate.estimateNumber}`} author={company.name}>
-      {/* Cover page */}
+      {/* Cover page: estimate number + date top-left, subject centered */}
       <Page size={template.page.size} style={styles.coverPage}>
         {template.cover.showCreationLocationDate && (
-          <View style={styles.coverTopRight}>
+          <View style={styles.coverTopLeft}>
+            <Text>Estimate No. {estimate.estimateNumber}</Text>
             <Text>{dateLabel}</Text>
           </View>
         )}
 
-        <View style={styles.coverTitleBlock}>
-          <Text style={styles.coverEstimateNumber}>Estimate No. {estimate.estimateNumber}</Text>
-
-          <View style={styles.coverCustomerBlock}>
-            <Text style={styles.coverLabel}>Customer</Text>
-            <Text>{customer.name}</Text>
-            <Text>{customer.address}</Text>
-            <Text>
-              {customer.phone} · {customer.email}
-            </Text>
-          </View>
-
-          <View style={styles.coverSubjectBlock}>
-            <Text style={styles.coverLabel}>Subject</Text>
-            <Text>{estimate.subject}</Text>
-          </View>
-          <View style={[styles.coverSubjectBlock, { marginTop: 12 }]}>
-            <Text style={styles.coverLabel}>Site</Text>
-            <Text>{estimate.site}</Text>
-          </View>
+        <View style={styles.coverSubjectBlock}>
+          <Text style={styles.coverLabel}>Subject</Text>
+          <Text style={styles.coverSubjectText}>{estimate.subject}</Text>
         </View>
 
         {template.cover.showSlogan && company.slogan ? (
@@ -262,14 +283,41 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
         ) : null}
       </Page>
 
+      {/* Second page: client details and an overall introduction to the work */}
+      <Page size={template.page.size} style={styles.page} wrap>
+        {headerBlock}
+
+        <View style={styles.introSection}>
+          <Text style={styles.introSectionTitle}>Client</Text>
+          <View style={styles.introFieldRow}>
+            <Text style={styles.introFieldLabel}>Name</Text>
+            <Text>{customer.name}</Text>
+          </View>
+          <View style={styles.introFieldRow}>
+            <Text style={styles.introFieldLabel}>Phone</Text>
+            <Text>{customer.phone}</Text>
+          </View>
+          <View style={styles.introFieldRow}>
+            <Text style={styles.introFieldLabel}>Email</Text>
+            <Text>{customer.email}</Text>
+          </View>
+          <View style={styles.introFieldRow}>
+            <Text style={styles.introFieldLabel}>Site</Text>
+            <Text>{estimate.site}</Text>
+          </View>
+        </View>
+
+        <View style={styles.introSection}>
+          <Text style={styles.introSectionTitle}>Introduction</Text>
+          <Text style={styles.introText}>{estimate.introduction}</Text>
+        </View>
+
+        {footerBlock}
+      </Page>
+
       {/* Content pages: chapters/tables + final section, auto-paginated */}
       <Page size={template.page.size} style={styles.page} wrap>
-        {template.header.showEstimateNumberAndDate && (
-          <View style={styles.header} fixed>
-            <Text>Estimate No. {estimate.estimateNumber}</Text>
-            <Text>{dateLabel}</Text>
-          </View>
-        )}
+        {headerBlock}
 
         {chapters
           .slice()
@@ -320,7 +368,10 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
             </View>
           ))}
 
-        <View style={styles.finalSection} wrap={false} minPresenceAhead={200}>
+        {/* `break` unconditionally starts a new page before this section —
+            the total/note/signature always get their own page, even when
+            there'd be room to fit them after the last chapter. */}
+        <View style={styles.finalSection} wrap={false} break>
           <View style={styles.totalBlock}>
             <View style={styles.totalRow}>
               <Text>{template.finalPage.totalLabel}</Text>
@@ -339,27 +390,10 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
               <Text style={styles.signatureLabel}>{template.finalPage.signatureLabel}</Text>
               <Text style={styles.signatureLine}>{customer.name}</Text>
             </View>
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureLabel}>{company.name}</Text>
-              <Text style={styles.signatureLine}>Signature and date</Text>
-            </View>
           </View>
         </View>
 
-        {(template.footer.showPageNumbers || template.footer.showCompanyInfo) && (
-          <View style={styles.footer} fixed>
-            {template.footer.showCompanyInfo ? (
-              <Text>
-                {company.address}, {company.postalCode} · {company.phone} · {company.email}
-              </Text>
-            ) : (
-              <Text />
-            )}
-            {template.footer.showPageNumbers ? (
-              <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
-            ) : null}
-          </View>
-        )}
+        {footerBlock}
       </Page>
     </Document>
   );

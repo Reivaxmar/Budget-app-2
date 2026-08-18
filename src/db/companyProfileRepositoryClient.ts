@@ -1,17 +1,18 @@
-import type { StandardText, UserProfile } from '../domain/models'
+import type { UserProfile } from '../domain/models'
 
 const STORAGE_KEY = 'budgetapp.companyProfile'
 
 /**
  * The identity and document defaults used when generating PDFs: the
  * company/user profile (SPECS.md §4 UserProfile) shown in the cover/footer,
- * the location shown next to the creation date, and the standard note shown
- * on the final page (SPECS.md §4 StandardText).
+ * and the location shown next to the creation date. The final-page note is
+ * owned by the Template (and snapshotted per-estimate) instead, since it's
+ * presentation, not company identity — see Template.finalPage and
+ * Estimate.finalNoteTitle/finalNoteContent.
  */
 export interface CompanyProfileSettings {
   profile: UserProfile
   creationLocation: string
-  standardNote: StandardText
 }
 
 const DEFAULT_SETTINGS: CompanyProfileSettings = {
@@ -25,12 +26,6 @@ const DEFAULT_SETTINGS: CompanyProfileSettings = {
     slogan: '',
   },
   creationLocation: '',
-  standardNote: {
-    id: 'standard-note-default',
-    key: 'estimate-final-note',
-    title: 'Condiciones del presupuesto',
-    content: '',
-  },
 }
 
 const read = (): CompanyProfileSettings => {
@@ -44,7 +39,6 @@ const read = (): CompanyProfileSettings => {
     return {
       profile: { ...DEFAULT_SETTINGS.profile, ...parsed.profile },
       creationLocation: parsed.creationLocation ?? DEFAULT_SETTINGS.creationLocation,
-      standardNote: { ...DEFAULT_SETTINGS.standardNote, ...parsed.standardNote },
     }
   } catch {
     return DEFAULT_SETTINGS

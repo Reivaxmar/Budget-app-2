@@ -30,6 +30,8 @@ const standardTemplate: Template = {
     totalLabel: 'Total',
     totalCaption: 'IVA no incluido / VAT not included',
     signatureLabel: 'Conforme cliente',
+    noteTitle: 'Condiciones',
+    noteContent: '',
   },
 };
 

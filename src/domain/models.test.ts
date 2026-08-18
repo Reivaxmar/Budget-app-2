@@ -22,6 +22,10 @@ describe('Domain Models', () => {
         creationDate: new Date().toISOString(),
         status: 'draft',
         taxRate: 19,
+        introduction: '',
+        templateId: 'template-1',
+        finalNoteTitle: '',
+        finalNoteContent: '',
       }
 
       expect(estimate).toHaveProperty('id')
@@ -179,6 +183,8 @@ describe('Domain Models', () => {
           totalLabel: 'Total',
           totalCaption: 'IVA no incluido / VAT not included',
           signatureLabel: 'Conforme cliente',
+          noteTitle: 'Condiciones',
+          noteContent: '',
         },
       }
 

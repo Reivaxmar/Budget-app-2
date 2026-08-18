@@ -31,6 +31,10 @@ describe('buildEstimateDocumentData', () => {
       creationDate: '2026-08-15',
       status: 'draft',
       taxRate: 21,
+      introduction: '',
+      templateId: 'template-1',
+      finalNoteTitle: '',
+      finalNoteContent: '',
     });
 
     const chapter = await chapterRepositoryClient.create({
@@ -61,12 +65,6 @@ describe('buildEstimateDocumentData', () => {
         slogan: 'Construimos confianza',
       },
       creationLocation: 'Barcelona',
-      standardNote: {
-        id: 'standard-note-default',
-        key: 'estimate-final-note',
-        title: 'Condiciones',
-        content: 'Presupuesto válido 30 días.',
-      },
     });
 
     const data = await buildEstimateDocumentData(estimate.id);
@@ -77,7 +75,7 @@ describe('buildEstimateDocumentData', () => {
     expect(data.chapters[0].lineItems).toHaveLength(1);
     expect(data.company.name).toBe('Reformas Ortiz S.L.');
     expect(data.creationLocation).toBe('Barcelona');
-    expect(data.standardNote.content).toBe('Presupuesto válido 30 días.');
+    expect(data.standardNote.content).toBe('');
   });
 
   it('throws when the estimate does not exist', async () => {
@@ -95,6 +93,10 @@ describe('buildEstimateDocumentData', () => {
       creationDate: '2026-08-15',
       status: 'draft',
       taxRate: 21,
+      introduction: '',
+      templateId: 'template-1',
+      finalNoteTitle: '',
+      finalNoteContent: '',
     });
 
     await expect(buildEstimateDocumentData(estimate.id)).rejects.toThrow(/customer/i);

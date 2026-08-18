@@ -153,6 +153,10 @@ export async function duplicateEstimate(id: string): Promise<Estimate> {
     creationDate: original.creationDate,
     status: original.status,
     taxRate: original.taxRate,
+    introduction: original.introduction,
+    templateId: original.templateId,
+    finalNoteTitle: original.finalNoteTitle,
+    finalNoteContent: original.finalNoteContent,
   });
 
   // Duplicate chapters and line items

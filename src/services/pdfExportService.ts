@@ -151,7 +151,14 @@ export async function exportEstimatePdf(
       ]);
 
     const data = await buildEstimateDocumentData(estimateId);
-    const resolvedTemplate = template ?? (await templateService.getDefaultTemplate());
+    // The estimate's own chosen template (SPECS §9/§21: the template
+    // governs presentation for this estimate) takes precedence; only fall
+    // back to the default template for older estimates saved before a
+    // template was assigned.
+    const estimateTemplate = data.estimate.templateId
+      ? await templateService.getTemplate(data.estimate.templateId)
+      : null;
+    const resolvedTemplate = template ?? estimateTemplate ?? (await templateService.getDefaultTemplate());
     const blob = await generateEstimatePdfBlob(data, resolvedTemplate);
 
     await destination.write(blob);

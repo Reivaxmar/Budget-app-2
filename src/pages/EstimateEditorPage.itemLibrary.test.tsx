@@ -27,6 +27,10 @@ describe('EstimateEditorPage — insert from library', () => {
     creationDate: new Date('2026-01-01').toISOString(),
     status: 'draft',
     taxRate: 0,
+    introduction: '',
+    templateId: 'template-1',
+    finalNoteTitle: '',
+    finalNoteContent: '',
   };
 
   const chapter: Chapter = {
@@ -80,7 +84,7 @@ describe('EstimateEditorPage — insert from library', () => {
     renderPage();
 
     // Open the "Add Line Item" modal for the chapter
-    await waitFor(() => expect(screen.getByText('Chapter 1')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('1. Chapter 1')).toBeInTheDocument());
     fireEvent.click(screen.getByRole('button', { name: /add line item/i }));
 
     // Search the library and insert the item

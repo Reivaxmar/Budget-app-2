@@ -9,8 +9,9 @@ import {
 import { customerRepositoryClient as customerRepository } from '../db/customerRepositoryClient';
 import { itemRepositoryClient } from '../db/itemRepositoryClient';
 import { appSettingsRepositoryClient } from '../db/appSettingsRepositoryClient';
+import { templateService } from '../services/templateService';
 import { createLineItemFromItem, ensureItemExists, searchItems } from '../services/itemService';
-import { Estimate, Chapter, Item, LineItem, Customer } from '../domain/models';
+import { Estimate, Chapter, Item, LineItem, Customer, Template } from '../domain/models';
 import { notify } from '../notifications';
 import './EstimatesPage.css';
 
@@ -46,6 +47,9 @@ const EstimateEditorPage: React.FC = () => {
   // Item library (for "insert from library" into a line item)
   const [libraryItems, setLibraryItems] = useState<Item[]>([]);
   const [librarySearchTerm, setLibrarySearchTerm] = useState<string>('');
+
+  // Templates (which one governs this estimate's export/presentation)
+  const [templates, setTemplates] = useState<Template[]>([]);
 
   // Quick "add customer" modal, offered next to the customer field when
   // none is selected yet, so the user doesn't have to leave the estimate.
@@ -85,6 +89,20 @@ const EstimateEditorPage: React.FC = () => {
     loadLibraryItems();
   }, []);
 
+  // Load templates for the "which template renders this estimate" picker
+  useEffect(() => {
+    const loadTemplates = async () => {
+      try {
+        await templateService.getDefaultTemplate(); // ensures a built-in default exists
+        const data = await templateService.listTemplates();
+        setTemplates(data);
+      } catch (err) {
+        console.error('Failed to load templates:', err);
+      }
+    };
+    loadTemplates();
+  }, []);
+
   // Load estimate (if not new) and its chapters/line items
   useEffect(() => {
     const loadEstimate = async () => {
@@ -94,7 +112,10 @@ const EstimateEditorPage: React.FC = () => {
         if (!id || id === 'new') {
           // Initialize a blank estimate
           const now = new Date();
-          const { defaultTaxRate } = await appSettingsRepositoryClient.get();
+          const [{ defaultTaxRate }, defaultTemplate] = await Promise.all([
+            appSettingsRepositoryClient.get(),
+            templateService.getDefaultTemplate(),
+          ]);
           const blankEstimate: Estimate = {
             id: '', // will be set after creation
             estimateNumber: '', // will be generated on save
@@ -105,6 +126,10 @@ const EstimateEditorPage: React.FC = () => {
             creationDate: now.toISOString(),
             status: 'draft',
             taxRate: defaultTaxRate,
+            introduction: '',
+            templateId: defaultTemplate.id,
+            finalNoteTitle: defaultTemplate.finalPage.noteTitle,
+            finalNoteContent: defaultTemplate.finalPage.noteContent,
           };
           setEstimate(blankEstimate);
           setChapters([]);
@@ -160,6 +185,25 @@ const EstimateEditorPage: React.FC = () => {
       return {
         ...prev,
         [field]: value,
+      };
+    });
+  };
+
+  // Switching the template updates which one renders this estimate. If the
+  // final-page note hasn't been customized yet (still blank), it's
+  // pre-filled from the newly selected template — matching how a brand new
+  // estimate gets it — without ever overwriting text the user already
+  // typed for this estimate.
+  const handleTemplateChange = (templateId: string) => {
+    const selected = templates.find((tpl) => tpl.id === templateId);
+    setEstimate((prev) => {
+      if (!prev) return null;
+      const shouldPrefillNote = !prev.finalNoteTitle && !prev.finalNoteContent;
+      return {
+        ...prev,
+        templateId,
+        finalNoteTitle: shouldPrefillNote && selected ? selected.finalPage.noteTitle : prev.finalNoteTitle,
+        finalNoteContent: shouldPrefillNote && selected ? selected.finalPage.noteContent : prev.finalNoteContent,
       };
     });
   };
@@ -306,10 +350,16 @@ const EstimateEditorPage: React.FC = () => {
     try {
       if (editingChapterId) {
         // Update existing chapter
-        await chapterRepository.update(editingChapterId, {
+        const updated = await chapterRepository.update(editingChapterId, {
           ...chapterForm,
           estimateId: estimate.id,
         } as Chapter);
+        // Reflect the change in local state — the repository update alone
+        // doesn't touch the chapters already held in state, so without this
+        // the UI kept showing the old title until the page was reloaded.
+        setChapters((prev) =>
+          prev.map((chap) => (chap.id === editingChapterId ? { ...chap, ...updated } : chap))
+        );
       } else {
         // Create new chapter
         const newChapter = await chapterRepository.create({
@@ -791,6 +841,53 @@ const EstimateEditorPage: React.FC = () => {
                 />
               </label>
             </div>
+            <div className="form-group">
+              <label>
+                {t('estimateEditor.fields.template')}
+                <select
+                  value={estimate.templateId || ''}
+                  onChange={(e) => handleTemplateChange(e.target.value)}
+                >
+                  {templates.length === 0 && <option value="">{estimate.templateId}</option>}
+                  {templates.map((tpl) => (
+                    <option key={tpl.id} value={tpl.id}>
+                      {tpl.name}
+                      {tpl.isDefault ? ` ${t('estimateEditor.fields.templateDefaultSuffix')}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="form-group">
+              <label>
+                {t('estimateEditor.fields.introduction')}
+                <textarea
+                  value={estimate.introduction || ''}
+                  onChange={(e) => handleEstimateChange('introduction', e.target.value)}
+                  rows={4}
+                />
+              </label>
+            </div>
+            <div className="form-group">
+              <label>
+                {t('estimateEditor.fields.finalNoteTitle')}
+                <input
+                  type="text"
+                  value={estimate.finalNoteTitle || ''}
+                  onChange={(e) => handleEstimateChange('finalNoteTitle', e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="form-group">
+              <label>
+                {t('estimateEditor.fields.finalNoteContent')}
+                <textarea
+                  value={estimate.finalNoteContent || ''}
+                  onChange={(e) => handleEstimateChange('finalNoteContent', e.target.value)}
+                  rows={6}
+                />
+              </label>
+            </div>
             <div className="form-actions">
               <button type="button" onClick={() => handleSaveHeader()} className="submit-button">
                 {t('estimateEditor.saveHeader')}
@@ -814,10 +911,10 @@ const EstimateEditorPage: React.FC = () => {
       {chapters.length === 0 ? (
         <p>{t('estimateEditor.noChapters')}</p>
       ) : (
-        chapters.map((chapter) => (
+        chapters.map((chapter, chapterIndex) => (
           <div key={chapter.id} style={{ border: '1px solid #ccc', margin: '1rem 0', padding: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3>{chapter.title}</h3>
+              <h3>{chapterIndex + 1}. {chapter.title}</h3>
               <div>
                 <button
                   onClick={() => openChapterModal(chapter)}
@@ -868,6 +965,7 @@ const EstimateEditorPage: React.FC = () => {
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
+                    <th>{t('estimateEditor.lineItemFields.number')}</th>
                     <th>{t('estimateEditor.lineItemFields.code')}</th>
                     <th>{t('estimateEditor.lineItemFields.description')}</th>
                     <th>{t('estimateEditor.lineItemFields.unit')}</th>
@@ -878,8 +976,9 @@ const EstimateEditorPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {chapter.lineItems.map((item) => (
+                  {chapter.lineItems.map((item, itemIndex) => (
                     <tr key={item.id}>
+                      <td>{chapterIndex + 1}.{itemIndex + 1}</td>
                       <td>{item.code}</td>
                       <td>{item.description}</td>
                       <td>{item.unit}</td>

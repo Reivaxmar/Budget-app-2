@@ -41,6 +41,10 @@ describe('getDashboardOverview', () => {
       creationDate: '2026-01-10',
       status: 'draft',
       taxRate: 21,
+      introduction: '',
+      templateId: 'template-1',
+      finalNoteTitle: '',
+      finalNoteContent: '',
     });
     const issuedEstimate = await estimateRepositoryClient.create({
       estimateNumber: '002-26',
@@ -51,6 +55,10 @@ describe('getDashboardOverview', () => {
       creationDate: '2026-02-15',
       status: 'issued',
       taxRate: 21,
+      introduction: '',
+      templateId: 'template-1',
+      finalNoteTitle: '',
+      finalNoteContent: '',
     });
 
     const chapter1 = await chapterRepositoryClient.create({
@@ -121,6 +129,10 @@ describe('getDashboardOverview', () => {
         creationDate: `2026-01-${10 + i}`,
         status: 'draft',
         taxRate: 0,
+        introduction: '',
+        templateId: 'template-1',
+        finalNoteTitle: '',
+        finalNoteContent: '',
       });
     }
 

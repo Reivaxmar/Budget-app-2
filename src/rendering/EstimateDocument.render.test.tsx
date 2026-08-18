@@ -20,11 +20,15 @@ import type { ChapterWithLineItems } from '../domain/calculations';
 const { customer, company, standardNote, creationLocation } = mockEstimateDocumentData;
 
 /** Builds a minimal, valid EstimateDocumentData around a custom set of chapters. */
-function buildEstimateData(chapters: ChapterWithLineItems[]): EstimateDocumentData {
+function buildEstimateData(
+  chapters: ChapterWithLineItems[],
+  estimateOverrides: Partial<EstimateDocumentData['estimate']> = {}
+): EstimateDocumentData {
   return {
     estimate: {
       ...mockEstimateDocumentData.estimate,
       id: 'estimate-synthetic',
+      ...estimateOverrides,
     },
     customer,
     chapters,
@@ -75,9 +79,10 @@ describe('EstimateDocument rendering: representative multi-page document', () =>
 
     const pages = await loadPageDimensions(buffer);
 
-    // Cover page + enough content pages to prove the long descriptions and
-    // five chapters actually forced pagination rather than overlapping.
-    expect(pages.length).toBeGreaterThanOrEqual(3);
+    // Cover page + client/introduction page + enough content pages to prove
+    // the long descriptions and five chapters actually forced pagination
+    // rather than overlapping.
+    expect(pages.length).toBeGreaterThanOrEqual(4);
 
     // A4 in points (react-pdf default for size="A4").
     for (const { width, height } of pages) {
@@ -229,6 +234,8 @@ describe('EstimateDocument rendering: template configuration', () => {
         totalLabel: 'Total presupuesto',
         totalCaption: 'IVA no incluido',
         signatureLabel: 'Firma del cliente',
+        noteTitle: 'Condiciones',
+        noteContent: '',
       },
     };
 
@@ -254,5 +261,54 @@ describe('EstimateDocument rendering: template configuration', () => {
     ]);
 
     expect(defaultBuffer.equals(minimalBuffer)).toBe(false);
+  });
+});
+
+describe('EstimateDocument rendering: client/introduction page', () => {
+  const chapter: ChapterWithLineItems = {
+    id: 'chapter-intro-test',
+    estimateId: 'estimate-synthetic',
+    title: 'Trabajos varios',
+    order: 0,
+    lineItems: [buildLineItem('chapter-intro-test', 0, 'Partida de control.', { unitPrice: 100 })],
+  };
+
+  it('renders a dedicated second page for client details and introduction, ahead of the chapters', async () => {
+    const buffer = await renderEstimateDocumentToBuffer(
+      buildEstimateData([chapter], { introduction: 'Resumen general de los trabajos a realizar.' })
+    );
+    const pages = await loadPageDimensions(buffer);
+
+    // Cover + client/introduction page + at least one chapters/content page.
+    expect(pages.length).toBeGreaterThanOrEqual(3);
+    for (const { width, height } of pages) {
+      expect(width).toBe(595);
+      expect(height).toBe(842);
+    }
+  });
+
+  it('paginates a very long introduction across multiple pages, ahead of a short one', async () => {
+    const shortIntroBuffer = await renderEstimateDocumentToBuffer(
+      buildEstimateData([chapter], { introduction: 'Breve resumen.' })
+    );
+    const longIntroduction = Array.from(
+      { length: 60 },
+      (_, i) => `Párrafo ${i + 1} de una introducción extremadamente larga que describe en detalle el alcance de la obra.`
+    ).join(' ');
+    const longIntroBuffer = await renderEstimateDocumentToBuffer(
+      buildEstimateData([chapter], { introduction: longIntroduction })
+    );
+
+    const shortPages = await loadPageDimensions(shortIntroBuffer);
+    const longPages = await loadPageDimensions(longIntroBuffer);
+
+    expect(longPages.length).toBeGreaterThan(shortPages.length);
+  });
+
+  it('renders correctly with an empty introduction (not yet filled in by the user)', async () => {
+    const buffer = await renderEstimateDocumentToBuffer(buildEstimateData([chapter], { introduction: '' }));
+    const pages = await loadPageDimensions(buffer);
+
+    expect(pages.length).toBeGreaterThanOrEqual(3);
   });
 });

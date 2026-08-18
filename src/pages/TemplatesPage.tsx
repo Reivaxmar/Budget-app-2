@@ -56,6 +56,8 @@ interface TemplateFormState {
   totalLabel: string;
   totalCaption: string;
   signatureLabel: string;
+  noteTitle: string;
+  noteContent: string;
 }
 
 function blankColumns(): ColumnFormState[] {
@@ -90,6 +92,8 @@ function emptyFormState(): TemplateFormState {
     totalLabel: defaultDocumentTemplate.finalPage.totalLabel,
     totalCaption: defaultDocumentTemplate.finalPage.totalCaption,
     signatureLabel: defaultDocumentTemplate.finalPage.signatureLabel,
+    noteTitle: defaultDocumentTemplate.finalPage.noteTitle,
+    noteContent: defaultDocumentTemplate.finalPage.noteContent,
   };
 }
 
@@ -126,6 +130,8 @@ function templateToFormState(template: Template): TemplateFormState {
     totalLabel: template.finalPage.totalLabel,
     totalCaption: template.finalPage.totalCaption,
     signatureLabel: template.finalPage.signatureLabel,
+    noteTitle: template.finalPage.noteTitle,
+    noteContent: template.finalPage.noteContent,
   };
 }
 
@@ -171,6 +177,8 @@ function formStateToTemplateData(form: TemplateFormState): Omit<Template, 'id' |
       totalLabel: form.totalLabel,
       totalCaption: form.totalCaption,
       signatureLabel: form.signatureLabel,
+      noteTitle: form.noteTitle,
+      noteContent: form.noteContent,
     },
   };
 }
@@ -661,6 +669,26 @@ const TemplatesPage: React.FC = () => {
                       type="text"
                       value={formData.signatureLabel}
                       onChange={(e) => setFormData((prev) => ({ ...prev, signatureLabel: e.target.value }))}
+                    />
+                  </label>
+                </div>
+                <div className="form-group">
+                  <label>
+                    {t('templates.modal.sections.noteTitle')}
+                    <input
+                      type="text"
+                      value={formData.noteTitle}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, noteTitle: e.target.value }))}
+                    />
+                  </label>
+                </div>
+                <div className="form-group">
+                  <label>
+                    {t('templates.modal.sections.noteContent')}
+                    <textarea
+                      rows={4}
+                      value={formData.noteContent}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, noteContent: e.target.value }))}
                     />
                   </label>
                 </div>

@@ -11,6 +11,16 @@ export interface Estimate {
   creationDate: string // ISO date string
   status: string // e.g., 'draft', 'issued', 'accepted'
   taxRate: number // Percentage (e.g., 19 for 19%)
+  introduction: string // Overall description of the work, shown on the document's second page
+  templateId: string // Which Template governs this estimate's export/presentation
+  // Final-page note snapshot: pre-filled from the chosen Template's
+  // finalPage.noteTitle/noteContent when the estimate is created (or the
+  // template is changed on a not-yet-customized estimate), then editable
+  // per-estimate from there. Stored on the estimate itself (not just a
+  // reference to the template) so a later edit to the template never
+  // changes an already-issued estimate's rendered output.
+  finalNoteTitle: string
+  finalNoteContent: string
 }
 
 export interface Customer {
@@ -113,6 +123,9 @@ export interface TemplateConfig {
     totalLabel: string
     totalCaption: string
     signatureLabel: string
+    /** Default title/content for the final-page note, snapshotted onto new estimates that use this template. */
+    noteTitle: string
+    noteContent: string
   }
 }
 

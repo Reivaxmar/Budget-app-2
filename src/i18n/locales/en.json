@@ -204,7 +204,9 @@
         "finalPage": "Final page",
         "totalLabel": "Total label:",
         "totalCaption": "Total caption:",
-        "signatureLabel": "Signature label:"
+        "signatureLabel": "Signature label:",
+        "noteTitle": "Final-page note title:",
+        "noteContent": "Final-page note content:"
       }
     }
   },
@@ -225,9 +227,7 @@
       "phone": "Phone:",
       "email": "Email:",
       "slogan": "Slogan:",
-      "creationLocation": "Creation location (e.g. \"Barcelona\"):",
-      "standardNoteTitle": "Final-page note title:",
-      "standardNoteContent": "Final-page note content:"
+      "creationLocation": "Creation location (e.g. \"Barcelona\"):"
     }
   },
   "estimatesList": {
@@ -296,6 +296,11 @@
       "creationDate": "Creation Date:",
       "status": "Status:",
       "taxRate": "Tax Rate (%):",
+      "introduction": "Introduction (overall description of the work):",
+      "template": "Template:",
+      "templateDefaultSuffix": "(default)",
+      "finalNoteTitle": "Final-page note title:",
+      "finalNoteContent": "Final-page note content:",
       "statusOptions": {
         "draft": "Draft",
         "issued": "Issued",
@@ -303,6 +308,7 @@
       }
     },
     "lineItemFields": {
+      "number": "#",
       "code": "Code",
       "description": "Description",
       "unit": "Unit",

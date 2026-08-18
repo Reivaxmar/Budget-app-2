@@ -21,14 +21,23 @@ export async function buildEstimateDocumentData(estimateId: string): Promise<Est
     throw new Error(`Customer ${estimate.customerId} for estimate ${estimateId} not found`);
   }
 
-  const { profile, creationLocation, standardNote } = await companyProfileRepositoryClient.get();
+  const { profile, creationLocation } = await companyProfileRepositoryClient.get();
 
+  // The final-page note is owned by the Template and snapshotted onto the
+  // estimate itself (Estimate.finalNoteTitle/finalNoteContent) when it's
+  // created, so a later edit to the template never changes an
+  // already-issued estimate's rendered output.
   return {
     estimate,
     customer,
     chapters: estimate.chapters,
     company: profile,
-    standardNote,
+    standardNote: {
+      id: `${estimate.id}-final-note`,
+      key: 'estimate-final-note',
+      title: estimate.finalNoteTitle,
+      content: estimate.finalNoteContent,
+    },
     creationLocation,
   };
 }

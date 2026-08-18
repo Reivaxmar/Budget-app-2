@@ -137,6 +137,7 @@ export const estimateRepository = {
         creationDate: estimate.creationDate,
         status: estimate.status,
         taxRate: estimate.taxRate,
+        introduction: estimate.introduction,
       })
       .returning()
 
@@ -168,6 +169,7 @@ export const estimateRepository = {
         creationDate: estimate.creationDate,
         status: estimate.status,
         taxRate: estimate.taxRate,
+        introduction: estimate.introduction,
       })
       .where(eq(estimates.id, id))
       .returning()

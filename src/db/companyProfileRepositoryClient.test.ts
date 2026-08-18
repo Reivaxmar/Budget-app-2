@@ -11,7 +11,6 @@ describe('companyProfileRepositoryClient', () => {
 
     expect(settings.profile.name).toBe('');
     expect(settings.creationLocation).toBe('');
-    expect(settings.standardNote.key).toBe('estimate-final-note');
   });
 
   it('persists updates and returns them on subsequent reads', async () => {
@@ -26,18 +25,11 @@ describe('companyProfileRepositoryClient', () => {
         slogan: 'Construimos confianza',
       },
       creationLocation: 'Barcelona',
-      standardNote: {
-        id: 'standard-note-default',
-        key: 'estimate-final-note',
-        title: 'Condiciones',
-        content: 'Presupuesto válido 30 días.',
-      },
     });
 
     const settings = await companyProfileRepositoryClient.get();
     expect(settings.profile.name).toBe('Reformas Ortiz S.L.');
     expect(settings.creationLocation).toBe('Barcelona');
-    expect(settings.standardNote.content).toBe('Presupuesto válido 30 días.');
   });
 
   it('backfills missing fields from defaults when reading a partial/legacy record', async () => {
@@ -49,6 +41,5 @@ describe('companyProfileRepositoryClient', () => {
     const settings = await companyProfileRepositoryClient.get();
     expect(settings.profile.name).toBe('Legacy Co');
     expect(settings.profile.email).toBe('');
-    expect(settings.standardNote.key).toBe('estimate-final-note');
   });
 });

@@ -222,6 +222,12 @@ export const mockEstimateDocumentData: EstimateDocumentData = {
     creationDate: '2026-08-15',
     status: 'draft',
     taxRate: 21,
+    introduction:
+      'El presente presupuesto contempla la reforma integral de la vivienda, incluyendo demoliciones y trabajos previos, renovación completa de las instalaciones eléctrica y de fontanería, y sustitución de revestimientos, pavimentos y carpintería interior. El objetivo es modernizar la vivienda manteniendo la distribución actual, con acabados de calidad y cumpliendo la normativa vigente en cada una de las instalaciones afectadas.',
+    templateId: 'template-mock-001',
+    finalNoteTitle: 'Condiciones del presupuesto',
+    finalNoteContent:
+      'Presupuesto válido durante 30 días naturales desde la fecha de emisión. El precio no incluye IVA. Forma de pago: 30% a la aceptación del presupuesto, 40% al inicio de obra y 30% a la finalización.',
   },
   customer: {
     id: 'customer-mock-001',
