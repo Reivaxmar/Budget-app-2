@@ -142,6 +142,23 @@ describe('Domain Models', () => {
       const template: Template = {
         id: 'template-1',
         name: 'Default Template',
+        isDefault: true,
+        page: {
+          size: 'A4',
+          marginPt: 48,
+        },
+        typography: {
+          fontFamily: 'Helvetica',
+          baseFontSize: 9,
+          titleFontSize: 22,
+          headingFontSize: 12,
+        },
+        colors: {
+          text: '#1a1a1a',
+          muted: '#666666',
+          tableHeaderBackground: '#eeeeee',
+          borderColor: '#cccccc',
+        },
         cover: {
           backgroundImage: 'https://example.com/cover.jpg',
           showCreationLocationDate: true,
@@ -154,41 +171,41 @@ describe('Domain Models', () => {
           showPageNumbers: true,
           showCompanyInfo: true,
         },
-        typography: {
-          fontFamily: 'Arial, sans-serif',
-          fontSizeTitle: '24pt',
-          fontSizeHeading: '14pt',
-          fontSizeBody: '10pt',
-        },
-        spacing: {
-          paragraphBefore: 6,
-          paragraphAfter: 6,
-          lineHeight: 1.2,
-        },
-        tableRules: {
+        table: {
           showBorders: true,
-          borderWidth: 0.5,
+          columns: [{ key: 'description', label: 'Description', width: '100%' }],
+        },
+        finalPage: {
+          totalLabel: 'Total',
+          totalCaption: 'IVA no incluido / VAT not included',
+          signatureLabel: 'Conforme cliente',
         },
       }
 
       expect(template).toHaveProperty('id')
       expect(template).toHaveProperty('name')
+      expect(template).toHaveProperty('isDefault')
+      expect(template).toHaveProperty('page')
       expect(template).toHaveProperty('cover')
       expect(template).toHaveProperty('header')
       expect(template).toHaveProperty('footer')
       expect(template).toHaveProperty('typography')
-      expect(template).toHaveProperty('spacing')
-      expect(template).toHaveProperty('tableRules')
+      expect(template).toHaveProperty('colors')
+      expect(template).toHaveProperty('table')
+      expect(template).toHaveProperty('finalPage')
 
       // Check types of top-level properties
       expect(typeof template.id).toBe('string')
       expect(typeof template.name).toBe('string')
+      expect(typeof template.isDefault).toBe('boolean')
+      expect(typeof template.page).toBe('object')
       expect(typeof template.cover).toBe('object')
       expect(typeof template.header).toBe('object')
       expect(typeof template.footer).toBe('object')
       expect(typeof template.typography).toBe('object')
-      expect(typeof template.spacing).toBe('object')
-      expect(typeof template.tableRules).toBe('object')
+      expect(typeof template.colors).toBe('object')
+      expect(typeof template.table).toBe('object')
+      expect(typeof template.finalPage).toBe('object')
     })
   })
 

@@ -3,7 +3,16 @@ import {
   chapterRepositoryClient as chapterRepository,
   lineItemRepositoryClient as lineItemRepository,
 } from '../db/estimateRepositoryClient';
-import { Estimate, Chapter, LineItem } from '../domain/models';
+import { Estimate } from '../domain/models';
+import {
+  calculateChapterTotal,
+  calculateEstimateTotal,
+  ChapterWithLineItems,
+  EstimateWithDetails,
+} from '../domain/calculations';
+
+export type { ChapterWithLineItems, EstimateWithDetails };
+export { calculateChapterTotal, calculateEstimateTotal };
 
 /**
  * Generates an estimate number in the format "###-YY" (e.g., "001-24")
@@ -160,37 +169,6 @@ export async function duplicateEstimate(id: string): Promise<Estimate> {
   }
 
   return newEstimate;
-}
-
-/**
- * Calculates the total amount of an estimate from its chapters and line items.
- * @param estimate - The estimate with chapters and line items
- * @returns The total amount
- */
-export function calculateEstimateTotal(estimate: EstimateWithDetails): number {
-  return estimate.chapters.reduce((total, chapter) => {
-    return total + chapter.lineItems.reduce((chapterTotal, item) => {
-      return chapterTotal + item.amount;
-    }, 0);
-  }, 0);
-}
-
-/**
- * Calculates the total amount of a chapter from its line items.
- * @param chapter - The chapter with line items
- * @returns The chapter total
- */
-export function calculateChapterTotal(chapter: ChapterWithLineItems): number {
-  return chapter.lineItems.reduce((total, item) => total + item.amount, 0);
-}
-
-// Helper types for nested structures
-export interface ChapterWithLineItems extends Chapter {
-  lineItems: LineItem[];
-}
-
-export interface EstimateWithDetails extends Estimate {
-  chapters: ChapterWithLineItems[];
 }
 
 // Service object for convenient access

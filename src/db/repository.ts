@@ -306,6 +306,21 @@ export const lineItemRepository = {
   },
 }
 
+// Deserializes a raw `templates` row (JSON-text columns) into a domain Template.
+const toDomainTemplate = (row: typeof templates.$inferSelect): Template => ({
+  id: row.id,
+  name: row.name,
+  isDefault: row.isDefault,
+  page: JSON.parse(row.page),
+  typography: JSON.parse(row.typography),
+  colors: JSON.parse(row.colors),
+  cover: JSON.parse(row.cover),
+  header: JSON.parse(row.header),
+  footer: JSON.parse(row.footer),
+  table: JSON.parse(row.table),
+  finalPage: JSON.parse(row.finalPage),
+})
+
 // Template repository
 export const templateRepository = {
   create: async (template: Omit<Template, 'id'>) => {
@@ -315,24 +330,19 @@ export const templateRepository = {
       .values({
         id,
         name: template.name,
+        isDefault: template.isDefault,
+        page: JSON.stringify(template.page),
+        typography: JSON.stringify(template.typography),
+        colors: JSON.stringify(template.colors),
         cover: JSON.stringify(template.cover),
         header: JSON.stringify(template.header),
         footer: JSON.stringify(template.footer),
-        typography: JSON.stringify(template.typography),
-        spacing: JSON.stringify(template.spacing),
-        tableRules: JSON.stringify(template.tableRules),
+        table: JSON.stringify(template.table),
+        finalPage: JSON.stringify(template.finalPage),
       })
       .returning()
 
-    return {
-      ...result,
-      cover: JSON.parse(result.cover),
-      header: JSON.parse(result.header),
-      footer: JSON.parse(result.footer),
-      typography: JSON.parse(result.typography),
-      spacing: JSON.parse(result.spacing),
-      tableRules: JSON.parse(result.tableRules),
-    } as Template
+    return toDomainTemplate(result)
   },
 
   findById: async (id: string) => {
@@ -343,54 +353,39 @@ export const templateRepository = {
       .get()
     if (!result) return null
 
-    return {
-      ...result,
-      cover: JSON.parse(result.cover),
-      header: JSON.parse(result.header),
-      footer: JSON.parse(result.footer),
-      typography: JSON.parse(result.typography),
-      spacing: JSON.parse(result.spacing),
-      tableRules: JSON.parse(result.tableRules),
-    } as Template
+    return toDomainTemplate(result)
   },
 
   findMany: async () => {
     const results = await db.select().from(templates).all()
-    return results.map((r) => ({
-      ...r,
-      cover: JSON.parse(r.cover),
-      header: JSON.parse(r.header),
-      footer: JSON.parse(r.footer),
-      typography: JSON.parse(r.typography),
-      spacing: JSON.parse(r.spacing),
-      tableRules: JSON.parse(r.tableRules),
-    })) as Template[]
+    return results.map(toDomainTemplate)
   },
 
   update: async (id: string, template: Partial<Omit<Template, 'id'>>) => {
+    const existing = await db.select().from(templates).where(eq(templates.id, id)).get()
+    if (!existing) {
+      throw new Error(`Template ${id} not found`)
+    }
+    const merged = { ...toDomainTemplate(existing), ...template }
+
     const [result] = await db
       .update(templates)
       .set({
-        name: template.name,
-        cover: JSON.stringify(template.cover ?? {}),
-        header: JSON.stringify(template.header ?? {}),
-        footer: JSON.stringify(template.footer ?? {}),
-        typography: JSON.stringify(template.typography ?? {}),
-        spacing: JSON.stringify(template.spacing ?? {}),
-        tableRules: JSON.stringify(template.tableRules ?? {}),
+        name: merged.name,
+        isDefault: merged.isDefault,
+        page: JSON.stringify(merged.page),
+        typography: JSON.stringify(merged.typography),
+        colors: JSON.stringify(merged.colors),
+        cover: JSON.stringify(merged.cover),
+        header: JSON.stringify(merged.header),
+        footer: JSON.stringify(merged.footer),
+        table: JSON.stringify(merged.table),
+        finalPage: JSON.stringify(merged.finalPage),
       })
       .where(eq(templates.id, id))
       .returning()
 
-    return {
-      ...result,
-      cover: JSON.parse(result.cover),
-      header: JSON.parse(result.header),
-      footer: JSON.parse(result.footer),
-      typography: JSON.parse(result.typography),
-      spacing: JSON.parse(result.spacing),
-      tableRules: JSON.parse(result.tableRules),
-    } as Template
+    return toDomainTemplate(result)
   },
 
   delete: async (id: string) => {

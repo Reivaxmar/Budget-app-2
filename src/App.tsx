@@ -12,6 +12,7 @@ import CompanyProfilePage from './pages/CompanyProfilePage'
 import SettingsPage from './pages/SettingsPage'
 
 const CustomersPage = lazy(() => import('./pages/CustomersPage'))
+const DocumentPrototypePage = lazy(() => import('./pages/DocumentPrototypePage'))
 
 type ErrorBoundaryState = {
   hasError: boolean
@@ -71,6 +72,9 @@ const MainLayout: React.FC = () => {
             <Link to="/templates">Templates</Link>
           </li>
           <li>
+            <Link to="/document-prototype">Document Prototype</Link>
+          </li>
+          <li>
             <Link to="/company-profile">Company / User Profile</Link>
           </li>
           <li>
@@ -89,6 +93,7 @@ const MainLayout: React.FC = () => {
               <Route path="/customers" element={<CustomersPage />} />
               <Route path="/item-library" element={<ItemLibraryPage />} />
               <Route path="/templates" element={<TemplatesPage />} />
+              <Route path="/document-prototype" element={<DocumentPrototypePage />} />
               <Route path="/company-profile" element={<CompanyProfilePage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Routes>

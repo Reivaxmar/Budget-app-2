@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createLineItemFromItem, searchItems } from './itemService';
+import { createLineItemFromItem, ensureItemExists, findExistingItem, searchItems } from './itemService';
 import { itemRepositoryClient } from '../db/itemRepositoryClient';
 import { lineItemRepositoryClient } from '../db/estimateRepositoryClient';
 import type { Item } from '../domain/models';
@@ -144,5 +144,79 @@ describe('item library changes do not affect estimates that already used them', 
 
     const stillInLibrary = await itemRepositoryClient.findById(item.id);
     expect(stillInLibrary).toBeNull();
+  });
+});
+
+describe('findExistingItem', () => {
+  const items: Item[] = [
+    {
+      id: '1',
+      code: 'BRK-001',
+      description: 'Red brick, standard size',
+      unit: 'pcs',
+      defaultPrice: 0.75,
+      category: 'Masonry',
+      keywords: 'brick red masonry',
+    },
+  ];
+
+  it('finds an item by exact description match, case-insensitively and trimmed', () => {
+    expect(findExistingItem(items, '  red brick, standard size  ')).toEqual(items[0]);
+  });
+
+  it('returns undefined when no item matches or the description is empty', () => {
+    expect(findExistingItem(items, 'nonexistent')).toBeUndefined();
+    expect(findExistingItem(items, '   ')).toBeUndefined();
+  });
+});
+
+describe('ensureItemExists', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('creates a new library item when no existing item matches the description', async () => {
+    const created = await ensureItemExists([], {
+      code: 'NEW-1',
+      description: 'Brand new item',
+      unit: 'pcs',
+      unitPrice: 4.5,
+    });
+
+    expect(created).toBeDefined();
+    expect(created?.description).toBe('Brand new item');
+    expect(created?.code).toBe('NEW-1');
+    expect(created?.defaultPrice).toBe(4.5);
+
+    const persisted = await itemRepositoryClient.findById(created!.id);
+    expect(persisted).not.toBeNull();
+  });
+
+  it('returns the existing item and does not create a duplicate', async () => {
+    const existing = await itemRepositoryClient.create({
+      code: 'BRK-001',
+      description: 'Red brick, standard size',
+      unit: 'pcs',
+      defaultPrice: 0.75,
+      category: 'Masonry',
+      keywords: 'brick red masonry',
+    });
+
+    const result = await ensureItemExists([existing], {
+      description: 'red brick, standard size',
+    });
+
+    expect(result?.id).toBe(existing.id);
+
+    const all = await itemRepositoryClient.findMany();
+    expect(all).toHaveLength(1);
+  });
+
+  it('returns undefined and creates nothing when the description is empty', async () => {
+    const result = await ensureItemExists([], { description: '  ' });
+
+    expect(result).toBeUndefined();
+    const all = await itemRepositoryClient.findMany();
+    expect(all).toHaveLength(0);
   });
 });

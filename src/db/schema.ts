@@ -55,20 +55,22 @@ export const lineItems = sqliteTable('line_items', {
   order: integer('order').notNull(),
 })
 
-// Templates table (simplified as per the domain model)
+// Templates table. The nested TemplateConfig sections (page, typography,
+// colors, cover, header, footer, table, finalPage — see domain/models.ts)
+// are stored as JSON text rather than broken into columns, since they are
+// only ever read/written as a whole structured configuration.
 export const templates = sqliteTable('templates', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
-  // We'll store the JSON object as text for simplicity, or we can break it out.
-  // For now, we'll store the entire template as a JSON string.
-  // Alternatively, we can create separate tables for each section, but the domain model is nested.
-  // Since the domain model for Template is nested and we want to keep it simple, we'll store as JSON.
+  isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+  page: text('page').notNull().default('{}'),
+  typography: text('typography').notNull().default('{}'),
+  colors: text('colors').notNull().default('{}'),
   cover: text('cover').notNull().default('{}'),
   header: text('header').notNull().default('{}'),
   footer: text('footer').notNull().default('{}'),
-  typography: text('typography').notNull().default('{}'),
-  spacing: text('spacing').notNull().default('{}'),
-  tableRules: text('table_rules').notNull().default('{}'),
+  table: text('table_config').notNull().default('{}'),
+  finalPage: text('final_page').notNull().default('{}'),
 })
 
 // UserProfile table

@@ -52,43 +52,76 @@ export interface Item {
   keywords: string // Optional search keywords, empty string if none
 }
 
-export interface Template {
-  id: string
-  name: string
-  cover: {
-    backgroundImage?: string // URL or path
-    showCreationLocationDate?: boolean
-    showSlogan?: boolean
-    // Additional cover properties can be added here
-  }
-  header: {
-    showEstimateNumberAndDate?: boolean
-    // Additional header properties
-  }
-  footer: {
-    showPageNumbers?: boolean
-    showCompanyInfo?: boolean
-    // Additional footer properties
+// A template controls document *presentation* only — it never carries
+// estimate data (SPECS.md §9, §21). The shape here is a constrained,
+// structured configuration (page layout, typography, colors, cover,
+// header, footer, table columns, final-page wording) rather than a
+// free-form/WYSIWYG layout, so rendering stays deterministic.
+
+export type TableColumnKey =
+  | 'itemNumber'
+  | 'description'
+  | 'unit'
+  | 'quantity'
+  | 'unitPrice'
+  | 'amount'
+
+export interface TableColumnConfig {
+  key: TableColumnKey
+  label: string
+  /** CSS-style percentage width, e.g. "44%". Widths across columns should sum to 100%. */
+  width: string
+  align?: 'left' | 'center' | 'right'
+}
+
+/** The resolved presentation configuration a template supplies to the renderer. */
+export interface TemplateConfig {
+  page: {
+    size: 'A4'
+    marginPt: number
   }
   typography: {
-    fontFamily?: string
-    fontSizeTitle?: string
-    fontSizeHeading?: string
-    fontSizeBody?: string
-    // Additional typography properties
+    fontFamily: string
+    baseFontSize: number
+    titleFontSize: number
+    headingFontSize: number
   }
-  spacing: {
-    paragraphBefore?: number // in pt or px
-    paragraphAfter?: number
-    lineHeight?: number
-    // Additional spacing properties
+  colors: {
+    text: string
+    muted: string
+    tableHeaderBackground: string
+    borderColor: string
   }
-  tableRules: {
-    showBorders?: boolean
-    borderWidth?: number
-    // Additional table properties
+  cover: {
+    showCreationLocationDate: boolean
+    showSlogan: boolean
+    /** Data URI or bundled asset path; omitted when the cover has no background image. */
+    backgroundImage?: string
   }
-  // Note: This is a simplified template model. In practice, this would be more complex.
+  header: {
+    showEstimateNumberAndDate: boolean
+  }
+  footer: {
+    showPageNumbers: boolean
+    showCompanyInfo: boolean
+  }
+  table: {
+    columns: TableColumnConfig[]
+    showBorders: boolean
+  }
+  finalPage: {
+    totalLabel: string
+    totalCaption: string
+    signatureLabel: string
+  }
+}
+
+/** A saved, reusable template record (persistence + identity on top of TemplateConfig). */
+export interface Template extends TemplateConfig {
+  id: string
+  name: string
+  /** At most one template should be the default at a time. */
+  isDefault: boolean
 }
 
 export interface UserProfile {

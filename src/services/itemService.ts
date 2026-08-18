@@ -43,6 +43,44 @@ export function searchItems(items: Item[], term: string): Item[] {
   );
 }
 
+export function findExistingItem(items: Item[], description: string): Item | undefined {
+  const normalized = description.trim().toLowerCase();
+  if (!normalized) {
+    return undefined;
+  }
+
+  return items.find((item) => item.description.trim().toLowerCase() === normalized);
+}
+
+/**
+ * Ensures an item with this description exists in the library, creating one
+ * from the given draft if it doesn't. Returns the existing or newly created
+ * item, or undefined if the draft has no description to key off of.
+ */
+export async function ensureItemExists(
+  items: Item[],
+  draft: { code?: string; description?: string; unit?: string; unitPrice?: number }
+): Promise<Item | undefined> {
+  const description = draft.description?.trim();
+  if (!description) {
+    return undefined;
+  }
+
+  const existing = findExistingItem(items, description);
+  if (existing) {
+    return existing;
+  }
+
+  return itemRepositoryClient.create({
+    code: draft.code ?? '',
+    description,
+    unit: draft.unit ?? '',
+    defaultPrice: draft.unitPrice ?? 0,
+    category: '',
+    keywords: '',
+  });
+}
+
 export const itemService = {
   createItem: itemRepositoryClient.create,
   updateItem: itemRepositoryClient.update,
@@ -50,4 +88,6 @@ export const itemService = {
   findItems: itemRepositoryClient.findMany,
   createLineItemFromItem,
   searchItems,
+  findExistingItem,
+  ensureItemExists,
 };

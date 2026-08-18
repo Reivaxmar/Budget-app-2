@@ -7,7 +7,7 @@ import {
 } from '../db/estimateRepositoryClient';
 import { customerRepositoryClient as customerRepository } from '../db/customerRepositoryClient';
 import { itemRepositoryClient } from '../db/itemRepositoryClient';
-import { createLineItemFromItem, searchItems } from '../services/itemService';
+import { createLineItemFromItem, ensureItemExists, searchItems } from '../services/itemService';
 import { Estimate, Chapter, Item, LineItem } from '../domain/models';
 import './EstimatesPage.css';
 
@@ -419,6 +419,14 @@ const EstimateEditorPage: React.FC = () => {
           return chap;
         })
       );
+
+      // Auto-add unrecognized items to the item library so they're
+      // available for reuse next time.
+      const newLibraryItem = await ensureItemExists(libraryItems, data);
+      if (newLibraryItem && !libraryItems.some((item) => item.id === newLibraryItem.id)) {
+        setLibraryItems((prev) => [...prev, newLibraryItem]);
+      }
+
       closeLineItemModal();
     } catch (err) {
       console.error('Failed to save line item:', err);
