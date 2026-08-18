@@ -20,6 +20,16 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_process::init())
+        .setup(|app| {
+            // Desktop-only, matching the updater plugin's own support
+            // matrix (see the target-gated dependency in Cargo.toml).
+            #[cfg(desktop)]
+            {
+                app.handle().plugin(tauri_plugin_updater::Builder::new().build())?;
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![greet, write_binary_file])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

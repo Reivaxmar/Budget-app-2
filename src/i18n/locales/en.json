@@ -16,6 +16,16 @@
       "message": "Please return to Dashboard and try again."
     }
   },
+  "update": {
+    "title": "Update available",
+    "description": "Version {{version}} is available. Would you like to update now?",
+    "later": "Later",
+    "updateButton": "Update",
+    "installing": "Installing…",
+    "errors": {
+      "installFailed": "Failed to download and install the update."
+    }
+  },
   "common": {
     "loading": "Loading...",
     "actions": "Actions",

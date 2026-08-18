@@ -90,3 +90,11 @@ is more visually settled.
 npm run build          # frontend production build
 npm run tauri build    # packaged desktop application
 ```
+
+## Auto-updates
+
+Packaged builds check for updates on startup via `tauri-plugin-updater` (signed update
+artifacts, GitHub Releases as the update source) and offer to install/relaunch via
+`tauri-plugin-process` — see `src/components/UpdateDialog.tsx`. This is disabled/inert when
+running in a browser (`npm run dev`). Publishing a signed release requires a one-time setup
+(signing keys, GitHub secrets); see [`DIST.md`](./DIST.md) for the full walkthrough.

@@ -1,0 +1,77 @@
+:root {
+  --update-modal-background: white;
+  --update-modal-text: black;
+  --update-error-text: #c62828;
+  --button-cancel-background: #6c757d;
+  --button-cancel-text: white;
+  --button-submit-background: #007bff;
+  --button-submit-text: white;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --update-modal-background: #1e1e1e;
+    --update-modal-text: #e0e0e0;
+    --update-error-text: #ff6b6b;
+    --button-cancel-background: #6c757d;
+    --button-cancel-text: white;
+    --button-submit-background: #0d6efd;
+    --button-submit-text: white;
+  }
+}
+
+.update-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.update-dialog {
+  background-color: var(--update-modal-background);
+  color: var(--update-modal-text);
+  padding: 1.5rem 2rem;
+  border-radius: 8px;
+  width: 380px;
+  max-width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.update-dialog h2 {
+  margin-top: 0;
+}
+
+.update-dialog-error {
+  color: var(--update-error-text);
+}
+
+.update-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+
+.update-dialog-actions .cancel-button {
+  background-color: var(--button-cancel-background);
+  color: var(--button-cancel-text);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.update-dialog-actions .submit-button {
+  background-color: var(--button-submit-background);
+  color: var(--button-submit-text);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}

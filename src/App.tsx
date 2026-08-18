@@ -12,6 +12,7 @@ import {
   CompanyProfileIcon,
   SettingsIcon,
 } from './components/NavIcons'
+import UpdateDialog from './components/UpdateDialog'
 
 // Import page components
 import DashboardPage from './pages/DashboardPage'
@@ -85,6 +86,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="app">
+      <UpdateDialog />
       <aside className="app-sidebar">
         <div className="app-brand">
           <span className="app-brand-mark">P2K</span>
