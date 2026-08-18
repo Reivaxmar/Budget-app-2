@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { customerRepositoryClient } from '../db/customerRepositoryClient';
 import { Customer } from '../domain/models';
+import { notify } from '../notifications';
 import './CustomersPage.css';
 
 const CustomersPage: React.FC = () => {
@@ -87,13 +88,13 @@ const CustomersPage: React.FC = () => {
     e.preventDefault();
     // Basic validation
     if (!formData.name || !formData.address || !formData.email) {
-      alert(t('customers.errors.requiredFields'));
+      notify(t('customers.errors.requiredFields'), 'error');
       return;
     }
     // Optional: simple email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email && !emailRegex.test(formData.email)) {
-      alert(t('customers.errors.invalidEmail'));
+      notify(t('customers.errors.invalidEmail'), 'error');
       return;
     }
 
@@ -110,7 +111,7 @@ const CustomersPage: React.FC = () => {
       await loadCustomers();
     } catch (err) {
       console.error('Failed to save customer:', err);
-      alert(t('customers.errors.saveFailed'));
+      notify(t('customers.errors.saveFailed'), 'error');
     }
   };
 
@@ -122,7 +123,7 @@ const CustomersPage: React.FC = () => {
         await loadCustomers();
       } catch (err) {
         console.error('Failed to delete customer:', err);
-        alert(t('customers.errors.deleteFailed'));
+        notify(t('customers.errors.deleteFailed'), 'error');
       }
     }
   };

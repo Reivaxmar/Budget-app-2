@@ -2,10 +2,12 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import TemplatesPage from './TemplatesPage';
 import { templateService } from '../services/templateService';
+import { notify } from '../notifications';
 import type { Template } from '../domain/models';
 import '@testing-library/jest-dom';
 
 vi.mock('../services/templateService');
+vi.mock('../notifications');
 
 const standardTemplate: Template = {
   id: 'template-1',
@@ -85,8 +87,6 @@ describe('TemplatesPage', () => {
 
   it('rejects submission without a template name', async () => {
     vi.mocked(templateService.listTemplates).mockResolvedValue([standardTemplate]);
-    const originalAlert = window.alert;
-    window.alert = vi.fn();
 
     const { container } = render(<TemplatesPage />);
     await waitFor(() => expect(screen.queryByText(/loading templates/i)).not.toBeInTheDocument());
@@ -95,8 +95,7 @@ describe('TemplatesPage', () => {
     fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
     expect(templateService.createTemplate).not.toHaveBeenCalled();
-    expect(window.alert).toHaveBeenCalled();
-    window.alert = originalAlert;
+    expect(notify).toHaveBeenCalledWith(expect.any(String), 'error');
   });
 
   it('edits an existing template, including toggling a table column off', async () => {
@@ -161,9 +160,7 @@ describe('TemplatesPage', () => {
       new Error('Cannot delete the only remaining template.')
     );
     const originalConfirm = window.confirm;
-    const originalAlert = window.alert;
     window.confirm = vi.fn(() => true);
-    window.alert = vi.fn();
 
     render(<TemplatesPage />);
     await screen.findByText('Standard');
@@ -172,10 +169,9 @@ describe('TemplatesPage', () => {
 
     await waitFor(() => {
       expect(templateService.deleteTemplate).toHaveBeenCalledWith(standardTemplate.id);
-      expect(window.alert).toHaveBeenCalledWith('Cannot delete the only remaining template.');
+      expect(notify).toHaveBeenCalledWith('Cannot delete the only remaining template.', 'error');
     });
 
     window.confirm = originalConfirm;
-    window.alert = originalAlert;
   });
 });

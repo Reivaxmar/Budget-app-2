@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { itemRepositoryClient } from '../db/itemRepositoryClient';
 import { searchItems } from '../services/itemService';
 import { Item } from '../domain/models';
+import { notify } from '../notifications';
 import './ItemLibraryPage.css';
 
 const emptyFormData: Partial<Item> = {
@@ -81,7 +82,7 @@ const ItemLibraryPage: React.FC = () => {
   const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.description || !formData.unit) {
-      alert(t('itemLibrary.errors.requiredFields'));
+      notify(t('itemLibrary.errors.requiredFields'), 'error');
       return;
     }
 
@@ -98,7 +99,7 @@ const ItemLibraryPage: React.FC = () => {
       await loadItems();
     } catch (err) {
       console.error('Failed to save item:', err);
-      alert(t('itemLibrary.errors.saveFailed'));
+      notify(t('itemLibrary.errors.saveFailed'), 'error');
     }
   };
 
@@ -109,7 +110,7 @@ const ItemLibraryPage: React.FC = () => {
         await loadItems();
       } catch (err) {
         console.error('Failed to delete item:', err);
-        alert(t('itemLibrary.errors.deleteFailed'));
+        notify(t('itemLibrary.errors.deleteFailed'), 'error');
       }
     }
   };

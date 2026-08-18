@@ -8,8 +8,10 @@ import {
 } from '../db/estimateRepositoryClient';
 import { customerRepositoryClient as customerRepository } from '../db/customerRepositoryClient';
 import { itemRepositoryClient } from '../db/itemRepositoryClient';
+import { appSettingsRepositoryClient } from '../db/appSettingsRepositoryClient';
 import { createLineItemFromItem, ensureItemExists, searchItems } from '../services/itemService';
-import { Estimate, Chapter, Item, LineItem } from '../domain/models';
+import { Estimate, Chapter, Item, LineItem, Customer } from '../domain/models';
+import { notify } from '../notifications';
 import './EstimatesPage.css';
 
 const EstimateEditorPage: React.FC = () => {
@@ -44,6 +46,18 @@ const EstimateEditorPage: React.FC = () => {
   // Item library (for "insert from library" into a line item)
   const [libraryItems, setLibraryItems] = useState<Item[]>([]);
   const [librarySearchTerm, setLibrarySearchTerm] = useState<string>('');
+
+  // Quick "add customer" modal, offered next to the customer field when
+  // none is selected yet, so the user doesn't have to leave the estimate.
+  const [customerModalOpen, setCustomerModalOpen] = useState<boolean>(false);
+  const [customerForm, setCustomerForm] = useState<Partial<Customer>>({
+    name: '',
+    address: '',
+    phone: '',
+    email: '',
+    taxId: '',
+    notes: '',
+  });
 
   // Load customers for dropdown
   useEffect(() => {
@@ -80,6 +94,7 @@ const EstimateEditorPage: React.FC = () => {
         if (!id || id === 'new') {
           // Initialize a blank estimate
           const now = new Date();
+          const { defaultTaxRate } = await appSettingsRepositoryClient.get();
           const blankEstimate: Estimate = {
             id: '', // will be set after creation
             estimateNumber: '', // will be generated on save
@@ -89,7 +104,7 @@ const EstimateEditorPage: React.FC = () => {
             site: '',
             creationDate: now.toISOString(),
             status: 'draft',
-            taxRate: 0,
+            taxRate: defaultTaxRate,
           };
           setEstimate(blankEstimate);
           setChapters([]);
@@ -149,13 +164,56 @@ const EstimateEditorPage: React.FC = () => {
     });
   };
 
-  // Save estimate header
-  const handleSaveHeader = async () => {
-    if (!estimate) return;
+  // Quick "add customer" modal handlers
+  const openCustomerModal = () => {
+    setCustomerForm({ name: '', address: '', phone: '', email: '', taxId: '', notes: '' });
+    setCustomerModalOpen(true);
+  };
+
+  const closeCustomerModal = () => {
+    setCustomerModalOpen(false);
+  };
+
+  const handleCustomerFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setCustomerForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveNewCustomer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!customerForm.name || !customerForm.address || !customerForm.email) {
+      notify(t('customers.errors.requiredFields'), 'error');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerForm.email)) {
+      notify(t('customers.errors.invalidEmail'), 'error');
+      return;
+    }
+
+    try {
+      const created = await customerRepository.create(customerForm as Omit<Customer, 'id'>);
+      setCustomers((prev) => [...prev, created]);
+      handleEstimateChange('customerId', created.id);
+      setCustomerModalOpen(false);
+      notify(t('estimateEditor.customerCreated'), 'success');
+    } catch (err) {
+      console.error('Failed to create customer:', err);
+      notify(t('customers.errors.saveFailed'), 'error');
+    }
+  };
+
+  // Save estimate header. `showNotification` is false when called from
+  // handleSaveEstimate, which shows its own single "Estimate saved" toast
+  // instead — otherwise clicking "Save Estimate" would show two toasts.
+  const handleSaveHeader = async (showNotification: boolean = true): Promise<boolean> => {
+    if (!estimate) return false;
     // Validate required fields
     if (!estimate.customerId || !estimate.subject) {
-      alert(t('estimateEditor.errors.customerSubjectRequired'));
-      return;
+      notify(t('estimateEditor.errors.customerSubjectRequired'), 'error');
+      return false;
     }
     try {
       // If estimate.id is empty, we are creating a new estimate
@@ -177,16 +235,21 @@ const EstimateEditorPage: React.FC = () => {
         });
         // After creating header, we need to create chapters and line items
         // But we will handle that separately when user adds them.
-        // For now just show success.
-        alert(t('estimateEditor.successCreated'));
+        if (showNotification) {
+          notify(t('estimateEditor.successCreated'), 'success');
+        }
       } else {
         // Update existing header
         await estimateService.updateEstimateHeader(estimate.id, estimate);
-        alert(t('estimateEditor.successHeaderUpdated'));
+        if (showNotification) {
+          notify(t('estimateEditor.successHeaderUpdated'), 'success');
+        }
       }
+      return true;
     } catch (err) {
       console.error('Failed to save estimate header:', err);
-      alert(t('estimateEditor.errors.saveHeaderFailed'));
+      notify(t('estimateEditor.errors.saveHeaderFailed'), 'error');
+      return false;
     }
   };
 
@@ -201,7 +264,7 @@ const EstimateEditorPage: React.FC = () => {
       await exportEstimatePdf(estimate.id, { estimateNumber: estimate.estimateNumber });
     } catch (err) {
       console.error('Failed to export PDF:', err);
-      alert(err instanceof Error ? err.message : t('estimateEditor.errors.exportFailed'));
+      notify(err instanceof Error ? err.message : t('estimateEditor.errors.exportFailed'), 'error');
     } finally {
       setExportingPdf(false);
     }
@@ -233,11 +296,11 @@ const EstimateEditorPage: React.FC = () => {
   const handleSaveChapter = async () => {
     if (!estimate) return;
     if (!estimate.id) {
-      alert(t('estimateEditor.errors.saveEstimateBeforeChapters'));
+      notify(t('estimateEditor.errors.saveEstimateBeforeChapters'), 'error');
       return;
     }
     if (!chapterForm.title?.trim()) {
-      alert(t('estimateEditor.errors.chapterTitleRequired'));
+      notify(t('estimateEditor.errors.chapterTitleRequired'), 'error');
       return;
     }
     try {
@@ -264,7 +327,7 @@ const EstimateEditorPage: React.FC = () => {
       closeChapterModal();
     } catch (err) {
       console.error('Failed to save chapter:', err);
-      alert(t('estimateEditor.errors.saveChapterFailed'));
+      notify(t('estimateEditor.errors.saveChapterFailed'), 'error');
     }
   };
 
@@ -282,7 +345,7 @@ const EstimateEditorPage: React.FC = () => {
       setChapters((prev) => prev.filter((chap) => chap.id !== chapterId));
     } catch (err) {
       console.error('Failed to delete chapter:', err);
-      alert(t('estimateEditor.errors.deleteChapterFailed'));
+      notify(t('estimateEditor.errors.deleteChapterFailed'), 'error');
     }
   };
 
@@ -411,7 +474,7 @@ const EstimateEditorPage: React.FC = () => {
   const handleSaveLineItem = async () => {
     if (!activeChapterIdForLineItem) return;
     if (!lineItemForm.description?.trim() || !lineItemForm.unit?.trim()) {
-      alert(t('estimateEditor.errors.descriptionUnitRequired'));
+      notify(t('estimateEditor.errors.descriptionUnitRequired'), 'error');
       return;
     }
     try {
@@ -461,7 +524,7 @@ const EstimateEditorPage: React.FC = () => {
       closeLineItemModal();
     } catch (err) {
       console.error('Failed to save line item:', err);
-      alert(t('estimateEditor.errors.saveLineItemFailed'));
+      notify(t('estimateEditor.errors.saveLineItemFailed'), 'error');
     }
   };
 
@@ -483,7 +546,7 @@ const EstimateEditorPage: React.FC = () => {
       );
     } catch (err) {
       console.error('Failed to delete line item:', err);
-      alert(t('estimateEditor.errors.deleteLineItemFailed'));
+      notify(t('estimateEditor.errors.deleteLineItemFailed'), 'error');
     }
   };
 
@@ -556,10 +619,13 @@ const EstimateEditorPage: React.FC = () => {
 
   // Handle saving entire estimate (header + chapters + line items) maybe not needed as we save individually.
   const handleSaveEstimate = async () => {
-    // Save header first
-    await handleSaveHeader();
+    // Save header first, without its own notification — show a single
+    // "Estimate saved" toast instead, and only if the save succeeded.
+    const success = await handleSaveHeader(false);
     // Chapters and line items are saved individually on their own actions.
-    alert(t('estimateEditor.successSaved'));
+    if (success) {
+      notify(t('estimateEditor.successSaved'), 'success');
+    }
   };
 
   // Handle delete estimate
@@ -571,7 +637,7 @@ const EstimateEditorPage: React.FC = () => {
       navigate('/estimates');
     } catch (err) {
       console.error('Failed to delete estimate:', err);
-      alert(t('estimateEditor.errors.deleteEstimateFailed'));
+      notify(t('estimateEditor.errors.deleteEstimateFailed'), 'error');
     }
   };
 
@@ -630,23 +696,35 @@ const EstimateEditorPage: React.FC = () => {
               </label>
             </div>
             <div className="form-group">
-              <label>
-                {t('estimateEditor.fields.customer')}
-                <select
-                  value={estimate.customerId || ''}
-                  onChange={(e) =>
-                    handleEstimateChange('customerId', e.target.value)
-                  }
-                  required
-                >
-                  <option value="">{t('estimateEditor.fields.selectCustomer')}</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="customer-select-row">
+                <label>
+                  {t('estimateEditor.fields.customer')}
+                  <select
+                    value={estimate.customerId || ''}
+                    onChange={(e) =>
+                      handleEstimateChange('customerId', e.target.value)
+                    }
+                    required
+                  >
+                    <option value="">{t('estimateEditor.fields.selectCustomer')}</option>
+                    {customers.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {/* Deliberately a sibling of the label, not nested inside
+                    it — a <label> implicitly labels every form control it
+                    wraps, so putting this button inside the same label as
+                    the select would give both the select and the button
+                    the label's text as their accessible name. */}
+                {!estimate.customerId && (
+                  <button type="button" onClick={openCustomerModal} className="add-button">
+                    {t('estimateEditor.addCustomerButton')}
+                  </button>
+                )}
+              </div>
             </div>
             <div className="form-group">
               <label>
@@ -714,7 +792,7 @@ const EstimateEditorPage: React.FC = () => {
               </label>
             </div>
             <div className="form-actions">
-              <button type="button" onClick={handleSaveHeader} className="submit-button">
+              <button type="button" onClick={() => handleSaveHeader()} className="submit-button">
                 {t('estimateEditor.saveHeader')}
               </button>
             </div>
@@ -1018,6 +1096,72 @@ const EstimateEditorPage: React.FC = () => {
                 </button>
                 <button type="button" onClick={handleSaveLineItem} className="submit-button">
                   {editingLineItemId ? t('common.update') : t('common.create')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quick "add customer" modal */}
+      {customerModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>{t('customers.addCustomer')}</h2>
+            <form onSubmit={handleSaveNewCustomer} className="customer-form">
+              <div className="form-group">
+                <label>
+                  {t('customers.fields.name')}:
+                  <input
+                    type="text"
+                    name="name"
+                    value={customerForm.name || ''}
+                    onChange={handleCustomerFormChange}
+                    required
+                  />
+                </label>
+              </div>
+              <div className="form-group">
+                <label>
+                  {t('customers.fields.address')}:
+                  <input
+                    type="text"
+                    name="address"
+                    value={customerForm.address || ''}
+                    onChange={handleCustomerFormChange}
+                    required
+                  />
+                </label>
+              </div>
+              <div className="form-group">
+                <label>
+                  {t('customers.fields.email')}:
+                  <input
+                    type="email"
+                    name="email"
+                    value={customerForm.email || ''}
+                    onChange={handleCustomerFormChange}
+                    required
+                  />
+                </label>
+              </div>
+              <div className="form-group">
+                <label>
+                  {t('customers.fields.phone')}:
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={customerForm.phone || ''}
+                    onChange={handleCustomerFormChange}
+                  />
+                </label>
+              </div>
+              <div className="form-actions">
+                <button type="button" onClick={closeCustomerModal} className="cancel-button">
+                  {t('common.cancel')}
+                </button>
+                <button type="submit" className="submit-button">
+                  {t('common.create')}
                 </button>
               </div>
             </form>

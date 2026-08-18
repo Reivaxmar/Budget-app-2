@@ -4,6 +4,7 @@ import { estimateRepositoryClient as estimateRepository } from '../db/estimateRe
 import { customerRepositoryClient as customerRepository } from '../db/customerRepositoryClient';
 import { estimateService } from '../services';
 import { useNavigate } from 'react-router-dom';
+import { notify } from '../notifications';
 import './EstimatesPage.css';
 
 const EstimatesListPage: React.FC = () => {
@@ -63,7 +64,7 @@ const EstimatesListPage: React.FC = () => {
         await loadEstimates();
       } catch (err) {
         console.error('Failed to duplicate estimate:', err);
-        alert(t('estimatesList.errors.duplicateFailed'));
+        notify(t('estimatesList.errors.duplicateFailed'), 'error');
       }
     }
   };
@@ -75,7 +76,7 @@ const EstimatesListPage: React.FC = () => {
         await loadEstimates();
       } catch (err) {
         console.error('Failed to delete estimate:', err);
-        alert(t('estimatesList.errors.deleteFailed'));
+        notify(t('estimatesList.errors.deleteFailed'), 'error');
       }
     }
   };

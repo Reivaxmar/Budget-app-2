@@ -9,7 +9,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --update-modal-background: #1e1e1e;
     --update-modal-text: #e0e0e0;
     --update-error-text: #ff6b6b;
@@ -18,6 +18,16 @@
     --button-submit-background: #0d6efd;
     --button-submit-text: white;
   }
+}
+
+:root[data-theme='dark'] {
+  --update-modal-background: #1e1e1e;
+  --update-modal-text: #e0e0e0;
+  --update-error-text: #ff6b6b;
+  --button-cancel-background: #6c757d;
+  --button-cancel-text: white;
+  --button-submit-background: #0d6efd;
+  --button-submit-text: white;
 }
 
 .update-dialog-overlay {

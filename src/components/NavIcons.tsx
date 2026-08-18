@@ -57,15 +57,6 @@ export const TemplatesIcon: React.FC = () => (
   </svg>
 );
 
-export const PrototypeIcon: React.FC = () => (
-  <svg {...base}>
-    <line x1="10" y1="3" x2="10" y2="9" />
-    <line x1="14" y1="3" x2="14" y2="9" />
-    <path d="M9 3h6" />
-    <path d="M10 9L5.3 18.5A2 2 0 0 0 7.1 21.5h9.8a2 2 0 0 0 1.8-3L14 9" />
-  </svg>
-);
-
 export const CompanyProfileIcon: React.FC = () => (
   <svg {...base}>
     <rect x="3" y="7" width="18" height="13" rx="2" />

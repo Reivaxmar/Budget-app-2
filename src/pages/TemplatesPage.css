@@ -30,7 +30,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --background-color: #121212;
     --text-color: #e0e0e0;
     --input-background: #1e1e1e;
@@ -60,6 +60,37 @@
     --modal-text: #e0e0e0;
     --fieldset-border: #444;
   }
+}
+
+:root[data-theme='dark'] {
+  --background-color: #121212;
+  --text-color: #e0e0e0;
+  --input-background: #1e1e1e;
+  --input-text: #e0e0e0;
+  --input-border: #444;
+  --button-background: #0d6efd;
+  --button-text: white;
+  --error-background: #ffcdd2;
+  --error-text: #b71c1c;
+  --table-background: #1e1e1e;
+  --table-text: #e0e0e0;
+  --table-header-background: #2c2c2c;
+  --table-header-text: #e0e0e0;
+  --table-header-border: #444;
+  --table-row-background: #2c2c2c;
+  --table-row-text: #e0e0e0;
+  --table-row-border: #444;
+  --button-edit-background: #28a745;
+  --button-edit-text: white;
+  --button-delete-background: #dc3545;
+  --button-delete-text: white;
+  --button-cancel-background: #6c757d;
+  --button-cancel-text: white;
+  --button-submit-background: #0d6efd;
+  --button-submit-text: white;
+  --modal-background: #1e1e1e;
+  --modal-text: #e0e0e0;
+  --fieldset-border: #444;
 }
 
 .templates-page {
@@ -207,6 +238,9 @@ td {
 }
 
 .form-group label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
   margin-bottom: 0.25rem;
   font-weight: bold;
 }

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { templateService } from '../services/templateService';
 import { defaultDocumentTemplate } from '../rendering/templateConfig';
 import type { Template, TableColumnKey } from '../domain/models';
+import { notify } from '../notifications';
 import './TemplatesPage.css';
 
 // Structured, constrained template editor (SPECS.md §9). Users configure
@@ -240,11 +241,11 @@ const TemplatesPage: React.FC = () => {
   const handleSaveTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      alert(t('templates.errors.nameRequired'));
+      notify(t('templates.errors.nameRequired'), 'error');
       return;
     }
     if (!formData.columns.some((column) => column.enabled)) {
-      alert(t('templates.errors.columnRequired'));
+      notify(t('templates.errors.columnRequired'), 'error');
       return;
     }
 
@@ -259,7 +260,7 @@ const TemplatesPage: React.FC = () => {
       await loadTemplates();
     } catch (err) {
       console.error('Failed to save template:', err);
-      alert(err instanceof Error ? err.message : t('templates.errors.saveFailed'));
+      notify(err instanceof Error ? err.message : t('templates.errors.saveFailed'), 'error');
     }
   };
 
@@ -269,7 +270,7 @@ const TemplatesPage: React.FC = () => {
       await loadTemplates();
     } catch (err) {
       console.error('Failed to set default template:', err);
-      alert(err instanceof Error ? err.message : t('templates.errors.setDefaultFailed'));
+      notify(err instanceof Error ? err.message : t('templates.errors.setDefaultFailed'), 'error');
     }
   };
 
@@ -279,7 +280,7 @@ const TemplatesPage: React.FC = () => {
       await loadTemplates();
     } catch (err) {
       console.error('Failed to duplicate template:', err);
-      alert(err instanceof Error ? err.message : t('templates.errors.duplicateFailed'));
+      notify(err instanceof Error ? err.message : t('templates.errors.duplicateFailed'), 'error');
     }
   };
 
@@ -290,7 +291,7 @@ const TemplatesPage: React.FC = () => {
       await loadTemplates();
     } catch (err) {
       console.error('Failed to delete template:', err);
-      alert(err instanceof Error ? err.message : t('templates.errors.deleteFailed'));
+      notify(err instanceof Error ? err.message : t('templates.errors.deleteFailed'), 'error');
     }
   };
 

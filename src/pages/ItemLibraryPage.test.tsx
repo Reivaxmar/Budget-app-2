@@ -2,11 +2,13 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import ItemLibraryPage from './ItemLibraryPage';
 import { itemRepositoryClient } from '../db/itemRepositoryClient';
+import { notify } from '../notifications';
 import { Item } from '../domain/models';
 import '@testing-library/jest-dom';
 
 // Mock the actual repository module ItemLibraryPage imports
 vi.mock('../db/itemRepositoryClient');
+vi.mock('../notifications');
 
 describe('ItemLibraryPage', () => {
   const mockItems: Item[] = [
@@ -107,8 +109,6 @@ describe('ItemLibraryPage', () => {
 
   it('rejects submission when description or unit is missing', async () => {
     vi.mocked(itemRepositoryClient.findMany).mockResolvedValue([]);
-    const originalAlert = window.alert;
-    window.alert = vi.fn();
 
     const { container } = render(<ItemLibraryPage />);
     await waitFor(() =>
@@ -119,8 +119,7 @@ describe('ItemLibraryPage', () => {
     fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
     expect(itemRepositoryClient.create).not.toHaveBeenCalled();
-    expect(window.alert).toHaveBeenCalled();
-    window.alert = originalAlert;
+    expect(notify).toHaveBeenCalledWith(expect.any(String), 'error');
   });
 
   it('edits an existing item', async () => {

@@ -8,11 +8,11 @@ import {
   CustomersIcon,
   ItemLibraryIcon,
   TemplatesIcon,
-  PrototypeIcon,
   CompanyProfileIcon,
   SettingsIcon,
 } from './components/NavIcons'
 import UpdateDialog from './components/UpdateDialog'
+import ToastContainer from './components/ToastContainer'
 
 // Import page components
 import DashboardPage from './pages/DashboardPage'
@@ -24,7 +24,6 @@ import CompanyProfilePage from './pages/CompanyProfilePage'
 import SettingsPage from './pages/SettingsPage'
 
 const CustomersPage = lazy(() => import('./pages/CustomersPage'))
-const DocumentPrototypePage = lazy(() => import('./pages/DocumentPrototypePage'))
 
 const NAV_ITEMS: Array<{
   to: string
@@ -37,7 +36,6 @@ const NAV_ITEMS: Array<{
   { to: '/customers', labelKey: 'app.nav.customers', icon: CustomersIcon },
   { to: '/item-library', labelKey: 'app.nav.itemLibrary', icon: ItemLibraryIcon },
   { to: '/templates', labelKey: 'app.nav.templates', icon: TemplatesIcon },
-  { to: '/document-prototype', labelKey: 'app.nav.documentPrototype', icon: PrototypeIcon },
   { to: '/company-profile', labelKey: 'app.nav.companyProfile', icon: CompanyProfileIcon },
   { to: '/settings', labelKey: 'app.nav.settings', icon: SettingsIcon },
 ]
@@ -87,6 +85,7 @@ const MainLayout: React.FC = () => {
   return (
     <div className="app">
       <UpdateDialog />
+      <ToastContainer />
       <aside className="app-sidebar">
         <div className="app-brand">
           <span className="app-brand-mark">P2K</span>
@@ -121,7 +120,6 @@ const MainLayout: React.FC = () => {
                 <Route path="/customers" element={<CustomersPage />} />
                 <Route path="/item-library" element={<ItemLibraryPage />} />
                 <Route path="/templates" element={<TemplatesPage />} />
-                <Route path="/document-prototype" element={<DocumentPrototypePage />} />
                 <Route path="/company-profile" element={<CompanyProfilePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Routes>

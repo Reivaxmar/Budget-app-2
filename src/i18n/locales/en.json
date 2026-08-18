@@ -7,7 +7,6 @@
       "customers": "Customers",
       "itemLibrary": "Item Library",
       "templates": "Templates",
-      "documentPrototype": "Document Prototype",
       "companyProfile": "Company / User Profile",
       "settings": "Settings"
     },
@@ -38,11 +37,50 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "placeholder": "Placeholder for dashboard page"
+    "loading": "Loading dashboard...",
+    "stats": {
+      "customers": "Customers",
+      "estimates": "Estimates",
+      "draftEstimates": "Draft",
+      "issuedEstimates": "Issued",
+      "totalValue": "Total value (excl. VAT)"
+    },
+    "quickActions": {
+      "title": "Quick actions",
+      "newEstimate": "New Estimate",
+      "newCustomer": "New Customer"
+    },
+    "recentEstimates": {
+      "title": "Recent estimates",
+      "empty": "No estimates yet.",
+      "columns": {
+        "estimateNumber": "Estimate #",
+        "customer": "Customer",
+        "subject": "Subject",
+        "date": "Date",
+        "status": "Status",
+        "total": "Total"
+      }
+    }
   },
   "settings": {
     "title": "Settings",
-    "placeholder": "Placeholder for settings page"
+    "saved": "Saved.",
+    "saving": "Saving…",
+    "appearance": {
+      "title": "Appearance",
+      "description": "Choose how Presupeitor2000 looks. \"System\" follows your operating system's setting.",
+      "options": {
+        "system": "System",
+        "light": "Light",
+        "dark": "Dark"
+      }
+    },
+    "estimateDefaults": {
+      "title": "Estimate defaults",
+      "description": "Applied automatically when you create a new estimate.",
+      "defaultTaxRate": "Default tax rate (%):"
+    }
   },
   "customers": {
     "title": "Customers",
@@ -219,23 +257,13 @@
       "deleteFailed": "Failed to delete estimate. Please try again."
     }
   },
-  "documentPrototype": {
-    "title": "Document Rendering Prototype",
-    "description": "Generates a sample estimate PDF from mock data to validate pagination, repeated header/footer, page numbers and the final total/signature section. Pick a saved template below to confirm the same estimate data renders differently under a different presentation.",
-    "templateLabel": "Template:",
-    "defaultSuffix": "(default)",
-    "generating": "Generating…",
-    "downloadButton": "Download sample PDF",
-    "errors": {
-      "loadTemplatesFailed": "Failed to load templates. See console for details.",
-      "generateFailed": "Failed to generate PDF. See console for details."
-    }
-  },
   "estimateEditor": {
     "loading": "Loading estimate...",
     "errorPrefix": "Error: {{message}}",
     "unexpectedState": "Unexpected state.",
     "notFound": "Estimate not found",
+    "addCustomerButton": "Add Customer",
+    "customerCreated": "Customer created.",
     "titleEdit": "Edit Estimate {{number}}",
     "titleNew": "New Estimate",
     "backToList": "Back to List",

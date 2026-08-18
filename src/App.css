@@ -30,8 +30,11 @@
   --content-bg: #f3f4f6;
 }
 
+/* Dark tokens apply automatically when the OS prefers dark and the user
+   hasn't explicitly picked "Light" in Settings, or unconditionally when the
+   user explicitly picked "Dark" — see src/theme.ts. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     color: #e5e7eb;
     background-color: #14151f;
 
@@ -45,6 +48,21 @@
 
     --content-bg: #14151f;
   }
+}
+
+:root[data-theme='dark'] {
+  color: #e5e7eb;
+  background-color: #14151f;
+
+  --sidebar-bg: #0e1018;
+  --sidebar-bg-hover: #1c2032;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+
+  --topbar-bg: #1a1c29;
+  --topbar-border: #2b2e3f;
+  --topbar-text: #f3f4f6;
+
+  --content-bg: #14151f;
 }
 
 * {
@@ -308,12 +326,21 @@ a:focus-visible {
 }
 
 @media (prefers-color-scheme: dark) {
-  input,
-  button {
+  :root:not([data-theme='light']) input,
+  :root:not([data-theme='light']) button {
     color: #ffffff;
     background-color: #0f0f0f98;
   }
-  button:active {
+  :root:not([data-theme='light']) button:active {
     background-color: #0f0f0f69;
   }
+}
+
+:root[data-theme='dark'] input,
+:root[data-theme='dark'] button {
+  color: #ffffff;
+  background-color: #0f0f0f98;
+}
+:root[data-theme='dark'] button:active {
+  background-color: #0f0f0f69;
 }

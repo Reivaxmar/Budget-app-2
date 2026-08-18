@@ -11,9 +11,9 @@ template configuration rather than hard-coded page layouts.
 
 ## Status
 
-This is an early-stage build. Customers, the item library, templates, company profile and the
-estimate editor (chapters, line items, PDF export) are implemented and persisted to local
-storage. The Dashboard and Settings screens are still placeholders, and persistence currently
+This is an early-stage build. Customers, the item library, templates, company profile, the
+estimate editor (chapters, line items, PDF export), a dashboard overview and app settings
+(theme, default tax rate) are implemented and persisted to local storage. Persistence currently
 uses the browser's `localStorage` rather than the SQLite/Drizzle backend sketched in
 `src/db/schema.ts` / `src/db/repository.ts`.
 
