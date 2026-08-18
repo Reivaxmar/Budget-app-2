@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { estimateRepository } from '../db/repository';
-import { customerRepository } from '../db/repository';
+import { estimateRepositoryClient as estimateRepository } from '../db/estimateRepositoryClient';
+import { customerRepositoryClient as customerRepository } from '../db/customerRepositoryClient';
 import { estimateService } from '../services';
 import { useNavigate } from 'react-router-dom';
 import './EstimatesPage.css';

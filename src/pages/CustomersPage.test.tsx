@@ -1,12 +1,12 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { vi } from 'vitest';
 import CustomerPage from './CustomersPage';
-import { customerRepository } from '../db/repository';
+import { customerRepositoryClient as customerRepository } from '../db/customerRepositoryClient';
 import { Customer } from '../domain/models';
 import '@testing-library/jest-dom';
 
-// Mock the customerRepository
-vi.mock('../db/repository');
+// Mock the actual repository module CustomersPage imports
+vi.mock('../db/customerRepositoryClient');
 
 describe('CustomersPage', () => {
   const mockCustomers: Array<Omit<Customer, 'id'> & { id: string }> = [

@@ -42,6 +42,16 @@ export interface LineItem {
   order: number // For sorting line items within a chapter
 }
 
+export interface Item {
+  id: string
+  code: string // Internal code for the catalog entry
+  description: string // Default description used when inserted into an estimate
+  unit: string // Default unit, e.g. 'm²', 'pcs', 'h'
+  defaultPrice: number // Default unit price
+  category: string // Optional grouping/category, empty string if none
+  keywords: string // Optional search keywords, empty string if none
+}
+
 export interface Template {
   id: string
   name: string

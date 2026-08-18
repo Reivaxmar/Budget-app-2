@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { estimateService } from '../services';
-import { chapterRepository } from '../db/repository';
-import { lineItemRepository } from '../db/repository';
-import { customerRepository } from '../db/repository';
-import { Estimate, Chapter, LineItem } from '../domain/models';
+import {
+  chapterRepositoryClient as chapterRepository,
+  lineItemRepositoryClient as lineItemRepository,
+} from '../db/estimateRepositoryClient';
+import { customerRepositoryClient as customerRepository } from '../db/customerRepositoryClient';
+import { itemRepositoryClient } from '../db/itemRepositoryClient';
+import { createLineItemFromItem, searchItems } from '../services/itemService';
+import { Estimate, Chapter, Item, LineItem } from '../domain/models';
 import './EstimatesPage.css';
 
 const EstimateEditorPage: React.FC = () => {
@@ -16,6 +20,7 @@ const EstimateEditorPage: React.FC = () => {
   const [customers, setCustomers] = useState<Array<any>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<Array<{id: string; message: string; type: 'success' | 'error' | 'info'}>>([]);
 
   // Modal states
   const [chapterModalOpen, setChapterModalOpen] = useState<boolean>(false);
@@ -34,6 +39,10 @@ const EstimateEditorPage: React.FC = () => {
     order: 0,
   });
 
+  // Item library (for "insert from library" into a line item)
+  const [libraryItems, setLibraryItems] = useState<Item[]>([]);
+  const [librarySearchTerm, setLibrarySearchTerm] = useState<string>('');
+
   // Load customers for dropdown
   useEffect(() => {
     const loadCustomers = async () => {
@@ -47,13 +56,26 @@ const EstimateEditorPage: React.FC = () => {
     loadCustomers();
   }, []);
 
+  // Load item library for the "insert from library" picker
+  useEffect(() => {
+    const loadLibraryItems = async () => {
+      try {
+        const data = await itemRepositoryClient.findMany();
+        setLibraryItems(data);
+      } catch (err) {
+        console.error('Failed to load item library:', err);
+      }
+    };
+    loadLibraryItems();
+  }, []);
+
   // Load estimate (if not new) and its chapters/line items
   useEffect(() => {
     const loadEstimate = async () => {
       setLoading(true);
       setError(null);
       try {
-        if (id === 'new') {
+        if (!id || id === 'new') {
           // Initialize a blank estimate
           const now = new Date();
           const blankEstimate: Estimate = {
@@ -308,15 +330,31 @@ const EstimateEditorPage: React.FC = () => {
     // For simplicity, we'll pass chapterId via a closure or use a separate state.
     // We'll create a state variable for active chapterId for line item modal.
     setActiveChapterIdForLineItem(chapterId);
+    setLibrarySearchTerm('');
     setLineItemModalOpen(true);
   };
 
   // We need a state to track which chapter we are adding/editing line items for
   const [activeChapterIdForLineItem, setActiveChapterIdForLineItem] = useState<string | ''>('');
 
+  // Insert from library: copy the item's current values into the line item
+  // form. This is a one-time copy — the created line item stores no
+  // reference back to the library item, so later edits to the library
+  // entry never change line items that already used it.
+  const handleInsertFromLibrary = (item: Item) => {
+    const draft = createLineItemFromItem(item, {
+      quantity: lineItemForm.quantity || 1,
+      order: lineItemForm.order,
+    });
+    setLineItemForm((prev) => ({ ...prev, ...draft }));
+  };
+
+  const filteredLibraryItems = searchItems(libraryItems, librarySearchTerm);
+
   const closeLineItemModal = () => {
     setLineItemModalOpen(false);
     setEditingLineItemId(null);
+    setLibrarySearchTerm('');
     setLineItemForm({
       code: '',
       description: '',
@@ -330,14 +368,17 @@ const EstimateEditorPage: React.FC = () => {
   };
 
   const handleLineItemChange = (field: keyof LineItem, value: any) => {
-    setLineItemForm((prev) => ({ ...prev, [field]: value }));
-    // If quantity or unitPrice changes, recalculate amount
-    if (field === 'quantity' || field === 'unitPrice') {
-      const quantity = Number(lineItemForm.quantity) || 0;
-      const unitPrice = Number(lineItemForm.unitPrice) || 0;
-      const amount = quantity * unitPrice;
-      setLineItemForm((prev) => ({ ...prev, amount }));
-    }
+    setLineItemForm((prev) => {
+      const updated = { ...prev, [field]: value };
+      // If quantity or unitPrice changes, recalculate amount
+      if (field === 'quantity' || field === 'unitPrice') {
+        const quantity = field === 'quantity' ? value : prev.quantity;
+        const unitPrice = field === 'unitPrice' ? value : prev.unitPrice;
+        const amount = Number(quantity) * Number(unitPrice);
+        return { ...updated, amount };
+      }
+      return updated;
+    });
   };
 
   const handleSaveLineItem = async () => {
@@ -524,8 +565,8 @@ const EstimateEditorPage: React.FC = () => {
       {error && <div className="error-message">{error}</div>}
 
       {/* Estimate Header Form */}
-      <div className="modal-overlay" style={{ position: 'static', backgroundColor: 'transparent' }}>
-        <div className="modal-content" style={{ width: 'auto', maxWidth: '800px' }}>
+      <div className="estimate-header-panel">
+        <div className="estimate-header-panel-content">
           <form className="customer-form" onSubmit={(e) => e.preventDefault()}>
             <div className="form-group">
               <label>
@@ -809,6 +850,37 @@ const EstimateEditorPage: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <h2>{editingLineItemId ? 'Edit Line Item' : 'Add Line Item'}</h2>
+            <div className="form-group">
+              <label>
+                Insert from Library:
+                <input
+                  type="text"
+                  placeholder="Search library items..."
+                  value={librarySearchTerm}
+                  onChange={(e) => setLibrarySearchTerm(e.target.value)}
+                />
+              </label>
+              {librarySearchTerm && (
+                <ul className="library-suggestions">
+                  {filteredLibraryItems.length === 0 ? (
+                    <li className="no-results">No matching items.</li>
+                  ) : (
+                    filteredLibraryItems.map((item) => (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertFromLibrary(item)}
+                          className="library-suggestion-button"
+                        >
+                          {item.code ? `${item.code} — ` : ''}
+                          {item.description} ({item.unit}, {item.defaultPrice.toFixed(2)})
+                        </button>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              )}
+            </div>
             <form className="customer-form" onSubmit={(e) => e.preventDefault()}>
               <div className="form-group">
                 <label>

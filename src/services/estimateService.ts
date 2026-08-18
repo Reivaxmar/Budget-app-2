@@ -1,4 +1,8 @@
-import { estimateRepository, chapterRepository, lineItemRepository } from '../db/repository';
+import {
+  estimateRepositoryClient as estimateRepository,
+  chapterRepositoryClient as chapterRepository,
+  lineItemRepositoryClient as lineItemRepository,
+} from '../db/estimateRepositoryClient';
 import { Estimate, Chapter, LineItem } from '../domain/models';
 
 /**
