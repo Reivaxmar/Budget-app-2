@@ -54,6 +54,15 @@ export async function createEstimate(
   data: Omit<Estimate, 'id' | 'estimateNumber'>
 ): Promise<Estimate> {
   const estimateNumber = await generateEstimateNumber(data.year);
+
+  // Defensive check against SPECS.md §15 ("prevent accidental duplicate
+  // numbers") — generateEstimateNumber is normally collision-free, but this
+  // guards against races (e.g. two tabs) or manually-seeded data.
+  const existing = await estimateRepository.findMany();
+  if (existing.some((e) => e.estimateNumber === estimateNumber)) {
+    throw new Error(`Estimate number ${estimateNumber} already exists`);
+  }
+
   const estimate = await estimateRepository.create({
     ...data,
     estimateNumber,

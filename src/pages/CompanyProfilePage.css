@@ -1,0 +1,124 @@
+:root {
+  --background-color: white;
+  --text-color: black;
+  --input-background: white;
+  --input-text: black;
+  --input-border: #ccc;
+  --button-submit-background: #007bff;
+  --button-submit-text: white;
+  --fieldset-border: #ddd;
+  --saved-color: #28a745;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #121212;
+    --text-color: #e0e0e0;
+    --input-background: #1e1e1e;
+    --input-text: #e0e0e0;
+    --input-border: #444;
+    --button-submit-background: #0d6efd;
+    --button-submit-text: white;
+    --fieldset-border: #444;
+    --saved-color: #28a745;
+  }
+}
+
+.company-profile-page {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.company-profile-page h1 {
+  color: inherit;
+}
+
+.company-profile-intro {
+  max-width: 60rem;
+  color: var(--text-color);
+  opacity: 0.85;
+}
+
+.company-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 40rem;
+}
+
+.company-profile-form fieldset {
+  border: 1px solid var(--fieldset-border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.company-profile-form legend {
+  font-weight: bold;
+  padding: 0 0.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.75rem;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  margin-bottom: 0.25rem;
+  font-weight: bold;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.form-row label {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 8rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-row input {
+  padding: 0.5rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-background);
+  color: var(--input-text);
+  box-sizing: border-box;
+  width: 100%;
+  font-family: inherit;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.saved-indicator {
+  color: var(--saved-color);
+  font-weight: bold;
+}
+
+.submit-button {
+  background-color: var(--button-submit-background);
+  color: var(--button-submit-text);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}

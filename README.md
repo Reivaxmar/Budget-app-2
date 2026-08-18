@@ -1,38 +1,77 @@
 # Construction Estimate & Quote Management Application
 
-This application combines the structured data model of an estimating system with the usability and visual freedom of a word processor.
+A desktop-first application for building professional construction estimates: manage customers,
+a reusable item library, document templates and your company profile, then compose an estimate
+from chapters and line items and export it as a paginated PDF. See [`SPECS.md`](./SPECS.md) for
+the full product specification and [`AGENTS.md`](./AGENTS.md) for engineering conventions.
 
-# Tauri + React + Typescript
+Built with Tauri, React, TypeScript and Vite. Document rendering is handled by
+[`@react-pdf/renderer`](https://react-pdf.org/), driven by structured estimate data and a
+template configuration rather than hard-coded page layouts.
 
-This template should help you get started developing with Tauri, React, and Typescript in Vite.
+## Status
 
-## Recommended IDE Setup
+This is an early-stage build. Customers, the item library, templates, company profile and the
+estimate editor (chapters, line items, PDF export) are implemented and persisted to local
+storage. The Dashboard and Settings screens are still placeholders, and persistence currently
+uses the browser's `localStorage` rather than the SQLite/Drizzle backend sketched in
+`src/db/schema.ts` / `src/db/repository.ts`.
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## Getting started
 
-## Development Tooling
+Install dependencies:
 
-This project includes the following development tooling:
+```bash
+npm install
+```
 
-- **Linting**: ESLint with React and TypeScript plugins
-  - Run `npm run lint` to lint the code
-- **Formatting**: Prettier
-  - Run `npm run format` to format the code
-  - Run `npm run format:check` to check formatting
-- **Type Checking**: TypeScript
-  - Run `npm run type-check` to check types
-- **Testing**: Vitest
-  - Run `npm test` to run tests
-  - Run `npm run test:ui` to run tests with the Vitest UI
+Run the app in the browser (Vite dev server):
 
-## Available Scripts
+```bash
+npm run dev
+```
 
-In the project directory, you can run:
+Run it as a native desktop app via Tauri (requires the Rust toolchain — see the
+[Tauri prerequisites](https://tauri.app/start/prerequisites/)):
 
-- `npm dev` - Starts the Vite development server (http://localhost:1420/)
-- `npm run tauri dev` - Starts the Tauri desktop application in development mode
-- `npm run build` - Builds the frontend for production
-- `npm run tauri build` - Builds the Tauri application for production
-- `npm run preview` - Previews the production build locally
+```bash
+npm run tauri dev
+```
 
-Learn more about Tauri development at https://tauri.app/v1/guides/
+## Testing
+
+```bash
+npm test               # run tests in watch mode (vitest)
+npx vitest run          # run the full suite once (used in CI)
+npm run test:ui        # run tests with the Vitest UI
+npm run type-check     # TypeScript, no emit
+npm run lint           # ESLint
+```
+
+Tests cover business logic independently from the UI: estimate numbering/duplication/totals
+(`src/services/estimateService.test.ts`), the item library and template services, repository
+persistence, and document rendering — including multi-page documents, long descriptions and
+custom template configurations (`src/rendering/EstimateDocument.render.test.tsx`).
+
+## Project structure
+
+```
+src/
+  domain/      # Entity types and pure calculations (no I/O)
+  db/          # Repository clients (persistence)
+  services/    # Application logic: numbering, totals, validation, PDF export
+  rendering/   # Structured-data + template -> PDF (react-pdf)
+  pages/       # React screens
+```
+
+## Screenshots
+
+Not included yet — add screenshots of the Estimate Editor and an exported PDF here once the UI
+is more visually settled.
+
+## Building
+
+```bash
+npm run build          # frontend production build
+npm run tauri build    # packaged desktop application
+```

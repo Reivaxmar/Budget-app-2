@@ -21,6 +21,7 @@ const EstimateEditorPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [notifications, setNotifications] = useState<Array<{id: string; message: string; type: 'success' | 'error' | 'info'}>>([]);
+  const [exportingPdf, setExportingPdf] = useState<boolean>(false);
 
   // Modal states
   const [chapterModalOpen, setChapterModalOpen] = useState<boolean>(false);
@@ -188,6 +189,23 @@ const EstimateEditorPage: React.FC = () => {
     }
   };
 
+  const handleExportPdf = async () => {
+    if (!estimate?.id) return;
+    setExportingPdf(true);
+    try {
+      // Dynamically imported so the PDF rendering engine (react-pdf) is only
+      // ever downloaded when the user actually exports, keeping it out of
+      // this page's (eagerly-loaded) main bundle.
+      const { exportEstimatePdf } = await import('../services/pdfExportService');
+      await exportEstimatePdf(estimate.id);
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+      alert(err instanceof Error ? err.message : 'Failed to export PDF.');
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
   // Chapter modal handlers
   const openChapterModal = (chapter: Chapter | null = null) => {
     setEditingChapterId(null);
@@ -213,6 +231,14 @@ const EstimateEditorPage: React.FC = () => {
 
   const handleSaveChapter = async () => {
     if (!estimate) return;
+    if (!estimate.id) {
+      alert('Save the estimate header before adding chapters.');
+      return;
+    }
+    if (!chapterForm.title?.trim()) {
+      alert('Chapter title is required.');
+      return;
+    }
     try {
       if (editingChapterId) {
         // Update existing chapter
@@ -383,6 +409,10 @@ const EstimateEditorPage: React.FC = () => {
 
   const handleSaveLineItem = async () => {
     if (!activeChapterIdForLineItem) return;
+    if (!lineItemForm.description?.trim() || !lineItemForm.unit?.trim()) {
+      alert('Description and unit are required.');
+      return;
+    }
     try {
       const data = {
         ...lineItemForm,
@@ -561,6 +591,14 @@ const EstimateEditorPage: React.FC = () => {
           Save Estimate
         </button>
         <button
+          onClick={handleExportPdf}
+          className="add-button"
+          disabled={!estimate.id || exportingPdf}
+          title={!estimate.id ? 'Save the estimate before exporting a PDF' : undefined}
+        >
+          {exportingPdf ? 'Exporting…' : 'Export PDF'}
+        </button>
+        <button
           onClick={handleDeleteEstimate}
           className="delete-button"
           style={{ marginLeft: '0.5rem' }}
@@ -686,9 +724,15 @@ const EstimateEditorPage: React.FC = () => {
 
       {/* Chapters List */}
       <h2>Chapters</h2>
-      <button onClick={() => openChapterModal(null)} className="add-button">
+      <button
+        onClick={() => openChapterModal(null)}
+        className="add-button"
+        disabled={!estimate.id}
+        title={!estimate.id ? 'Save the estimate header before adding chapters' : undefined}
+      >
         Add Chapter
       </button>
+      {!estimate.id && <p>Save the estimate header before adding chapters.</p>}
       {chapters.length === 0 ? (
         <p>No chapters yet.</p>
       ) : (

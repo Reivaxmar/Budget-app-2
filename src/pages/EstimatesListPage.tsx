@@ -10,6 +10,7 @@ const EstimatesListPage: React.FC = () => {
   const [customers, setCustomers] = useState<Array<any>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [exportingId, setExportingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Load customers for mapping customerId to name
@@ -63,6 +64,22 @@ const EstimatesListPage: React.FC = () => {
         console.error('Failed to duplicate estimate:', err);
         alert('Failed to duplicate estimate. Please try again.');
       }
+    }
+  };
+
+  const handleExportPdf = async (id: string) => {
+    setExportingId(id);
+    try {
+      // Dynamically imported so the PDF rendering engine (react-pdf) is only
+      // ever downloaded when the user actually exports, keeping it out of
+      // this page's (eagerly-loaded) main bundle.
+      const { exportEstimatePdf } = await import('../services/pdfExportService');
+      await exportEstimatePdf(id);
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+      alert(err instanceof Error ? err.message : 'Failed to export PDF.');
+    } finally {
+      setExportingId(null);
     }
   };
 
@@ -156,6 +173,13 @@ const EstimatesListPage: React.FC = () => {
                         className="actions-button"
                       >
                         Duplicate
+                      </button>
+                      <button
+                        onClick={() => handleExportPdf(estimate.id)}
+                        className="actions-button"
+                        disabled={exportingId === estimate.id}
+                      >
+                        {exportingId === estimate.id ? 'Exporting…' : 'Export PDF'}
                       </button>
                       <button
                         onClick={() => handleDeleteEstimate(estimate.id)}

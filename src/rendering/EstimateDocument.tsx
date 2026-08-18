@@ -220,7 +220,9 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
   const { estimate, customer, chapters, company, standardNote, creationLocation } = data;
   const styles = buildStyles(template);
   const total = calculateEstimateTotal({ ...estimate, chapters });
-  const dateLabel = `${creationLocation}, a ${formatDate(estimate.creationDate)}`;
+  const dateLabel = creationLocation
+    ? `${creationLocation}, a ${formatDate(estimate.creationDate)}`
+    : formatDate(estimate.creationDate);
   const columns = template.table.columns;
 
   return (
