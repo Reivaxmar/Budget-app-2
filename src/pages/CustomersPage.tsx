@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { customerRepositoryClient } from '../db/customerRepositoryClient';
 import { Customer } from '../domain/models';
 import './CustomersPage.css';
 
 const CustomersPage: React.FC = () => {
+  const { t } = useTranslation();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ const CustomersPage: React.FC = () => {
       setCustomers(data);
     } catch (err) {
       console.error('Failed to load customers:', err);
-      setError('Failed to load customers. Please try again.');
+      setError(t('customers.errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -85,13 +87,13 @@ const CustomersPage: React.FC = () => {
     e.preventDefault();
     // Basic validation
     if (!formData.name || !formData.address || !formData.email) {
-      alert('Name, address, and email are required.');
+      alert(t('customers.errors.requiredFields'));
       return;
     }
     // Optional: simple email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email && !emailRegex.test(formData.email)) {
-      alert('Please enter a valid email address.');
+      alert(t('customers.errors.invalidEmail'));
       return;
     }
 
@@ -108,19 +110,19 @@ const CustomersPage: React.FC = () => {
       await loadCustomers();
     } catch (err) {
       console.error('Failed to save customer:', err);
-      alert('Failed to save customer. Please try again.');
+      alert(t('customers.errors.saveFailed'));
     }
   };
 
   // Handle deleting a customer
   const handleDeleteCustomer = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
+    if (window.confirm(t('customers.confirmDelete'))) {
       try {
         await customerRepositoryClient.delete(id);
         await loadCustomers();
       } catch (err) {
         console.error('Failed to delete customer:', err);
-        alert('Failed to delete customer. Please try again.');
+        alert(t('customers.errors.deleteFailed'));
       }
     }
   };
@@ -140,18 +142,18 @@ const CustomersPage: React.FC = () => {
 
   return (
     <div className="customers-page">
-      <h1>Customers</h1>
+      <h1>{t('customers.title')}</h1>
       {/* Search bar */}
       <div className="search-bar">
         <input
           type="text"
-          placeholder="Search customers..."
+          placeholder={t('customers.searchPlaceholder')}
           value={searchTerm}
           onChange={handleSearchChange}
           className="search-input"
         />
         <button onClick={handleCreateCustomer} className="add-button">
-          Add Customer
+          {t('customers.addButton')}
         </button>
       </div>
 
@@ -159,27 +161,27 @@ const CustomersPage: React.FC = () => {
       {error && <div className="error-message">{error}</div>}
 
       {/* Loading state */}
-      {loading && <p>Loading customers...</p>}
+      {loading && <p>{t('customers.loading')}</p>}
 
       {/* Customers table */}
       {!loading && (
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Address</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Tax ID</th>
-              <th>Notes</th>
-              <th>Actions</th>
+              <th>{t('customers.fields.name')}</th>
+              <th>{t('customers.fields.address')}</th>
+              <th>{t('customers.fields.email')}</th>
+              <th>{t('customers.fields.phone')}</th>
+              <th>{t('customers.fields.taxId')}</th>
+              <th>{t('customers.fields.notes')}</th>
+              <th>{t('common.actions')}</th>
             </tr>
           </thead>
           <tbody>
             {filteredCustomers.length === 0 ? (
               <tr>
                 <td colSpan={7} className="no-customers">
-                  No customers found.
+                  {t('customers.noneFound')}
                 </td>
               </tr>
             ) : (
@@ -196,13 +198,13 @@ const CustomersPage: React.FC = () => {
                       onClick={() => handleEditCustomer(customer)}
                       className="actions-button"
                     >
-                      Edit
+                      {t('common.edit')}
                     </button>
                     <button
                       onClick={() => handleDeleteCustomer(customer.id)}
                       className="delete-button"
                     >
-                      Delete
+                      {t('common.delete')}
                     </button>
                   </td>
                 </tr>
@@ -216,11 +218,11 @@ const CustomersPage: React.FC = () => {
       {formVisible && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h2>{isEditing ? 'Edit Customer' : 'Add Customer'}</h2>
+            <h2>{isEditing ? t('customers.editCustomer') : t('customers.addCustomer')}</h2>
             <form onSubmit={handleSaveCustomer} className="customer-form">
               <div className="form-group">
                 <label>
-                  Name:
+                  {t('customers.fields.name')}:
                   <input
                     type="text"
                     name="name"
@@ -232,7 +234,7 @@ const CustomersPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Address:
+                  {t('customers.fields.address')}:
                   <input
                     type="text"
                     name="address"
@@ -244,7 +246,7 @@ const CustomersPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Email:
+                  {t('customers.fields.email')}:
                   <input
                     type="email"
                     name="email"
@@ -256,7 +258,7 @@ const CustomersPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Phone:
+                  {t('customers.fields.phone')}:
                   <input
                     type="tel"
                     name="phone"
@@ -267,7 +269,7 @@ const CustomersPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Tax ID:
+                  {t('customers.fields.taxId')}:
                   <input
                     type="text"
                     name="taxId"
@@ -278,7 +280,7 @@ const CustomersPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Notes:
+                  {t('customers.fields.notes')}:
                   <textarea
                     name="notes"
                     value={formData.notes || ''}
@@ -292,10 +294,10 @@ const CustomersPage: React.FC = () => {
                   onClick={() => setFormVisible(false)}
                   className="cancel-button"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="submit-button">
-                  {isEditing ? 'Update' : 'Create'}
+                  {isEditing ? t('common.update') : t('common.create')}
                 </button>
               </div>
             </form>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { companyProfileRepositoryClient } from '../db/companyProfileRepositoryClient';
 import type { CompanyProfileSettings } from '../db/companyProfileRepositoryClient';
 import './CompanyProfilePage.css';
@@ -6,6 +7,7 @@ import './CompanyProfilePage.css';
 // Company/user identity and document defaults shown on generated PDFs
 // (SPECS.md §4 UserProfile, §6.1/§6.3 cover/header/footer, §6.4 final note).
 const CompanyProfilePage: React.FC = () => {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<CompanyProfileSettings | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -34,23 +36,20 @@ const CompanyProfilePage: React.FC = () => {
   };
 
   if (loading || !settings) {
-    return <div className="company-profile-page">Loading company profile...</div>;
+    return <div className="company-profile-page">{t('companyProfile.loading')}</div>;
   }
 
   return (
     <div className="company-profile-page">
-      <h1>Company / User Profile</h1>
-      <p className="company-profile-intro">
-        This identity and these defaults appear on every exported estimate PDF: the cover,
-        the repeating header/footer, and the final page.
-      </p>
+      <h1>{t('companyProfile.title')}</h1>
+      <p className="company-profile-intro">{t('companyProfile.intro')}</p>
 
       <form onSubmit={handleSave} className="company-profile-form">
         <fieldset>
-          <legend>Company identity</legend>
+          <legend>{t('companyProfile.sections.identity')}</legend>
           <div className="form-group">
             <label>
-              Company / user name:
+              {t('companyProfile.fields.companyName')}
               <input
                 type="text"
                 value={settings.profile.name}
@@ -64,7 +63,7 @@ const CompanyProfilePage: React.FC = () => {
           </div>
           <div className="form-group">
             <label>
-              Address:
+              {t('companyProfile.fields.address')}
               <input
                 type="text"
                 value={settings.profile.address}
@@ -78,7 +77,7 @@ const CompanyProfilePage: React.FC = () => {
           </div>
           <div className="form-row">
             <label>
-              Postal code:
+              {t('companyProfile.fields.postalCode')}
               <input
                 type="text"
                 value={settings.profile.postalCode}
@@ -92,7 +91,7 @@ const CompanyProfilePage: React.FC = () => {
               />
             </label>
             <label>
-              Phone:
+              {t('companyProfile.fields.phone')}
               <input
                 type="text"
                 value={settings.profile.phone}
@@ -104,7 +103,7 @@ const CompanyProfilePage: React.FC = () => {
               />
             </label>
             <label>
-              Email:
+              {t('companyProfile.fields.email')}
               <input
                 type="email"
                 value={settings.profile.email}
@@ -118,7 +117,7 @@ const CompanyProfilePage: React.FC = () => {
           </div>
           <div className="form-group">
             <label>
-              Slogan:
+              {t('companyProfile.fields.slogan')}
               <input
                 type="text"
                 value={settings.profile.slogan}
@@ -133,10 +132,10 @@ const CompanyProfilePage: React.FC = () => {
         </fieldset>
 
         <fieldset>
-          <legend>Document defaults</legend>
+          <legend>{t('companyProfile.sections.documentDefaults')}</legend>
           <div className="form-group">
             <label>
-              Creation location (e.g. "Barcelona"):
+              {t('companyProfile.fields.creationLocation')}
               <input
                 type="text"
                 value={settings.creationLocation}
@@ -148,7 +147,7 @@ const CompanyProfilePage: React.FC = () => {
           </div>
           <div className="form-group">
             <label>
-              Final-page note title:
+              {t('companyProfile.fields.standardNoteTitle')}
               <input
                 type="text"
                 value={settings.standardNote.title}
@@ -164,7 +163,7 @@ const CompanyProfilePage: React.FC = () => {
           </div>
           <div className="form-group">
             <label>
-              Final-page note content:
+              {t('companyProfile.fields.standardNoteContent')}
               <textarea
                 rows={4}
                 value={settings.standardNote.content}
@@ -181,9 +180,9 @@ const CompanyProfilePage: React.FC = () => {
         </fieldset>
 
         <div className="form-actions">
-          {saved && <span className="saved-indicator">Saved.</span>}
+          {saved && <span className="saved-indicator">{t('companyProfile.saved')}</span>}
           <button type="submit" className="submit-button" disabled={saving}>
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? t('companyProfile.saving') : t('common.save')}
           </button>
         </div>
       </form>

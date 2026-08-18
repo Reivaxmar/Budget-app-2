@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { generateEstimatePdfBlob } from '../services/pdfService';
 import { templateService } from '../services/templateService';
 import { mockEstimateDocumentData } from '../rendering/mockEstimateData';
@@ -10,6 +11,7 @@ import type { Template } from '../domain/models';
 // applies a saved template configuration to the same estimate data (i.e.
 // templates change presentation only, never the data itself).
 const DocumentPrototypePage: React.FC = () => {
+  const { t } = useTranslation();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [loadingTemplates, setLoadingTemplates] = useState(true);
@@ -25,7 +27,7 @@ const DocumentPrototypePage: React.FC = () => {
         setSelectedTemplateId(defaultTemplate.id);
       } catch (err) {
         console.error('Failed to load templates:', err);
-        setError('Failed to load templates. See console for details.');
+        setError(t('documentPrototype.errors.loadTemplatesFailed'));
       } finally {
         setLoadingTemplates(false);
       }
@@ -47,7 +49,7 @@ const DocumentPrototypePage: React.FC = () => {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to generate PDF:', err);
-      setError('Failed to generate PDF. See console for details.');
+      setError(t('documentPrototype.errors.generateFailed'));
     } finally {
       setGenerating(false);
     }
@@ -55,17 +57,12 @@ const DocumentPrototypePage: React.FC = () => {
 
   return (
     <div>
-      <h1>Document Rendering Prototype</h1>
-      <p>
-        Generates a sample estimate PDF from mock data to validate pagination, repeated
-        header/footer, page numbers and the final total/signature section. Pick a saved
-        template below to confirm the same estimate data renders differently under a
-        different presentation.
-      </p>
+      <h1>{t('documentPrototype.title')}</h1>
+      <p>{t('documentPrototype.description')}</p>
 
       <div style={{ marginBottom: '1rem' }}>
         <label>
-          Template:{' '}
+          {t('documentPrototype.templateLabel')}{' '}
           <select
             value={selectedTemplateId}
             onChange={(e) => setSelectedTemplateId(e.target.value)}
@@ -74,7 +71,7 @@ const DocumentPrototypePage: React.FC = () => {
             {templates.map((template) => (
               <option key={template.id} value={template.id}>
                 {template.name}
-                {template.isDefault ? ' (default)' : ''}
+                {template.isDefault ? ` ${t('documentPrototype.defaultSuffix')}` : ''}
               </option>
             ))}
           </select>
@@ -82,7 +79,7 @@ const DocumentPrototypePage: React.FC = () => {
       </div>
 
       <button onClick={handleGenerate} disabled={generating || loadingTemplates}>
-        {generating ? 'Generating…' : 'Download sample PDF'}
+        {generating ? t('documentPrototype.generating') : t('documentPrototype.downloadButton')}
       </button>
       {error ? <p style={{ color: 'red' }}>{error}</p> : null}
     </div>

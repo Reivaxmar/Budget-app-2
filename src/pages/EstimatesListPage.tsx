@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { estimateRepositoryClient as estimateRepository } from '../db/estimateRepositoryClient';
 import { customerRepositoryClient as customerRepository } from '../db/customerRepositoryClient';
 import { estimateService } from '../services';
@@ -6,11 +7,11 @@ import { useNavigate } from 'react-router-dom';
 import './EstimatesPage.css';
 
 const EstimatesListPage: React.FC = () => {
+  const { t } = useTranslation();
   const [estimates, setEstimates] = useState<Array<any>>([]);
   const [customers, setCustomers] = useState<Array<any>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [exportingId, setExportingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Load customers for mapping customerId to name
@@ -35,7 +36,7 @@ const EstimatesListPage: React.FC = () => {
       setEstimates(sorted);
     } catch (err) {
       console.error('Failed to load estimates:', err);
-      setError('Failed to load estimates. Please try again.');
+      setError(t('estimatesList.errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -56,41 +57,25 @@ const EstimatesListPage: React.FC = () => {
   };
 
   const handleDuplicateEstimate = async (id: string) => {
-    if (window.confirm('Are you sure you want to duplicate this estimate?')) {
+    if (window.confirm(t('estimatesList.confirmDuplicate'))) {
       try {
         await estimateService.duplicateEstimate(id);
         await loadEstimates();
       } catch (err) {
         console.error('Failed to duplicate estimate:', err);
-        alert('Failed to duplicate estimate. Please try again.');
+        alert(t('estimatesList.errors.duplicateFailed'));
       }
     }
   };
 
-  const handleExportPdf = async (id: string) => {
-    setExportingId(id);
-    try {
-      // Dynamically imported so the PDF rendering engine (react-pdf) is only
-      // ever downloaded when the user actually exports, keeping it out of
-      // this page's (eagerly-loaded) main bundle.
-      const { exportEstimatePdf } = await import('../services/pdfExportService');
-      await exportEstimatePdf(id);
-    } catch (err) {
-      console.error('Failed to export PDF:', err);
-      alert(err instanceof Error ? err.message : 'Failed to export PDF.');
-    } finally {
-      setExportingId(null);
-    }
-  };
-
   const handleDeleteEstimate = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this estimate?')) {
+    if (window.confirm(t('estimatesList.confirmDelete'))) {
       try {
         await estimateService.deleteEstimate(id);
         await loadEstimates();
       } catch (err) {
         console.error('Failed to delete estimate:', err);
-        alert('Failed to delete estimate. Please try again.');
+        alert(t('estimatesList.errors.deleteFailed'));
       }
     }
   };
@@ -98,7 +83,7 @@ const EstimatesListPage: React.FC = () => {
   // Map customerId to name
   const getCustomerName = (customerId: string) => {
     const cust = customers.find(c => c.id === customerId);
-    return cust ? cust.name : 'Unknown';
+    return cust ? cust.name : t('estimatesList.unknownCustomer');
   };
 
   // Format date string (ISO) to short date
@@ -112,11 +97,11 @@ const EstimatesListPage: React.FC = () => {
 
   return (
     <div className="estimates-page">
-      <h1>Estimates</h1>
+      <h1>{t('estimatesList.title')}</h1>
       {/* Search bar (placeholder for future) */}
       <div className="search-bar">
         <button onClick={handleNewEstimate} className="add-button">
-          New Estimate
+          {t('estimatesList.newEstimate')}
         </button>
       </div>
 
@@ -124,7 +109,7 @@ const EstimatesListPage: React.FC = () => {
       {error && <div className="error-message">{error}</div>}
 
       {/* Loading state */}
-      {loading && <p>Loading estimates...</p>}
+      {loading && <p>{t('estimatesList.loading')}</p>}
 
       {/* Estimates table */}
       {!loading && (
@@ -132,22 +117,22 @@ const EstimatesListPage: React.FC = () => {
           <table>
             <thead>
               <tr>
-                <th>Estimate #</th>
-                <th>Year</th>
-                <th>Customer</th>
-                <th>Subject</th>
-                <th>Site</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Tax %</th>
-                <th>Actions</th>
+                <th>{t('estimatesList.fields.estimateNumber')}</th>
+                <th>{t('estimatesList.fields.year')}</th>
+                <th>{t('estimatesList.fields.customer')}</th>
+                <th>{t('estimatesList.fields.subject')}</th>
+                <th>{t('estimatesList.fields.site')}</th>
+                <th>{t('estimatesList.fields.date')}</th>
+                <th>{t('estimatesList.fields.status')}</th>
+                <th>{t('estimatesList.fields.taxRate')}</th>
+                <th>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
               {estimates.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="no-estimates">
-                    No estimates found.
+                    {t('estimatesList.noneFound')}
                   </td>
                 </tr>
               ) : (
@@ -166,26 +151,19 @@ const EstimatesListPage: React.FC = () => {
                         onClick={() => handleEditEstimate(estimate.id)}
                         className="actions-button"
                       >
-                        Edit
+                        {t('common.edit')}
                       </button>
                       <button
                         onClick={() => handleDuplicateEstimate(estimate.id)}
                         className="actions-button"
                       >
-                        Duplicate
-                      </button>
-                      <button
-                        onClick={() => handleExportPdf(estimate.id)}
-                        className="actions-button"
-                        disabled={exportingId === estimate.id}
-                      >
-                        {exportingId === estimate.id ? 'Exporting…' : 'Export PDF'}
+                        {t('estimatesList.actions.duplicate')}
                       </button>
                       <button
                         onClick={() => handleDeleteEstimate(estimate.id)}
                         className="delete-button"
                       >
-                        Delete
+                        {t('common.delete')}
                       </button>
                     </td>
                   </tr>

@@ -1,4 +1,4 @@
-# Construction Estimate & Quote Management Application
+# Presupeitor2000
 
 A desktop-first application for building professional construction estimates: manage customers,
 a reusable item library, document templates and your company profile, then compose an estimate
@@ -62,7 +62,22 @@ src/
   services/    # Application logic: numbering, totals, validation, PDF export
   rendering/   # Structured-data + template -> PDF (react-pdf)
   pages/       # React screens
+  i18n/        # i18next setup and translation resources
 ```
+
+## Internationalization
+
+The app UI (menus, page titles, buttons, form labels, validation/error messages) is wired
+through [i18next](https://www.i18next.com/)/[react-i18next](https://react.i18next.com/) via
+`useTranslation()`/`t(...)` rather than hard-coded strings — see `src/i18n/index.ts` and
+`src/i18n/locales/en.json`. Only English exists today; adding a real second language later is:
+
+1. add `src/i18n/locales/<lng>.json` with the same keys as `en.json`;
+2. register it in the `resources` object in `src/i18n/index.ts`;
+3. add a language switcher that calls `i18n.changeLanguage(<lng>)`.
+
+No component changes are required. Generated PDF documents (cover, tables, final page) are
+driven by the Template system's own configurable wording, not by this UI translation layer.
 
 ## Screenshots
 

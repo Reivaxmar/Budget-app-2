@@ -1,14 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { exportEstimatePdf } from './pdfExportService';
 import { buildEstimateDocumentData } from './documentDataService';
 import { generateEstimatePdfBlob } from './pdfService';
 import { templateService } from './templateService';
+import { save } from '@tauri-apps/plugin-dialog';
+import { invoke } from '@tauri-apps/api/core';
 import type { EstimateDocumentData } from '../rendering/types';
 import type { Template } from '../domain/models';
 
 vi.mock('./documentDataService');
 vi.mock('./pdfService');
 vi.mock('./templateService');
+vi.mock('@tauri-apps/plugin-dialog');
+vi.mock('@tauri-apps/api/core');
 
 const sampleData = {
   estimate: { id: 'estimate-1', estimateNumber: '001-26' },
@@ -22,12 +26,20 @@ describe('exportEstimatePdf', () => {
   let revokeObjectURLSpy: ReturnType<typeof vi.fn>;
   const originalCreateElement = document.createElement.bind(document);
 
+  const originalUserAgent = navigator.userAgent;
+
   beforeEach(() => {
     vi.clearAllMocks();
 
     vi.mocked(buildEstimateDocumentData).mockResolvedValue(sampleData);
     vi.mocked(generateEstimatePdfBlob).mockResolvedValue(new Blob(['pdf-bytes']));
     vi.mocked(templateService.getDefaultTemplate).mockResolvedValue(sampleTemplate);
+    delete (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__;
+    delete (window as unknown as { isTauri?: boolean }).isTauri;
+    Object.defineProperty(window.navigator, 'userAgent', {
+      configurable: true,
+      value: originalUserAgent,
+    });
 
     clickSpy = vi.fn();
     vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
@@ -57,25 +69,21 @@ describe('exportEstimatePdf', () => {
   it('uses an explicitly given template instead of the default', async () => {
     const customTemplate = { id: 'template-2', name: 'Compact' } as unknown as Template;
 
-    await exportEstimatePdf('estimate-1', customTemplate);
+    await exportEstimatePdf('estimate-1', { template: customTemplate });
 
     expect(templateService.getDefaultTemplate).not.toHaveBeenCalled();
     expect(generateEstimatePdfBlob).toHaveBeenCalledWith(sampleData, customTemplate);
   });
 
-  it('triggers a browser download named after the estimate number', async () => {
-    await exportEstimatePdf('estimate-1');
+  it('triggers a browser download named after the given estimate number', async () => {
+    await exportEstimatePdf('estimate-1', { estimateNumber: '001-26' });
 
     expect(createObjectURLSpy).toHaveBeenCalled();
     expect(clickSpy).toHaveBeenCalled();
     expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:mock-url');
   });
 
-  it('falls back to the estimate id for the filename when no estimate number is set yet', async () => {
-    vi.mocked(buildEstimateDocumentData).mockResolvedValue({
-      estimate: { id: 'draft-1', estimateNumber: '' },
-    } as unknown as EstimateDocumentData);
-
+  it('falls back to the estimate id for the filename when no estimate number is given', async () => {
     let capturedDownload = '';
     vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
       const el = originalCreateElement(tag);
@@ -94,5 +102,129 @@ describe('exportEstimatePdf', () => {
     await exportEstimatePdf('draft-1');
 
     expect(capturedDownload).toBe('estimate-draft-1.pdf');
+  });
+
+  it('resolves the save destination before doing any of the slow PDF-building work', async () => {
+    // Regression test: showSaveFilePicker() (and, defensively, the Tauri
+    // dialog) must be asked for a location while the click that triggered
+    // export is still an active user gesture. If we build/render the PDF
+    // first, that gesture can expire and the picker throws on every
+    // attempt. This asserts the actual call order, not just the outcome.
+    const callOrder: string[] = [];
+    vi.mocked(buildEstimateDocumentData).mockImplementation(async () => {
+      callOrder.push('buildEstimateDocumentData');
+      return sampleData;
+    });
+    vi.mocked(generateEstimatePdfBlob).mockImplementation(async () => {
+      callOrder.push('generateEstimatePdfBlob');
+      return new Blob(['pdf-bytes']);
+    });
+    (window as unknown as { showSaveFilePicker: unknown }).showSaveFilePicker = vi
+      .fn()
+      .mockImplementation(async () => {
+        callOrder.push('showSaveFilePicker');
+        return { createWritable: vi.fn().mockResolvedValue({ write: vi.fn(), close: vi.fn() }) };
+      });
+
+    await exportEstimatePdf('estimate-1');
+
+    expect(callOrder).toEqual(['showSaveFilePicker', 'buildEstimateDocumentData', 'generateEstimatePdfBlob']);
+
+    delete (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker;
+  });
+
+  describe('under Tauri', () => {
+    beforeEach(() => {
+      (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__ = {};
+    });
+
+    it('asks the user for a save location via the native dialog and writes the PDF there via the custom write_binary_file command', async () => {
+      vi.mocked(save).mockResolvedValue('/home/user/Documents/estimate-001-26.pdf');
+      vi.mocked(invoke).mockResolvedValue(undefined);
+
+      await exportEstimatePdf('estimate-1', { estimateNumber: '001-26' });
+
+      expect(save).toHaveBeenCalledWith(
+        expect.objectContaining({ defaultPath: 'estimate-001-26.pdf' })
+      );
+      // Deliberately not `@tauri-apps/plugin-fs`'s writeFile: that plugin
+      // restricts writes to paths pre-declared in the capability's
+      // fs:scope, which a user-picked path won't be. write_binary_file is
+      // a plain custom command, not subject to that scope.
+      expect(invoke).toHaveBeenCalledWith('write_binary_file', {
+        path: '/home/user/Documents/estimate-001-26.pdf',
+        contents: expect.any(Array),
+      });
+      // The browser-download fallback must not also fire.
+      expect(clickSpy).not.toHaveBeenCalled();
+    });
+
+    it('uses the native Tauri save dialog when the runtime signal is absent but the app is running in a Tauri webview', async () => {
+      Object.defineProperty(window.navigator, 'userAgent', {
+        configurable: true,
+        value: 'Mozilla/5.0 (X11; Linux x86_64) Tauri/1.0',
+      });
+      vi.mocked(save).mockResolvedValue('/home/user/Documents/estimate-001-26.pdf');
+      vi.mocked(invoke).mockResolvedValue(undefined);
+
+      await exportEstimatePdf('estimate-1', { estimateNumber: '001-26' });
+
+      expect(save).toHaveBeenCalled();
+      expect(invoke).toHaveBeenCalledWith('write_binary_file', {
+        path: '/home/user/Documents/estimate-001-26.pdf',
+        contents: expect.any(Array),
+      });
+    });
+
+    it('does nothing (no error, no write) when the user cancels the native save dialog', async () => {
+      vi.mocked(save).mockResolvedValue(null);
+
+      await expect(exportEstimatePdf('estimate-1')).resolves.toBeUndefined();
+
+      expect(invoke).not.toHaveBeenCalled();
+      expect(clickSpy).not.toHaveBeenCalled();
+      expect(buildEstimateDocumentData).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('via the File System Access API (non-Tauri browsers that support it)', () => {
+    let writeSpy: ReturnType<typeof vi.fn>;
+    let closeSpy: ReturnType<typeof vi.fn>;
+    let showSaveFilePickerSpy: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      writeSpy = vi.fn().mockResolvedValue(undefined);
+      closeSpy = vi.fn().mockResolvedValue(undefined);
+      showSaveFilePickerSpy = vi.fn().mockResolvedValue({
+        createWritable: vi.fn().mockResolvedValue({ write: writeSpy, close: closeSpy }),
+      });
+      (window as unknown as { showSaveFilePicker: unknown }).showSaveFilePicker =
+        showSaveFilePickerSpy;
+    });
+
+    afterEach(() => {
+      delete (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker;
+    });
+
+    it('asks the user for a save location via the picker and writes the PDF there', async () => {
+      await exportEstimatePdf('estimate-1', { estimateNumber: '001-26' });
+
+      expect(showSaveFilePickerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ suggestedName: 'estimate-001-26.pdf' })
+      );
+      expect(writeSpy).toHaveBeenCalled();
+      expect(closeSpy).toHaveBeenCalled();
+      expect(clickSpy).not.toHaveBeenCalled();
+    });
+
+    it('does nothing (no error, no write) when the user cancels the picker', async () => {
+      showSaveFilePickerSpy.mockRejectedValue(new DOMException('cancelled', 'AbortError'));
+
+      await expect(exportEstimatePdf('estimate-1')).resolves.toBeUndefined();
+
+      expect(writeSpy).not.toHaveBeenCalled();
+      expect(clickSpy).not.toHaveBeenCalled();
+      expect(buildEstimateDocumentData).not.toHaveBeenCalled();
+    });
   });
 });

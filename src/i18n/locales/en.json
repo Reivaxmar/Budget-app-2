@@ -1,0 +1,310 @@
+{
+  "app": {
+    "brandName": "Presupeitor2000",
+    "nav": {
+      "dashboard": "Dashboard",
+      "estimates": "Estimates",
+      "customers": "Customers",
+      "itemLibrary": "Item Library",
+      "templates": "Templates",
+      "documentPrototype": "Document Prototype",
+      "companyProfile": "Company / User Profile",
+      "settings": "Settings"
+    },
+    "errorBoundary": {
+      "title": "Something went wrong while loading this page.",
+      "message": "Please return to Dashboard and try again."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "create": "Create",
+    "update": "Update",
+    "save": "Save"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "placeholder": "Placeholder for dashboard page"
+  },
+  "settings": {
+    "title": "Settings",
+    "placeholder": "Placeholder for settings page"
+  },
+  "customers": {
+    "title": "Customers",
+    "searchPlaceholder": "Search customers...",
+    "addButton": "Add Customer",
+    "loading": "Loading customers...",
+    "noneFound": "No customers found.",
+    "editCustomer": "Edit Customer",
+    "addCustomer": "Add Customer",
+    "confirmDelete": "Are you sure you want to delete this customer?",
+    "fields": {
+      "name": "Name",
+      "address": "Address",
+      "email": "Email",
+      "phone": "Phone",
+      "taxId": "Tax ID",
+      "notes": "Notes"
+    },
+    "errors": {
+      "loadFailed": "Failed to load customers. Please try again.",
+      "requiredFields": "Name, address, and email are required.",
+      "invalidEmail": "Please enter a valid email address.",
+      "saveFailed": "Failed to save customer. Please try again.",
+      "deleteFailed": "Failed to delete customer. Please try again."
+    }
+  },
+  "itemLibrary": {
+    "title": "Item Library",
+    "searchPlaceholder": "Search items by code, description, category or keywords...",
+    "addButton": "Add Item",
+    "loading": "Loading items...",
+    "noneFound": "No items found.",
+    "editItem": "Edit Item",
+    "addItem": "Add Item",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "fields": {
+      "code": "Code",
+      "description": "Description",
+      "unit": "Unit",
+      "defaultPrice": "Default Price",
+      "category": "Category",
+      "keywords": "Keywords"
+    },
+    "errors": {
+      "loadFailed": "Failed to load items. Please try again.",
+      "requiredFields": "Description and unit are required.",
+      "saveFailed": "Failed to save item. Please try again.",
+      "deleteFailed": "Failed to delete item. Please try again."
+    }
+  },
+  "templates": {
+    "title": "Templates",
+    "intro": "Templates control how estimates are presented — page layout, typography, cover, header, footer, table columns and final-page wording. They never change estimate data.",
+    "newTemplate": "New Template",
+    "loading": "Loading templates...",
+    "noneFound": "No templates found.",
+    "confirmDelete": "Are you sure you want to delete this template?",
+    "table": {
+      "name": "Name",
+      "default": "Default",
+      "defaultBadge": "Default",
+      "columns": "Columns"
+    },
+    "actions": {
+      "setDefault": "Set Default",
+      "duplicate": "Duplicate"
+    },
+    "errors": {
+      "loadFailed": "Failed to load templates. Please try again.",
+      "nameRequired": "Template name is required.",
+      "columnRequired": "At least one table column must be enabled.",
+      "saveFailed": "Failed to save template.",
+      "setDefaultFailed": "Failed to set default template.",
+      "duplicateFailed": "Failed to duplicate template.",
+      "deleteFailed": "Failed to delete template."
+    },
+    "modal": {
+      "editTitle": "Edit Template",
+      "newTitle": "New Template",
+      "sections": {
+        "name": "Name",
+        "templateName": "Template name:",
+        "pageLayout": "Page layout",
+        "marginPt": "Margin (pt):",
+        "typography": "Typography",
+        "fontFamily": "Font family:",
+        "bodySize": "Body size:",
+        "headingSize": "Heading size:",
+        "titleSize": "Title size:",
+        "colors": "Colors",
+        "textColor": "Text:",
+        "mutedColor": "Muted text:",
+        "tableHeaderBackground": "Table header background:",
+        "borderColor": "Border color:",
+        "coverPage": "Cover page",
+        "showCreationLocationDate": "Show creation location/date",
+        "showSlogan": "Show slogan",
+        "header": "Header",
+        "showEstimateNumberAndDate": "Show estimate number and date",
+        "footer": "Footer",
+        "showPageNumbers": "Show page numbers",
+        "showCompanyInfo": "Show company info",
+        "tableColumns": "Table columns",
+        "showRowBorders": "Show row borders",
+        "columnTable": {
+          "show": "Show",
+          "column": "Column",
+          "label": "Label",
+          "width": "Width (%)",
+          "align": "Align",
+          "showColumnAriaLabel": "Show {{column}} column",
+          "labelAriaLabel": "{{column}} label",
+          "widthAriaLabel": "{{column}} width",
+          "alignAriaLabel": "{{column}} alignment"
+        },
+        "alignOptions": {
+          "left": "Left",
+          "center": "Center",
+          "right": "Right"
+        },
+        "finalPage": "Final page",
+        "totalLabel": "Total label:",
+        "totalCaption": "Total caption:",
+        "signatureLabel": "Signature label:"
+      }
+    }
+  },
+  "companyProfile": {
+    "loading": "Loading company profile...",
+    "title": "Company / User Profile",
+    "intro": "This identity and these defaults appear on every exported estimate PDF: the cover, the repeating header/footer, and the final page.",
+    "saved": "Saved.",
+    "saving": "Saving…",
+    "sections": {
+      "identity": "Company identity",
+      "documentDefaults": "Document defaults"
+    },
+    "fields": {
+      "companyName": "Company / user name:",
+      "address": "Address:",
+      "postalCode": "Postal code:",
+      "phone": "Phone:",
+      "email": "Email:",
+      "slogan": "Slogan:",
+      "creationLocation": "Creation location (e.g. \"Barcelona\"):",
+      "standardNoteTitle": "Final-page note title:",
+      "standardNoteContent": "Final-page note content:"
+    }
+  },
+  "estimatesList": {
+    "title": "Estimates",
+    "newEstimate": "New Estimate",
+    "loading": "Loading estimates...",
+    "noneFound": "No estimates found.",
+    "unknownCustomer": "Unknown",
+    "confirmDuplicate": "Are you sure you want to duplicate this estimate?",
+    "confirmDelete": "Are you sure you want to delete this estimate?",
+    "fields": {
+      "estimateNumber": "Estimate #",
+      "year": "Year",
+      "customer": "Customer",
+      "subject": "Subject",
+      "site": "Site",
+      "date": "Date",
+      "status": "Status",
+      "taxRate": "Tax %"
+    },
+    "actions": {
+      "duplicate": "Duplicate"
+    },
+    "errors": {
+      "loadFailed": "Failed to load estimates. Please try again.",
+      "duplicateFailed": "Failed to duplicate estimate. Please try again.",
+      "deleteFailed": "Failed to delete estimate. Please try again."
+    }
+  },
+  "documentPrototype": {
+    "title": "Document Rendering Prototype",
+    "description": "Generates a sample estimate PDF from mock data to validate pagination, repeated header/footer, page numbers and the final total/signature section. Pick a saved template below to confirm the same estimate data renders differently under a different presentation.",
+    "templateLabel": "Template:",
+    "defaultSuffix": "(default)",
+    "generating": "Generating…",
+    "downloadButton": "Download sample PDF",
+    "errors": {
+      "loadTemplatesFailed": "Failed to load templates. See console for details.",
+      "generateFailed": "Failed to generate PDF. See console for details."
+    }
+  },
+  "estimateEditor": {
+    "loading": "Loading estimate...",
+    "errorPrefix": "Error: {{message}}",
+    "unexpectedState": "Unexpected state.",
+    "notFound": "Estimate not found",
+    "titleEdit": "Edit Estimate {{number}}",
+    "titleNew": "New Estimate",
+    "backToList": "Back to List",
+    "saveEstimate": "Save Estimate",
+    "exportPdf": "Export PDF",
+    "exporting": "Exporting…",
+    "deleteEstimate": "Delete Estimate",
+    "saveHeader": "Save Header",
+    "chaptersHeading": "Chapters",
+    "addChapter": "Add Chapter",
+    "saveBeforeChaptersHint": "Save the estimate header before adding chapters",
+    "noChapters": "No chapters yet.",
+    "lineItemsHeading": "Line Items",
+    "addLineItem": "Add Line Item",
+    "noLineItems": "No line items yet.",
+    "chapterTotal": "Chapter Total:",
+    "estimateTotal": "Estimate Total:",
+    "confirmDeleteChapter": "Are you sure you want to delete this chapter?",
+    "confirmDeleteLineItem": "Are you sure you want to delete this line item?",
+    "confirmDeleteEstimate": "Are you sure you want to delete this estimate?",
+    "successCreated": "Estimate created successfully.",
+    "successHeaderUpdated": "Estimate header updated.",
+    "successSaved": "Estimate saved.",
+    "fields": {
+      "year": "Year:",
+      "customer": "Customer:",
+      "selectCustomer": "Select Customer",
+      "subject": "Subject:",
+      "site": "Site:",
+      "creationDate": "Creation Date:",
+      "status": "Status:",
+      "taxRate": "Tax Rate (%):",
+      "statusOptions": {
+        "draft": "Draft",
+        "issued": "Issued",
+        "accepted": "Accepted"
+      }
+    },
+    "lineItemFields": {
+      "code": "Code",
+      "description": "Description",
+      "unit": "Unit",
+      "quantity": "Quantity",
+      "unitPrice": "Unit Price",
+      "amount": "Amount"
+    },
+    "chapterModal": {
+      "editTitle": "Edit Chapter",
+      "addTitle": "Add Chapter",
+      "titleLabel": "Title:",
+      "orderLabel": "Order:"
+    },
+    "lineItemModal": {
+      "editTitle": "Edit Line Item",
+      "addTitle": "Add Line Item",
+      "insertFromLibrary": "Insert from Library:",
+      "searchPlaceholder": "Search library items...",
+      "noMatches": "No matching items.",
+      "codeLabel": "Code:",
+      "descriptionLabel": "Description:",
+      "unitLabel": "Unit:",
+      "quantityLabel": "Quantity:",
+      "unitPriceLabel": "Unit Price:",
+      "amountLabel": "Amount:",
+      "orderLabel": "Order:"
+    },
+    "errors": {
+      "loadFailed": "Failed to load estimate. Please try again.",
+      "customerSubjectRequired": "Customer and Subject are required.",
+      "saveHeaderFailed": "Failed to save estimate header.",
+      "exportFailed": "Failed to export PDF.",
+      "saveEstimateBeforeChapters": "Save the estimate header before adding chapters.",
+      "chapterTitleRequired": "Chapter title is required.",
+      "saveChapterFailed": "Failed to save chapter.",
+      "deleteChapterFailed": "Failed to delete chapter.",
+      "descriptionUnitRequired": "Description and unit are required.",
+      "saveLineItemFailed": "Failed to save line item.",
+      "deleteLineItemFailed": "Failed to delete line item.",
+      "deleteEstimateFailed": "Failed to delete estimate."
+    }
+  }
+}

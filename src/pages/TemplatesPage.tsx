@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { templateService } from '../services/templateService';
 import { defaultDocumentTemplate } from '../rendering/templateConfig';
 import type { Template, TableColumnKey } from '../domain/models';
@@ -9,6 +10,10 @@ import './TemplatesPage.css';
 // columns appear (and their label/width/alignment) and final-page wording —
 // not a free-form/WYSIWYG canvas. Templates only ever change how an
 // estimate is presented; they never carry estimate data.
+//
+// Note: the default column labels below (CANONICAL_COLUMNS) seed a
+// template's *data* (the label printed on generated PDFs), not app UI
+// chrome — they're deliberately not run through the i18n layer here.
 
 const FONT_FAMILIES = ['Helvetica', 'Times-Roman', 'Courier'];
 
@@ -170,6 +175,7 @@ function formStateToTemplateData(form: TemplateFormState): Omit<Template, 'id' |
 }
 
 const TemplatesPage: React.FC = () => {
+  const { t } = useTranslation();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -187,7 +193,7 @@ const TemplatesPage: React.FC = () => {
       setTemplates(data);
     } catch (err) {
       console.error('Failed to load templates:', err);
-      setError('Failed to load templates. Please try again.');
+      setError(t('templates.errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -234,11 +240,11 @@ const TemplatesPage: React.FC = () => {
   const handleSaveTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      alert('Template name is required.');
+      alert(t('templates.errors.nameRequired'));
       return;
     }
     if (!formData.columns.some((column) => column.enabled)) {
-      alert('At least one table column must be enabled.');
+      alert(t('templates.errors.columnRequired'));
       return;
     }
 
@@ -253,7 +259,7 @@ const TemplatesPage: React.FC = () => {
       await loadTemplates();
     } catch (err) {
       console.error('Failed to save template:', err);
-      alert(err instanceof Error ? err.message : 'Failed to save template.');
+      alert(err instanceof Error ? err.message : t('templates.errors.saveFailed'));
     }
   };
 
@@ -263,7 +269,7 @@ const TemplatesPage: React.FC = () => {
       await loadTemplates();
     } catch (err) {
       console.error('Failed to set default template:', err);
-      alert(err instanceof Error ? err.message : 'Failed to set default template.');
+      alert(err instanceof Error ? err.message : t('templates.errors.setDefaultFailed'));
     }
   };
 
@@ -273,82 +279,79 @@ const TemplatesPage: React.FC = () => {
       await loadTemplates();
     } catch (err) {
       console.error('Failed to duplicate template:', err);
-      alert(err instanceof Error ? err.message : 'Failed to duplicate template.');
+      alert(err instanceof Error ? err.message : t('templates.errors.duplicateFailed'));
     }
   };
 
   const handleDeleteTemplate = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this template?')) return;
+    if (!window.confirm(t('templates.confirmDelete'))) return;
     try {
       await templateService.deleteTemplate(id);
       await loadTemplates();
     } catch (err) {
       console.error('Failed to delete template:', err);
-      alert(err instanceof Error ? err.message : 'Failed to delete template.');
+      alert(err instanceof Error ? err.message : t('templates.errors.deleteFailed'));
     }
   };
 
   return (
     <div className="templates-page">
-      <h1>Templates</h1>
-      <p className="templates-intro">
-        Templates control how estimates are presented — page layout, typography, cover, header,
-        footer, table columns and final-page wording. They never change estimate data.
-      </p>
+      <h1>{t('templates.title')}</h1>
+      <p className="templates-intro">{t('templates.intro')}</p>
 
       <div className="templates-toolbar">
         <button onClick={handleCreateTemplate} className="add-button">
-          New Template
+          {t('templates.newTemplate')}
         </button>
       </div>
 
       {error && <div className="error-message">{error}</div>}
-      {loading && <p>Loading templates...</p>}
+      {loading && <p>{t('templates.loading')}</p>}
 
       {!loading && (
         <div className="table-container">
           <table>
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Default</th>
-                <th>Columns</th>
-                <th>Actions</th>
+                <th>{t('templates.table.name')}</th>
+                <th>{t('templates.table.default')}</th>
+                <th>{t('templates.table.columns')}</th>
+                <th>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
               {templates.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="no-items">
-                    No templates found.
+                    {t('templates.noneFound')}
                   </td>
                 </tr>
               ) : (
                 templates.map((template) => (
                   <tr key={template.id}>
                     <td>{template.name}</td>
-                    <td>{template.isDefault ? 'Default' : ''}</td>
+                    <td>{template.isDefault ? t('templates.table.defaultBadge') : ''}</td>
                     <td>{template.table.columns.map((column) => column.label).join(', ')}</td>
                     <td>
                       <button onClick={() => handleEditTemplate(template)} className="actions-button">
-                        Edit
+                        {t('common.edit')}
                       </button>
                       {!template.isDefault && (
                         <button
                           onClick={() => handleSetDefault(template.id)}
                           className="actions-button"
                         >
-                          Set Default
+                          {t('templates.actions.setDefault')}
                         </button>
                       )}
                       <button
                         onClick={() => handleDuplicateTemplate(template.id)}
                         className="actions-button"
                       >
-                        Duplicate
+                        {t('templates.actions.duplicate')}
                       </button>
                       <button onClick={() => handleDeleteTemplate(template.id)} className="delete-button">
-                        Delete
+                        {t('common.delete')}
                       </button>
                     </td>
                   </tr>
@@ -362,13 +365,13 @@ const TemplatesPage: React.FC = () => {
       {formVisible && (
         <div className="modal-overlay">
           <div className="modal-content template-modal-content">
-            <h2>{editingId ? 'Edit Template' : 'New Template'}</h2>
+            <h2>{editingId ? t('templates.modal.editTitle') : t('templates.modal.newTitle')}</h2>
             <form onSubmit={handleSaveTemplate} className="template-form">
               <fieldset>
-                <legend>Name</legend>
+                <legend>{t('templates.modal.sections.name')}</legend>
                 <div className="form-group">
                   <label>
-                    Template name:
+                    {t('templates.modal.sections.templateName')}
                     <input
                       type="text"
                       value={formData.name}
@@ -380,10 +383,10 @@ const TemplatesPage: React.FC = () => {
               </fieldset>
 
               <fieldset>
-                <legend>Page layout</legend>
+                <legend>{t('templates.modal.sections.pageLayout')}</legend>
                 <div className="form-group">
                   <label>
-                    Margin (pt):
+                    {t('templates.modal.sections.marginPt')}
                     <input
                       type="number"
                       min="0"
@@ -397,10 +400,10 @@ const TemplatesPage: React.FC = () => {
               </fieldset>
 
               <fieldset>
-                <legend>Typography</legend>
+                <legend>{t('templates.modal.sections.typography')}</legend>
                 <div className="form-row">
                   <label>
-                    Font family:
+                    {t('templates.modal.sections.fontFamily')}
                     <select
                       value={formData.fontFamily}
                       onChange={(e) => setFormData((prev) => ({ ...prev, fontFamily: e.target.value }))}
@@ -413,7 +416,7 @@ const TemplatesPage: React.FC = () => {
                     </select>
                   </label>
                   <label>
-                    Body size:
+                    {t('templates.modal.sections.bodySize')}
                     <input
                       type="number"
                       min="6"
@@ -424,7 +427,7 @@ const TemplatesPage: React.FC = () => {
                     />
                   </label>
                   <label>
-                    Heading size:
+                    {t('templates.modal.sections.headingSize')}
                     <input
                       type="number"
                       min="6"
@@ -435,7 +438,7 @@ const TemplatesPage: React.FC = () => {
                     />
                   </label>
                   <label>
-                    Title size:
+                    {t('templates.modal.sections.titleSize')}
                     <input
                       type="number"
                       min="6"
@@ -449,10 +452,10 @@ const TemplatesPage: React.FC = () => {
               </fieldset>
 
               <fieldset>
-                <legend>Colors</legend>
+                <legend>{t('templates.modal.sections.colors')}</legend>
                 <div className="form-row">
                   <label>
-                    Text:
+                    {t('templates.modal.sections.textColor')}
                     <input
                       type="color"
                       value={formData.textColor}
@@ -460,7 +463,7 @@ const TemplatesPage: React.FC = () => {
                     />
                   </label>
                   <label>
-                    Muted text:
+                    {t('templates.modal.sections.mutedColor')}
                     <input
                       type="color"
                       value={formData.mutedColor}
@@ -468,7 +471,7 @@ const TemplatesPage: React.FC = () => {
                     />
                   </label>
                   <label>
-                    Table header background:
+                    {t('templates.modal.sections.tableHeaderBackground')}
                     <input
                       type="color"
                       value={formData.tableHeaderBackground}
@@ -478,7 +481,7 @@ const TemplatesPage: React.FC = () => {
                     />
                   </label>
                   <label>
-                    Border color:
+                    {t('templates.modal.sections.borderColor')}
                     <input
                       type="color"
                       value={formData.borderColor}
@@ -489,7 +492,7 @@ const TemplatesPage: React.FC = () => {
               </fieldset>
 
               <fieldset>
-                <legend>Cover page</legend>
+                <legend>{t('templates.modal.sections.coverPage')}</legend>
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
@@ -498,7 +501,7 @@ const TemplatesPage: React.FC = () => {
                       setFormData((prev) => ({ ...prev, showCreationLocationDate: e.target.checked }))
                     }
                   />
-                  Show creation location/date
+                  {t('templates.modal.sections.showCreationLocationDate')}
                 </label>
                 <label className="checkbox-label">
                   <input
@@ -506,12 +509,12 @@ const TemplatesPage: React.FC = () => {
                     checked={formData.showSlogan}
                     onChange={(e) => setFormData((prev) => ({ ...prev, showSlogan: e.target.checked }))}
                   />
-                  Show slogan
+                  {t('templates.modal.sections.showSlogan')}
                 </label>
               </fieldset>
 
               <fieldset>
-                <legend>Header</legend>
+                <legend>{t('templates.modal.sections.header')}</legend>
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
@@ -520,12 +523,12 @@ const TemplatesPage: React.FC = () => {
                       setFormData((prev) => ({ ...prev, showEstimateNumberAndDate: e.target.checked }))
                     }
                   />
-                  Show estimate number and date
+                  {t('templates.modal.sections.showEstimateNumberAndDate')}
                 </label>
               </fieldset>
 
               <fieldset>
-                <legend>Footer</legend>
+                <legend>{t('templates.modal.sections.footer')}</legend>
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
@@ -534,7 +537,7 @@ const TemplatesPage: React.FC = () => {
                       setFormData((prev) => ({ ...prev, showPageNumbers: e.target.checked }))
                     }
                   />
-                  Show page numbers
+                  {t('templates.modal.sections.showPageNumbers')}
                 </label>
                 <label className="checkbox-label">
                   <input
@@ -544,12 +547,12 @@ const TemplatesPage: React.FC = () => {
                       setFormData((prev) => ({ ...prev, showCompanyInfo: e.target.checked }))
                     }
                   />
-                  Show company info
+                  {t('templates.modal.sections.showCompanyInfo')}
                 </label>
               </fieldset>
 
               <fieldset>
-                <legend>Table columns</legend>
+                <legend>{t('templates.modal.sections.tableColumns')}</legend>
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
@@ -558,16 +561,16 @@ const TemplatesPage: React.FC = () => {
                       setFormData((prev) => ({ ...prev, showTableBorders: e.target.checked }))
                     }
                   />
-                  Show row borders
+                  {t('templates.modal.sections.showRowBorders')}
                 </label>
                 <table className="column-config-table">
                   <thead>
                     <tr>
-                      <th>Show</th>
-                      <th>Column</th>
-                      <th>Label</th>
-                      <th>Width (%)</th>
-                      <th>Align</th>
+                      <th>{t('templates.modal.sections.columnTable.show')}</th>
+                      <th>{t('templates.modal.sections.columnTable.column')}</th>
+                      <th>{t('templates.modal.sections.columnTable.label')}</th>
+                      <th>{t('templates.modal.sections.columnTable.width')}</th>
+                      <th>{t('templates.modal.sections.columnTable.align')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -578,7 +581,9 @@ const TemplatesPage: React.FC = () => {
                             type="checkbox"
                             checked={column.enabled}
                             onChange={() => handleColumnToggle(column.key)}
-                            aria-label={`Show ${column.key} column`}
+                            aria-label={t('templates.modal.sections.columnTable.showColumnAriaLabel', {
+                              column: column.key,
+                            })}
                           />
                         </td>
                         <td>{column.key}</td>
@@ -588,7 +593,9 @@ const TemplatesPage: React.FC = () => {
                             value={column.label}
                             disabled={!column.enabled}
                             onChange={(e) => handleColumnFieldChange(column.key, 'label', e.target.value)}
-                            aria-label={`${column.key} label`}
+                            aria-label={t('templates.modal.sections.columnTable.labelAriaLabel', {
+                              column: column.key,
+                            })}
                           />
                         </td>
                         <td>
@@ -599,7 +606,9 @@ const TemplatesPage: React.FC = () => {
                             value={column.width}
                             disabled={!column.enabled}
                             onChange={(e) => handleColumnFieldChange(column.key, 'width', e.target.value)}
-                            aria-label={`${column.key} width`}
+                            aria-label={t('templates.modal.sections.columnTable.widthAriaLabel', {
+                              column: column.key,
+                            })}
                           />
                         </td>
                         <td>
@@ -607,11 +616,13 @@ const TemplatesPage: React.FC = () => {
                             value={column.align}
                             disabled={!column.enabled}
                             onChange={(e) => handleColumnFieldChange(column.key, 'align', e.target.value)}
-                            aria-label={`${column.key} alignment`}
+                            aria-label={t('templates.modal.sections.columnTable.alignAriaLabel', {
+                              column: column.key,
+                            })}
                           >
-                            <option value="left">Left</option>
-                            <option value="center">Center</option>
-                            <option value="right">Right</option>
+                            <option value="left">{t('templates.modal.sections.alignOptions.left')}</option>
+                            <option value="center">{t('templates.modal.sections.alignOptions.center')}</option>
+                            <option value="right">{t('templates.modal.sections.alignOptions.right')}</option>
                           </select>
                         </td>
                       </tr>
@@ -621,10 +632,10 @@ const TemplatesPage: React.FC = () => {
               </fieldset>
 
               <fieldset>
-                <legend>Final page</legend>
+                <legend>{t('templates.modal.sections.finalPage')}</legend>
                 <div className="form-group">
                   <label>
-                    Total label:
+                    {t('templates.modal.sections.totalLabel')}
                     <input
                       type="text"
                       value={formData.totalLabel}
@@ -634,7 +645,7 @@ const TemplatesPage: React.FC = () => {
                 </div>
                 <div className="form-group">
                   <label>
-                    Total caption:
+                    {t('templates.modal.sections.totalCaption')}
                     <input
                       type="text"
                       value={formData.totalCaption}
@@ -644,7 +655,7 @@ const TemplatesPage: React.FC = () => {
                 </div>
                 <div className="form-group">
                   <label>
-                    Signature label:
+                    {t('templates.modal.sections.signatureLabel')}
                     <input
                       type="text"
                       value={formData.signatureLabel}
@@ -656,10 +667,10 @@ const TemplatesPage: React.FC = () => {
 
               <div className="form-actions">
                 <button type="button" onClick={() => setFormVisible(false)} className="cancel-button">
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="submit-button">
-                  {editingId ? 'Update' : 'Create'}
+                  {editingId ? t('common.update') : t('common.create')}
                 </button>
               </div>
             </form>

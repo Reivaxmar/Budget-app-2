@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { estimateService } from '../services';
 import {
   chapterRepositoryClient as chapterRepository,
@@ -12,6 +13,7 @@ import { Estimate, Chapter, Item, LineItem } from '../domain/models';
 import './EstimatesPage.css';
 
 const EstimateEditorPage: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string | undefined }>();
   const navigate = useNavigate();
 
@@ -20,7 +22,6 @@ const EstimateEditorPage: React.FC = () => {
   const [customers, setCustomers] = useState<Array<any>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState<Array<{id: string; message: string; type: 'success' | 'error' | 'info'}>>([]);
   const [exportingPdf, setExportingPdf] = useState<boolean>(false);
 
   // Modal states
@@ -96,7 +97,7 @@ const EstimateEditorPage: React.FC = () => {
         } else {
           const estimateWithDetails = await estimateService.getEstimateWithDetails(id);
           if (!estimateWithDetails) {
-            setError('Estimate not found');
+            setError(t('estimateEditor.notFound'));
             setLoading(false);
             return;
           }
@@ -112,14 +113,14 @@ const EstimateEditorPage: React.FC = () => {
         }
       } catch (err) {
         console.error('Failed to load estimate:', err);
-        setError('Failed to load estimate. Please try again.');
+        setError(t('estimateEditor.errors.loadFailed'));
         setLoading(false);
       }
     };
     loadEstimate();
   }, [id]);
 
-  
+
   // Calculate chapter total
   const calculateChapterTotal = (chapter: Chapter & { lineItems: LineItem[] }): number => {
     return estimateService.calculateChapterTotal(chapter as any);
@@ -153,7 +154,7 @@ const EstimateEditorPage: React.FC = () => {
     if (!estimate) return;
     // Validate required fields
     if (!estimate.customerId || !estimate.subject) {
-      alert('Customer and Subject are required.');
+      alert(t('estimateEditor.errors.customerSubjectRequired'));
       return;
     }
     try {
@@ -177,15 +178,15 @@ const EstimateEditorPage: React.FC = () => {
         // After creating header, we need to create chapters and line items
         // But we will handle that separately when user adds them.
         // For now just show success.
-        alert('Estimate created successfully.');
+        alert(t('estimateEditor.successCreated'));
       } else {
         // Update existing header
         await estimateService.updateEstimateHeader(estimate.id, estimate);
-        alert('Estimate header updated.');
+        alert(t('estimateEditor.successHeaderUpdated'));
       }
     } catch (err) {
       console.error('Failed to save estimate header:', err);
-      alert('Failed to save estimate header.');
+      alert(t('estimateEditor.errors.saveHeaderFailed'));
     }
   };
 
@@ -197,10 +198,10 @@ const EstimateEditorPage: React.FC = () => {
       // ever downloaded when the user actually exports, keeping it out of
       // this page's (eagerly-loaded) main bundle.
       const { exportEstimatePdf } = await import('../services/pdfExportService');
-      await exportEstimatePdf(estimate.id);
+      await exportEstimatePdf(estimate.id, { estimateNumber: estimate.estimateNumber });
     } catch (err) {
       console.error('Failed to export PDF:', err);
-      alert(err instanceof Error ? err.message : 'Failed to export PDF.');
+      alert(err instanceof Error ? err.message : t('estimateEditor.errors.exportFailed'));
     } finally {
       setExportingPdf(false);
     }
@@ -232,11 +233,11 @@ const EstimateEditorPage: React.FC = () => {
   const handleSaveChapter = async () => {
     if (!estimate) return;
     if (!estimate.id) {
-      alert('Save the estimate header before adding chapters.');
+      alert(t('estimateEditor.errors.saveEstimateBeforeChapters'));
       return;
     }
     if (!chapterForm.title?.trim()) {
-      alert('Chapter title is required.');
+      alert(t('estimateEditor.errors.chapterTitleRequired'));
       return;
     }
     try {
@@ -263,12 +264,12 @@ const EstimateEditorPage: React.FC = () => {
       closeChapterModal();
     } catch (err) {
       console.error('Failed to save chapter:', err);
-      alert('Failed to save chapter.');
+      alert(t('estimateEditor.errors.saveChapterFailed'));
     }
   };
 
   const handleDeleteChapter = async (chapterId: string) => {
-    if (!window.confirm('Are you sure you want to delete this chapter?')) return;
+    if (!window.confirm(t('estimateEditor.confirmDeleteChapter'))) return;
     try {
       // Delete line items first
       const lineItems = await lineItemRepository.findByChapterId(chapterId);
@@ -281,7 +282,7 @@ const EstimateEditorPage: React.FC = () => {
       setChapters((prev) => prev.filter((chap) => chap.id !== chapterId));
     } catch (err) {
       console.error('Failed to delete chapter:', err);
-      alert('Failed to delete chapter.');
+      alert(t('estimateEditor.errors.deleteChapterFailed'));
     }
   };
 
@@ -410,7 +411,7 @@ const EstimateEditorPage: React.FC = () => {
   const handleSaveLineItem = async () => {
     if (!activeChapterIdForLineItem) return;
     if (!lineItemForm.description?.trim() || !lineItemForm.unit?.trim()) {
-      alert('Description and unit are required.');
+      alert(t('estimateEditor.errors.descriptionUnitRequired'));
       return;
     }
     try {
@@ -460,12 +461,12 @@ const EstimateEditorPage: React.FC = () => {
       closeLineItemModal();
     } catch (err) {
       console.error('Failed to save line item:', err);
-      alert('Failed to save line item.');
+      alert(t('estimateEditor.errors.saveLineItemFailed'));
     }
   };
 
   const handleDeleteLineItem = async (lineItemId: string) => {
-    if (!window.confirm('Are you sure you want to delete this line item?')) return;
+    if (!window.confirm(t('estimateEditor.confirmDeleteLineItem'))) return;
     try {
       await lineItemRepository.delete(lineItemId);
       // Remove from state
@@ -482,7 +483,7 @@ const EstimateEditorPage: React.FC = () => {
       );
     } catch (err) {
       console.error('Failed to delete line item:', err);
-      alert('Failed to delete line item.');
+      alert(t('estimateEditor.errors.deleteLineItemFailed'));
     }
   };
 
@@ -558,52 +559,51 @@ const EstimateEditorPage: React.FC = () => {
     // Save header first
     await handleSaveHeader();
     // Chapters and line items are saved individually on their own actions.
-    alert('Estimate saved.');
+    alert(t('estimateEditor.successSaved'));
   };
 
   // Handle delete estimate
   const handleDeleteEstimate = async () => {
     if (!estimate) return;
-    if (!window.confirm('Are you sure you want to delete this estimate?')) return;
+    if (!window.confirm(t('estimateEditor.confirmDeleteEstimate'))) return;
     try {
       await estimateService.deleteEstimate(estimate.id);
       navigate('/estimates');
     } catch (err) {
       console.error('Failed to delete estimate:', err);
-      alert('Failed to delete estimate.');
+      alert(t('estimateEditor.errors.deleteEstimateFailed'));
     }
   };
 
-  if (loading) return <div>Loading estimate...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!estimate) return <div>Unexpected state.</div>;
+  if (loading) return <div>{t('estimateEditor.loading')}</div>;
+  if (error) return <div>{t('estimateEditor.errorPrefix', { message: error })}</div>;
+  if (!estimate) return <div>{t('estimateEditor.unexpectedState')}</div>;
 
   return (
     <div className="estimates-page">
       <h1>
-        {estimate.id ? `Edit Estimate ${estimate.estimateNumber}` : 'New Estimate'}
+        {estimate.id
+          ? t('estimateEditor.titleEdit', { number: estimate.estimateNumber })
+          : t('estimateEditor.titleNew')}
       </h1>
       <div className="search-bar">
         <button onClick={() => navigate('/estimates')} className="add-button">
-          Back to List
+          {t('estimateEditor.backToList')}
         </button>
         <button onClick={handleSaveEstimate} className="add-button">
-          Save Estimate
+          {t('estimateEditor.saveEstimate')}
         </button>
-        <button
-          onClick={handleExportPdf}
-          className="add-button"
-          disabled={!estimate.id || exportingPdf}
-          title={!estimate.id ? 'Save the estimate before exporting a PDF' : undefined}
-        >
-          {exportingPdf ? 'Exporting…' : 'Export PDF'}
-        </button>
+        {estimate.id && (
+          <button onClick={handleExportPdf} className="add-button" disabled={exportingPdf}>
+            {exportingPdf ? t('estimateEditor.exporting') : t('estimateEditor.exportPdf')}
+          </button>
+        )}
         <button
           onClick={handleDeleteEstimate}
           className="delete-button"
           style={{ marginLeft: '0.5rem' }}
         >
-          Delete Estimate
+          {t('estimateEditor.deleteEstimate')}
         </button>
       </div>
 
@@ -616,7 +616,7 @@ const EstimateEditorPage: React.FC = () => {
           <form className="customer-form" onSubmit={(e) => e.preventDefault()}>
             <div className="form-group">
               <label>
-                Year:
+                {t('estimateEditor.fields.year')}
                 <input
                   type="number"
                   value={estimate.year || ''}
@@ -631,7 +631,7 @@ const EstimateEditorPage: React.FC = () => {
             </div>
             <div className="form-group">
               <label>
-                Customer:
+                {t('estimateEditor.fields.customer')}
                 <select
                   value={estimate.customerId || ''}
                   onChange={(e) =>
@@ -639,7 +639,7 @@ const EstimateEditorPage: React.FC = () => {
                   }
                   required
                 >
-                  <option value="">Select Customer</option>
+                  <option value="">{t('estimateEditor.fields.selectCustomer')}</option>
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
@@ -650,7 +650,7 @@ const EstimateEditorPage: React.FC = () => {
             </div>
             <div className="form-group">
               <label>
-                Subject:
+                {t('estimateEditor.fields.subject')}
                 <input
                   type="text"
                   value={estimate.subject || ''}
@@ -661,7 +661,7 @@ const EstimateEditorPage: React.FC = () => {
             </div>
             <div className="form-group">
               <label>
-                Site:
+                {t('estimateEditor.fields.site')}
                 <input
                   type="text"
                   value={estimate.site || ''}
@@ -671,7 +671,7 @@ const EstimateEditorPage: React.FC = () => {
             </div>
             <div className="form-group">
               <label>
-                Creation Date:
+                {t('estimateEditor.fields.creationDate')}
                 <input
                   type="date"
                   value={estimate.creationDate.split('T')[0] || ''}
@@ -687,21 +687,21 @@ const EstimateEditorPage: React.FC = () => {
             </div>
             <div className="form-group">
               <label>
-                Status:
+                {t('estimateEditor.fields.status')}
                 <select
                   value={estimate.status || ''}
                   onChange={(e) => handleEstimateChange('status', e.target.value)}
                   required
                 >
-                  <option value="draft">Draft</option>
-                  <option value="issued">Issued</option>
-                  <option value="accepted">Accepted</option>
+                  <option value="draft">{t('estimateEditor.fields.statusOptions.draft')}</option>
+                  <option value="issued">{t('estimateEditor.fields.statusOptions.issued')}</option>
+                  <option value="accepted">{t('estimateEditor.fields.statusOptions.accepted')}</option>
                 </select>
               </label>
             </div>
             <div className="form-group">
               <label>
-                Tax Rate (%):
+                {t('estimateEditor.fields.taxRate')}
                 <input
                   type="number"
                   value={estimate.taxRate || ''}
@@ -715,7 +715,7 @@ const EstimateEditorPage: React.FC = () => {
             </div>
             <div className="form-actions">
               <button type="button" onClick={handleSaveHeader} className="submit-button">
-                Save Header
+                {t('estimateEditor.saveHeader')}
               </button>
             </div>
           </form>
@@ -723,18 +723,18 @@ const EstimateEditorPage: React.FC = () => {
       </div>
 
       {/* Chapters List */}
-      <h2>Chapters</h2>
+      <h2>{t('estimateEditor.chaptersHeading')}</h2>
       <button
         onClick={() => openChapterModal(null)}
         className="add-button"
         disabled={!estimate.id}
-        title={!estimate.id ? 'Save the estimate header before adding chapters' : undefined}
+        title={!estimate.id ? t('estimateEditor.saveBeforeChaptersHint') : undefined}
       >
-        Add Chapter
+        {t('estimateEditor.addChapter')}
       </button>
-      {!estimate.id && <p>Save the estimate header before adding chapters.</p>}
+      {!estimate.id && <p>{t('estimateEditor.errors.saveEstimateBeforeChapters')}</p>}
       {chapters.length === 0 ? (
-        <p>No chapters yet.</p>
+        <p>{t('estimateEditor.noChapters')}</p>
       ) : (
         chapters.map((chapter) => (
           <div key={chapter.id} style={{ border: '1px solid #ccc', margin: '1rem 0', padding: '1rem' }}>
@@ -746,14 +746,14 @@ const EstimateEditorPage: React.FC = () => {
                   className="actions-button"
                   style={{ marginRight: '0.25rem' }}
                 >
-                  Edit
+                  {t('common.edit')}
                 </button>
                 <button
                   onClick={() => handleDeleteChapter(chapter.id)}
                   className="delete-button"
                   style={{ marginRight: '0.25rem' }}
                 >
-                  Delete
+                  {t('common.delete')}
                 </button>
                 <button
                   onClick={() => handleMoveChapterUp(chapter)}
@@ -774,7 +774,7 @@ const EstimateEditorPage: React.FC = () => {
             </div>
 
             {/* Line Items for this chapter */}
-            <h4>Line Items</h4>
+            <h4>{t('estimateEditor.lineItemsHeading')}</h4>
             <button
               onClick={() => {
                 openLineItemModal(null, chapter.id);
@@ -782,21 +782,21 @@ const EstimateEditorPage: React.FC = () => {
               className="add-button"
               style={{ marginBottom: '0.5rem' }}
             >
-              Add Line Item
+              {t('estimateEditor.addLineItem')}
             </button>
             {chapter.lineItems.length === 0 ? (
-              <p>No line items yet.</p>
+              <p>{t('estimateEditor.noLineItems')}</p>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    <th>Code</th>
-                    <th>Description</th>
-                    <th>Unit</th>
-                    <th>Quantity</th>
-                    <th>Unit Price</th>
-                    <th>Amount</th>
-                    <th>Actions</th>
+                    <th>{t('estimateEditor.lineItemFields.code')}</th>
+                    <th>{t('estimateEditor.lineItemFields.description')}</th>
+                    <th>{t('estimateEditor.lineItemFields.unit')}</th>
+                    <th>{t('estimateEditor.lineItemFields.quantity')}</th>
+                    <th>{t('estimateEditor.lineItemFields.unitPrice')}</th>
+                    <th>{t('estimateEditor.lineItemFields.amount')}</th>
+                    <th>{t('common.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -814,14 +814,14 @@ const EstimateEditorPage: React.FC = () => {
                           className="actions-button"
                           style={{ marginRight: '0.25rem' }}
                         >
-                          Edit
+                          {t('common.edit')}
                         </button>
                         <button
                           onClick={() => handleDeleteLineItem(item.id)}
                           className="delete-button"
                           style={{ marginRight: '0.25rem' }}
                         >
-                          Delete
+                          {t('common.delete')}
                         </button>
                         <button
                           onClick={() => handleMoveLineItemUp(item, chapter.id)}
@@ -845,25 +845,25 @@ const EstimateEditorPage: React.FC = () => {
               </table>
             )}
             <p>
-              Chapter Total: <strong>{calculateChapterTotal(chapter).toFixed(2)}</strong>
+              {t('estimateEditor.chapterTotal')} <strong>{calculateChapterTotal(chapter).toFixed(2)}</strong>
             </p>
           </div>
         ))
       )}
 
       <div style={{ marginTop: '2rem', fontWeight: 'bold', fontSize: '1.2em' }}>
-        Estimate Total: <strong>{calculateEstimateTotal().toFixed(2)}</strong>
+        {t('estimateEditor.estimateTotal')} <strong>{calculateEstimateTotal().toFixed(2)}</strong>
       </div>
 
       {/* Chapter Modal */}
       {chapterModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h2>{editingChapterId ? 'Edit Chapter' : 'Add Chapter'}</h2>
+            <h2>{editingChapterId ? t('estimateEditor.chapterModal.editTitle') : t('estimateEditor.chapterModal.addTitle')}</h2>
             <form className="customer-form" onSubmit={(e) => e.preventDefault()}>
               <div className="form-group">
                 <label>
-                  Title:
+                  {t('estimateEditor.chapterModal.titleLabel')}
                   <input
                     type="text"
                     value={chapterForm.title || ''}
@@ -874,7 +874,7 @@ const EstimateEditorPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Order:
+                  {t('estimateEditor.chapterModal.orderLabel')}
                   <input
                     type="number"
                     value={chapterForm.order || ''}
@@ -886,10 +886,10 @@ const EstimateEditorPage: React.FC = () => {
               </div>
               <div className="form-actions">
                 <button type="button" onClick={closeChapterModal} className="cancel-button">
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="button" onClick={handleSaveChapter} className="submit-button">
-                  {editingChapterId ? 'Update' : 'Create'}
+                  {editingChapterId ? t('common.update') : t('common.create')}
                 </button>
               </div>
             </form>
@@ -901,13 +901,13 @@ const EstimateEditorPage: React.FC = () => {
       {lineItemModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h2>{editingLineItemId ? 'Edit Line Item' : 'Add Line Item'}</h2>
+            <h2>{editingLineItemId ? t('estimateEditor.lineItemModal.editTitle') : t('estimateEditor.lineItemModal.addTitle')}</h2>
             <div className="form-group">
               <label>
-                Insert from Library:
+                {t('estimateEditor.lineItemModal.insertFromLibrary')}
                 <input
                   type="text"
-                  placeholder="Search library items..."
+                  placeholder={t('estimateEditor.lineItemModal.searchPlaceholder')}
                   value={librarySearchTerm}
                   onChange={(e) => setLibrarySearchTerm(e.target.value)}
                 />
@@ -915,7 +915,7 @@ const EstimateEditorPage: React.FC = () => {
               {librarySearchTerm && (
                 <ul className="library-suggestions">
                   {filteredLibraryItems.length === 0 ? (
-                    <li className="no-results">No matching items.</li>
+                    <li className="no-results">{t('estimateEditor.lineItemModal.noMatches')}</li>
                   ) : (
                     filteredLibraryItems.map((item) => (
                       <li key={item.id}>
@@ -936,7 +936,7 @@ const EstimateEditorPage: React.FC = () => {
             <form className="customer-form" onSubmit={(e) => e.preventDefault()}>
               <div className="form-group">
                 <label>
-                  Code:
+                  {t('estimateEditor.lineItemModal.codeLabel')}
                   <input
                     type="text"
                     value={lineItemForm.code || ''}
@@ -946,7 +946,7 @@ const EstimateEditorPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Description:
+                  {t('estimateEditor.lineItemModal.descriptionLabel')}
                   <input
                     type="text"
                     value={lineItemForm.description || ''}
@@ -956,7 +956,7 @@ const EstimateEditorPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Unit:
+                  {t('estimateEditor.lineItemModal.unitLabel')}
                   <input
                     type="text"
                     value={lineItemForm.unit || ''}
@@ -966,7 +966,7 @@ const EstimateEditorPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Quantity:
+                  {t('estimateEditor.lineItemModal.quantityLabel')}
                   <input
                     type="number"
                     value={lineItemForm.quantity || ''}
@@ -979,7 +979,7 @@ const EstimateEditorPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Unit Price:
+                  {t('estimateEditor.lineItemModal.unitPriceLabel')}
                   <input
                     type="number"
                     value={lineItemForm.unitPrice || ''}
@@ -992,7 +992,7 @@ const EstimateEditorPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Amount:
+                  {t('estimateEditor.lineItemModal.amountLabel')}
                   <input
                     type="number"
                     value={lineItemForm.amount || ''}
@@ -1002,7 +1002,7 @@ const EstimateEditorPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Order:
+                  {t('estimateEditor.lineItemModal.orderLabel')}
                   <input
                     type="number"
                     value={lineItemForm.order || ''}
@@ -1014,10 +1014,10 @@ const EstimateEditorPage: React.FC = () => {
               </div>
               <div className="form-actions">
                 <button type="button" onClick={closeLineItemModal} className="cancel-button">
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="button" onClick={handleSaveLineItem} className="submit-button">
-                  {editingLineItemId ? 'Update' : 'Create'}
+                  {editingLineItemId ? t('common.update') : t('common.create')}
                 </button>
               </div>
             </form>

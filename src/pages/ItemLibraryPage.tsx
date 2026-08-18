@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { itemRepositoryClient } from '../db/itemRepositoryClient';
 import { searchItems } from '../services/itemService';
 import { Item } from '../domain/models';
@@ -14,6 +15,7 @@ const emptyFormData: Partial<Item> = {
 };
 
 const ItemLibraryPage: React.FC = () => {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ const ItemLibraryPage: React.FC = () => {
       setItems(data);
     } catch (err) {
       console.error('Failed to load items:', err);
-      setError('Failed to load items. Please try again.');
+      setError(t('itemLibrary.errors.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -79,7 +81,7 @@ const ItemLibraryPage: React.FC = () => {
   const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.description || !formData.unit) {
-      alert('Description and unit are required.');
+      alert(t('itemLibrary.errors.requiredFields'));
       return;
     }
 
@@ -96,18 +98,18 @@ const ItemLibraryPage: React.FC = () => {
       await loadItems();
     } catch (err) {
       console.error('Failed to save item:', err);
-      alert('Failed to save item. Please try again.');
+      alert(t('itemLibrary.errors.saveFailed'));
     }
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
+    if (window.confirm(t('itemLibrary.confirmDelete'))) {
       try {
         await itemRepositoryClient.delete(id);
         await loadItems();
       } catch (err) {
         console.error('Failed to delete item:', err);
-        alert('Failed to delete item. Please try again.');
+        alert(t('itemLibrary.errors.deleteFailed'));
       }
     }
   };
@@ -116,44 +118,44 @@ const ItemLibraryPage: React.FC = () => {
 
   return (
     <div className="item-library-page">
-      <h1>Item Library</h1>
+      <h1>{t('itemLibrary.title')}</h1>
 
       <div className="search-bar">
         <input
           type="text"
-          placeholder="Search items by code, description, category or keywords..."
+          placeholder={t('itemLibrary.searchPlaceholder')}
           value={searchTerm}
           onChange={handleSearchChange}
           className="search-input"
         />
         <button onClick={handleCreateItem} className="add-button">
-          Add Item
+          {t('itemLibrary.addButton')}
         </button>
       </div>
 
       {error && <div className="error-message">{error}</div>}
 
-      {loading && <p>Loading items...</p>}
+      {loading && <p>{t('itemLibrary.loading')}</p>}
 
       {!loading && (
         <div className="table-container">
           <table>
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Description</th>
-                <th>Unit</th>
-                <th>Default Price</th>
-                <th>Category</th>
-                <th>Keywords</th>
-                <th>Actions</th>
+                <th>{t('itemLibrary.fields.code')}</th>
+                <th>{t('itemLibrary.fields.description')}</th>
+                <th>{t('itemLibrary.fields.unit')}</th>
+                <th>{t('itemLibrary.fields.defaultPrice')}</th>
+                <th>{t('itemLibrary.fields.category')}</th>
+                <th>{t('itemLibrary.fields.keywords')}</th>
+                <th>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
               {filteredItems.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="no-items">
-                    No items found.
+                    {t('itemLibrary.noneFound')}
                   </td>
                 </tr>
               ) : (
@@ -170,13 +172,13 @@ const ItemLibraryPage: React.FC = () => {
                         onClick={() => handleEditItem(item)}
                         className="actions-button"
                       >
-                        Edit
+                        {t('common.edit')}
                       </button>
                       <button
                         onClick={() => handleDeleteItem(item.id)}
                         className="delete-button"
                       >
-                        Delete
+                        {t('common.delete')}
                       </button>
                     </td>
                   </tr>
@@ -190,11 +192,11 @@ const ItemLibraryPage: React.FC = () => {
       {formVisible && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h2>{isEditing ? 'Edit Item' : 'Add Item'}</h2>
+            <h2>{isEditing ? t('itemLibrary.editItem') : t('itemLibrary.addItem')}</h2>
             <form onSubmit={handleSaveItem} className="item-form">
               <div className="form-group">
                 <label>
-                  Code:
+                  {t('itemLibrary.fields.code')}:
                   <input
                     type="text"
                     name="code"
@@ -205,7 +207,7 @@ const ItemLibraryPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Description:
+                  {t('itemLibrary.fields.description')}:
                   <input
                     type="text"
                     name="description"
@@ -217,7 +219,7 @@ const ItemLibraryPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Unit:
+                  {t('itemLibrary.fields.unit')}:
                   <input
                     type="text"
                     name="unit"
@@ -229,7 +231,7 @@ const ItemLibraryPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Default Price:
+                  {t('itemLibrary.fields.defaultPrice')}:
                   <input
                     type="number"
                     name="defaultPrice"
@@ -242,7 +244,7 @@ const ItemLibraryPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Category:
+                  {t('itemLibrary.fields.category')}:
                   <input
                     type="text"
                     name="category"
@@ -253,7 +255,7 @@ const ItemLibraryPage: React.FC = () => {
               </div>
               <div className="form-group">
                 <label>
-                  Keywords:
+                  {t('itemLibrary.fields.keywords')}:
                   <input
                     type="text"
                     name="keywords"
@@ -268,10 +270,10 @@ const ItemLibraryPage: React.FC = () => {
                   onClick={() => setFormVisible(false)}
                   className="cancel-button"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="submit-button">
-                  {isEditing ? 'Update' : 'Create'}
+                  {isEditing ? t('common.update') : t('common.create')}
                 </button>
               </div>
             </form>
