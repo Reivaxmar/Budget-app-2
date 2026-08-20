@@ -103,10 +103,40 @@
 
 .search-bar {
   display: flex;
+  align-items: center;
   justify-content: center;
   flex-wrap: wrap;
   margin-bottom: 1rem;
   gap: 0.5rem;
+}
+
+.search-input {
+  flex: 1 1 auto;
+  min-width: 12rem;
+  padding: 0.5rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-background);
+  color: var(--input-text);
+}
+
+.estimates-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: bold;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.estimates-filter select,
+.estimates-filter input {
+  padding: 0.4rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-background);
+  color: var(--input-text);
+  font-weight: normal;
 }
 
 .estimate-header-panel {

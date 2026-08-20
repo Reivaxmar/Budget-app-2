@@ -250,6 +250,26 @@ describe('EstimateDocument rendering: template configuration', () => {
     }
   });
 
+  it('renders successfully with cover and other-pages background images set, without breaking pagination', async () => {
+    // Minimal 1x1 PNG, data URI — same shape TemplateForm's resizeImageToA4 produces.
+    const onePixelPng =
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    const templateWithBackgrounds = {
+      ...defaultDocumentTemplate,
+      cover: { ...defaultDocumentTemplate.cover, backgroundImage: onePixelPng },
+      page: { ...defaultDocumentTemplate.page, backgroundImage: onePixelPng },
+    };
+
+    const buffer = await renderEstimateDocumentToBuffer(mockEstimateDocumentData, templateWithBackgrounds);
+    const pages = await loadPageDimensions(buffer);
+
+    expect(pages.length).toBeGreaterThanOrEqual(3);
+    for (const { width, height } of pages) {
+      expect(width).toBe(595);
+      expect(height).toBe(842);
+    }
+  });
+
   it('produces different output when the template changes, given the same estimate data', async () => {
     const minimalTemplate = {
       ...defaultDocumentTemplate,

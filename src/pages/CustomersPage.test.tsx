@@ -135,7 +135,7 @@ describe('CustomersPage', () => {
     // Fill form
     fireEvent.change(screen.getByLabelText(/name:/i), { target: { value: newCustomer.name } });
     fireEvent.change(screen.getByLabelText(/address:/i), { target: { value: newCustomer.address } });
-    fireEvent.change(screen.getByLabelText(/phone:/i), { target: { value: newCustomer.phone } });
+    fireEvent.change(screen.getByLabelText(/^phone$/i), { target: { value: newCustomer.phone } });
     fireEvent.change(screen.getByLabelText(/email:/i), { target: { value: newCustomer.email } });
     fireEvent.change(screen.getByLabelText(/tax id:/i), { target: { value: newCustomer.taxId } });
     fireEvent.change(screen.getByLabelText(/notes:/i), { target: { value: newCustomer.notes } });

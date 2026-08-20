@@ -46,6 +46,7 @@ describe('getDashboardOverview', () => {
       finalNoteTitle: '',
       finalNoteContent: '',
       templateOverrides: null,
+      updatedAt: '2026-01-01T00:00:00.000Z',
     });
     const issuedEstimate = await estimateRepositoryClient.create({
       estimateNumber: '002-26',
@@ -61,6 +62,7 @@ describe('getDashboardOverview', () => {
       finalNoteTitle: '',
       finalNoteContent: '',
       templateOverrides: null,
+      updatedAt: '2026-01-01T00:00:00.000Z',
     });
 
     const chapter1 = await chapterRepositoryClient.create({
@@ -136,6 +138,7 @@ describe('getDashboardOverview', () => {
         finalNoteTitle: '',
         finalNoteContent: '',
         templateOverrides: null,
+        updatedAt: '2026-01-01T00:00:00.000Z',
       });
     }
 

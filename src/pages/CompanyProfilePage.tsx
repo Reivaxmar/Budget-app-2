@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { companyProfileRepositoryClient } from '../db/companyProfileRepositoryClient';
 import type { CompanyProfileSettings } from '../db/companyProfileRepositoryClient';
+import { PhoneNumberInput } from '../components/PhoneNumberInput';
 import './CompanyProfilePage.css';
 
 // Company/user identity and document defaults shown on generated PDFs
@@ -92,14 +93,15 @@ const CompanyProfilePage: React.FC = () => {
             </label>
             <label>
               {t('companyProfile.fields.phone')}
-              <input
-                type="text"
+              <PhoneNumberInput
                 value={settings.profile.phone}
-                onChange={(e) =>
+                onChange={(value) =>
                   setSettings((prev) =>
-                    prev ? { ...prev, profile: { ...prev.profile, phone: e.target.value } } : prev
+                    prev ? { ...prev, profile: { ...prev.profile, phone: value } } : prev
                   )
                 }
+                countryAriaLabel={t('companyProfile.fields.phoneCountry')}
+                numberAriaLabel={t('companyProfile.fields.phone')}
               />
             </label>
             <label>

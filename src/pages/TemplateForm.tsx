@@ -1,6 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { defaultDocumentTemplate } from '../rendering/templateConfig';
+import { resizeImageToA4 } from '../utils/imageResize';
+import { notify } from '../notifications';
 import type { Template, TemplateConfig, TableColumnKey } from '../domain/models';
 
 // Structured, constrained template editor (SPECS.md §9), shared between the
@@ -42,6 +44,10 @@ export interface ColumnFormState {
 export interface TemplateFormState {
   name: string;
   marginPt: number;
+  /** Background image for the cover (first) page only — data URI, already resized to A4. */
+  coverBackgroundImage?: string;
+  /** Background image for every page except the cover — data URI, already resized to A4. */
+  pageBackgroundImage?: string;
   fontFamily: string;
   baseFontSize: number;
   titleFontSize: number;
@@ -79,6 +85,8 @@ export function emptyFormState(): TemplateFormState {
   return {
     name: '',
     marginPt: defaultDocumentTemplate.page.marginPt,
+    coverBackgroundImage: defaultDocumentTemplate.cover.backgroundImage,
+    pageBackgroundImage: defaultDocumentTemplate.page.backgroundImage,
     fontFamily: defaultDocumentTemplate.typography.fontFamily,
     baseFontSize: defaultDocumentTemplate.typography.baseFontSize,
     titleFontSize: defaultDocumentTemplate.typography.titleFontSize,
@@ -121,6 +129,8 @@ export function templateToFormState(template: TemplateConfig & Partial<Pick<Temp
   return {
     name: template.name ?? '',
     marginPt: template.page.marginPt,
+    coverBackgroundImage: template.cover.backgroundImage,
+    pageBackgroundImage: template.page.backgroundImage,
     fontFamily: template.typography.fontFamily,
     baseFontSize: template.typography.baseFontSize,
     titleFontSize: template.typography.titleFontSize,
@@ -147,7 +157,7 @@ export function templateToFormState(template: TemplateConfig & Partial<Pick<Temp
 
 export function formStateToTemplateConfig(form: TemplateFormState): TemplateConfig {
   return {
-    page: { size: 'A4', marginPt: form.marginPt },
+    page: { size: 'A4', marginPt: form.marginPt, backgroundImage: form.pageBackgroundImage },
     typography: {
       fontFamily: form.fontFamily,
       baseFontSize: form.baseFontSize,
@@ -163,6 +173,7 @@ export function formStateToTemplateConfig(form: TemplateFormState): TemplateConf
     cover: {
       showCreationLocationDate: form.showCreationLocationDate,
       showSlogan: form.showSlogan,
+      backgroundImage: form.coverBackgroundImage,
     },
     header: {
       showEstimateNumberAndDate: form.showEstimateNumberAndDate,
@@ -227,6 +238,46 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
     }));
   };
 
+  const handleBackgroundImageChange = async (
+    field: 'coverBackgroundImage' | 'pageBackgroundImage',
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file again later
+    if (!file) return;
+    try {
+      const dataUri = await resizeImageToA4(file);
+      setFormData((prev) => ({ ...prev, [field]: dataUri }));
+    } catch (err) {
+      console.error('Failed to process background image:', err);
+      notify(t('templates.modal.sections.backgroundImageError'), 'error');
+    }
+  };
+
+  const renderBackgroundImagePicker = (
+    field: 'coverBackgroundImage' | 'pageBackgroundImage',
+    label: string
+  ) => (
+    <div className="form-group background-image-picker">
+      <label>
+        {label}
+        <input type="file" accept="image/*" onChange={(e) => handleBackgroundImageChange(field, e)} />
+      </label>
+      {formData[field] && (
+        <div className="background-image-preview">
+          <img src={formData[field]} alt="" />
+          <button
+            type="button"
+            className="cancel-button"
+            onClick={() => setFormData((prev) => ({ ...prev, [field]: undefined }))}
+          >
+            {t('templates.modal.sections.removeBackgroundImage')}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <>
       {showNameField && (
@@ -259,6 +310,7 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
             />
           </label>
         </div>
+        {renderBackgroundImagePicker('pageBackgroundImage', t('templates.modal.sections.pageBackgroundImage'))}
       </fieldset>
 
       <fieldset>
@@ -369,6 +421,7 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
           />
           {t('templates.modal.sections.showSlogan')}
         </label>
+        {renderBackgroundImagePicker('coverBackgroundImage', t('templates.modal.sections.coverBackgroundImage'))}
       </fieldset>
 
       <fieldset>

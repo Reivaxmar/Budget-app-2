@@ -4,6 +4,7 @@ import { customerRepositoryClient } from '../db/customerRepositoryClient';
 import { Customer } from '../domain/models';
 import { notify } from '../notifications';
 import { closeOnOverlayClick } from '../utils/modal';
+import { PhoneNumberInput } from '../components/PhoneNumberInput';
 import './CustomersPage.css';
 
 const CustomersPage: React.FC = () => {
@@ -261,11 +262,11 @@ const CustomersPage: React.FC = () => {
               <div className="form-group">
                 <label>
                   {t('customers.fields.phone')}:
-                  <input
-                    type="tel"
-                    name="phone"
+                  <PhoneNumberInput
                     value={formData.phone || ''}
-                    onChange={handleFormChange}
+                    onChange={(value) => setFormData((prev) => ({ ...prev, phone: value }))}
+                    countryAriaLabel={t('customers.fields.phoneCountry')}
+                    numberAriaLabel={t('customers.fields.phone')}
                   />
                 </label>
               </div>

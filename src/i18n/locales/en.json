@@ -109,6 +109,7 @@
       "address": "Address",
       "email": "Email",
       "phone": "Phone",
+      "phoneCountry": "Phone country code",
       "taxId": "Tax ID",
       "notes": "Notes"
     },
@@ -191,6 +192,10 @@
         "coverPage": "Cover page",
         "showCreationLocationDate": "Show creation location/date",
         "showSlogan": "Show slogan",
+        "coverBackgroundImage": "Cover (first page) background image:",
+        "pageBackgroundImage": "Background image for the rest of the pages:",
+        "removeBackgroundImage": "Remove image",
+        "backgroundImageError": "Failed to process that image. Please try a different file.",
         "header": "Header",
         "showEstimateNumberAndDate": "Show estimate number and date",
         "footer": "Footer",
@@ -239,6 +244,7 @@
       "address": "Address:",
       "postalCode": "Postal code:",
       "phone": "Phone:",
+      "phoneCountry": "Phone country code",
       "email": "Email:",
       "slogan": "Slogan:",
       "creationLocation": "Creation location (e.g. \"Barcelona\"):"
@@ -265,6 +271,16 @@
     "actions": {
       "duplicate": "Duplicate"
     },
+    "search": {
+      "placeholder": "Search by subject...",
+      "toggleFilters": "Filters",
+      "customerLabel": "Customer:",
+      "allCustomers": "All customers",
+      "fromLabel": "From:",
+      "toLabel": "To:",
+      "clearFilters": "Clear filters"
+    },
+    "noneMatchFilters": "No estimates match your search/filters.",
     "errors": {
       "loadFailed": "Failed to load estimates. Please try again.",
       "duplicateFailed": "Failed to duplicate estimate. Please try again.",

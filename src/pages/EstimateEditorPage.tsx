@@ -15,6 +15,7 @@ import { itemCategoryService } from '../services/itemCategoryService';
 import { Estimate, Chapter, Item, ItemCategory, LineItem, Customer, Template } from '../domain/models';
 import { notify } from '../notifications';
 import { closeOnOverlayClick } from '../utils/modal';
+import { PhoneNumberInput } from '../components/PhoneNumberInput';
 import {
   emptyFormState,
   formStateToTemplateConfig,
@@ -168,6 +169,7 @@ const EstimateEditorPage: React.FC = () => {
             finalNoteTitle: defaultTemplate.finalPage.noteTitle,
             finalNoteContent: defaultTemplate.finalPage.noteContent,
             templateOverrides: null,
+            updatedAt: now.toISOString(),
           };
           setEstimate(blankEstimate);
           setChapters([]);
@@ -1379,11 +1381,11 @@ const EstimateEditorPage: React.FC = () => {
               <div className="form-group">
                 <label>
                   {t('customers.fields.phone')}:
-                  <input
-                    type="tel"
-                    name="phone"
+                  <PhoneNumberInput
                     value={customerForm.phone || ''}
-                    onChange={handleCustomerFormChange}
+                    onChange={(value) => setCustomerForm((prev) => ({ ...prev, phone: value }))}
+                    countryAriaLabel={t('customers.fields.phoneCountry')}
+                    numberAriaLabel={t('customers.fields.phone')}
                   />
                 </label>
               </div>

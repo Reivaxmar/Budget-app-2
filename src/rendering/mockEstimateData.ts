@@ -229,6 +229,7 @@ export const mockEstimateDocumentData: EstimateDocumentData = {
     finalNoteContent:
       'Presupuesto válido durante 30 días naturales desde la fecha de emisión. El precio no incluye IVA. Forma de pago: 30% a la aceptación del presupuesto, 40% al inicio de obra y 30% a la finalización.',
     templateOverrides: null,
+    updatedAt: '2026-01-01T00:00:00.000Z',
   },
   customer: {
     id: 'customer-mock-001',

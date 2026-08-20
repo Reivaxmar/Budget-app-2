@@ -66,6 +66,7 @@ export async function createEstimate(
   const estimate = await estimateRepository.create({
     ...data,
     estimateNumber,
+    updatedAt: new Date().toISOString(),
   });
   return estimate;
 }
@@ -103,7 +104,7 @@ export async function updateEstimateHeader(
   id: string,
   data: Partial<Omit<Estimate, 'id'>>
 ): Promise<Estimate> {
-  return await estimateRepository.update(id, data);
+  return await estimateRepository.update(id, { ...data, updatedAt: new Date().toISOString() });
 }
 
 /**
@@ -158,6 +159,7 @@ export async function duplicateEstimate(id: string): Promise<Estimate> {
     finalNoteTitle: original.finalNoteTitle,
     finalNoteContent: original.finalNoteContent,
     templateOverrides: original.templateOverrides,
+    updatedAt: new Date().toISOString(),
   });
 
   // Duplicate chapters and line items

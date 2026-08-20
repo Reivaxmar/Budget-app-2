@@ -36,6 +36,7 @@ describe('buildEstimateDocumentData', () => {
       finalNoteTitle: '',
       finalNoteContent: '',
       templateOverrides: null,
+      updatedAt: '2026-01-01T00:00:00.000Z',
     });
 
     const chapter = await chapterRepositoryClient.create({
@@ -99,6 +100,7 @@ describe('buildEstimateDocumentData', () => {
       finalNoteTitle: '',
       finalNoteContent: '',
       templateOverrides: null,
+      updatedAt: '2026-01-01T00:00:00.000Z',
     });
 
     await expect(buildEstimateDocumentData(estimate.id)).rejects.toThrow(/customer/i);

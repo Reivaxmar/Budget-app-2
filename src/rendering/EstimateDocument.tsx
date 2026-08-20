@@ -5,7 +5,7 @@
 // layout engine rather than hard-coded page breaks.
 
 import React from 'react';
-import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import type { DocumentProps } from '@react-pdf/renderer';
 import type { EstimateDocumentData } from './types';
 import { defaultDocumentTemplate, resolveColumnValue } from './templateConfig';
@@ -199,6 +199,13 @@ function buildStyles(template: DocumentTemplateConfig) {
       fontSize: typography.baseFontSize - 1,
       color: colors.muted,
     },
+    backgroundImage: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+    },
   });
 }
 
@@ -266,6 +273,9 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
     <Document title={`Estimate ${estimate.estimateNumber}`} author={company.name}>
       {/* Cover page: estimate number + date top-left, subject centered */}
       <Page size={template.page.size} style={styles.coverPage}>
+        {template.cover.backgroundImage && (
+          <Image src={template.cover.backgroundImage} style={styles.backgroundImage} />
+        )}
         {template.cover.showCreationLocationDate && (
           <View style={styles.coverTopLeft}>
             <Text>Estimate No. {estimate.estimateNumber}</Text>
@@ -285,6 +295,9 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
 
       {/* Second page: client details and an overall introduction to the work */}
       <Page size={template.page.size} style={styles.page} wrap>
+        {template.page.backgroundImage && (
+          <Image src={template.page.backgroundImage} style={styles.backgroundImage} fixed />
+        )}
         {headerBlock}
 
         <View style={styles.introSection}>
@@ -317,6 +330,9 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
 
       {/* Content pages: chapters/tables + final section, auto-paginated */}
       <Page size={template.page.size} style={styles.page} wrap>
+        {template.page.backgroundImage && (
+          <Image src={template.page.backgroundImage} style={styles.backgroundImage} fixed />
+        )}
         {headerBlock}
 
         {chapters

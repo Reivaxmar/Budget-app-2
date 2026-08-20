@@ -30,6 +30,9 @@ export interface Estimate {
   // field-by-field with the template), so editing the shared template later
   // never changes an estimate that already has an override.
   templateOverrides: TemplateConfig | null
+  // Stamped on creation and every header save (see estimateService); drives
+  // the estimates list's default "last edited" sort.
+  updatedAt: string
 }
 
 export interface Customer {
@@ -111,6 +114,8 @@ export interface TemplateConfig {
   page: {
     size: 'A4'
     marginPt: number
+    /** Data URI, resized to A4 on upload; used as the background for every page except the cover. Omitted when there's no background image. */
+    backgroundImage?: string
   }
   typography: {
     fontFamily: string
