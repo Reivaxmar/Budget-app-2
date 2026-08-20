@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { subscribeToToasts, dismissToast } from '../notifications';
 import type { Toast } from '../notifications';
 import './ToastContainer.css';
 
 /** Renders toasts published via src/notifications.ts. Mounted once in App.tsx. */
 const ToastContainer: React.FC = () => {
+  const { t } = useTranslation();
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   useEffect(() => subscribeToToasts(setToasts), []);
@@ -21,7 +23,7 @@ const ToastContainer: React.FC = () => {
           <button
             type="button"
             className="toast-dismiss"
-            aria-label="Dismiss"
+            aria-label={t('common.dismiss')}
             onClick={() => dismissToast(toast.id)}
           >
             ×

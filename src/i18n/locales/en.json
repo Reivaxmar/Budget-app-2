@@ -1,4 +1,16 @@
 {
+  "rendering": {
+    "documentTitle": "Estimate {{number}}",
+    "estimateNumberLabel": "Estimate No. {{number}}",
+    "clientSectionTitle": "Client",
+    "nameLabel": "Name",
+    "phoneLabel": "Phone",
+    "emailLabel": "Email",
+    "siteLabel": "Site",
+    "introductionSectionTitle": "Introduction",
+    "chapterSubtotalLabel": "Chapter subtotal: {{amount}}",
+    "pageOfLabel": "Page {{pageNumber}} of {{totalPages}}"
+  },
   "app": {
     "brandName": "Presupeitor2000",
     "nav": {
@@ -33,7 +45,8 @@
     "cancel": "Cancel",
     "create": "Create",
     "update": "Update",
-    "save": "Save"
+    "save": "Save",
+    "dismiss": "Dismiss"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -74,6 +87,14 @@
         "system": "System",
         "light": "Light",
         "dark": "Dark"
+      }
+    },
+    "language": {
+      "title": "Language",
+      "description": "Language for the interface and for PDF estimates you export.",
+      "options": {
+        "en": "English",
+        "es": "Español"
       }
     },
     "estimateDefaults": {

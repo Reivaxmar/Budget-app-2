@@ -29,7 +29,7 @@ const standardTemplate: Template = {
   },
   finalPage: {
     totalLabel: 'Total',
-    totalCaption: 'IVA no incluido / VAT not included',
+    totalCaption: 'IVA no incluido',
     signatureLabel: 'Conforme cliente',
     noteTitle: 'Condiciones',
     noteContent: '',

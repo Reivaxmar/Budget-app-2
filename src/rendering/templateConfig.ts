@@ -54,7 +54,7 @@ export const defaultDocumentTemplate: DocumentTemplateConfig = {
   },
   finalPage: {
     totalLabel: 'Total',
-    totalCaption: 'IVA no incluido / VAT not included',
+    totalCaption: 'IVA no incluido',
     signatureLabel: 'Conforme cliente',
     noteTitle: 'Condiciones del presupuesto',
     noteContent: '',

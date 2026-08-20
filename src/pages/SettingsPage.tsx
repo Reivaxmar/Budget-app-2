@@ -4,12 +4,14 @@ import { appSettingsRepositoryClient } from '../db/appSettingsRepositoryClient'
 import { itemCategoryService } from '../services/itemCategoryService'
 import { getStoredTheme, setTheme } from '../theme'
 import type { ThemeMode } from '../theme'
+import { SUPPORTED_LANGUAGES, setLanguage } from '../i18n'
+import type { SupportedLanguage } from '../i18n'
 import type { ItemCategory } from '../domain/models'
 import { notify } from '../notifications'
 import './SettingsPage.css'
 
 const SettingsPage: React.FC = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [theme, setThemeState] = useState<ThemeMode>('system')
   const [defaultTaxRate, setDefaultTaxRate] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(true)
@@ -117,6 +119,25 @@ const SettingsPage: React.FC = () => {
                 onChange={() => handleThemeChange(mode)}
               />
               {t(`settings.appearance.options.${mode}`)}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset className="settings-section">
+        <legend>{t('settings.language.title')}</legend>
+        <p className="settings-section-description">{t('settings.language.description')}</p>
+        <div className="theme-options" role="radiogroup" aria-label={t('settings.language.title')}>
+          {SUPPORTED_LANGUAGES.map((lang) => (
+            <label key={lang} className="theme-option">
+              <input
+                type="radio"
+                name="language"
+                value={lang}
+                checked={i18n.language === lang}
+                onChange={() => setLanguage(lang as SupportedLanguage)}
+              />
+              {t(`settings.language.options.${lang}`)}
             </label>
           ))}
         </div>

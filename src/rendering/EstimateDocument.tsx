@@ -11,6 +11,13 @@ import type { EstimateDocumentData } from './types';
 import { defaultDocumentTemplate, resolveColumnValue } from './templateConfig';
 import type { DocumentTemplateConfig } from './templateConfig';
 import { calculateChapterTotal, calculateEstimateTotal } from '../domain/calculations';
+// The i18n singleton (not the useTranslation() hook) — this component is
+// rendered outside the app's normal React tree, directly through
+// react-pdf's pdf()/renderToBuffer APIs, so there's no I18nextProvider
+// around it. Reading i18n.t() straight off the instance still picks up
+// whatever language the user has selected (Settings), since it's the same
+// global instance the rest of the app uses.
+import i18n from '../i18n';
 
 function buildStyles(template: DocumentTemplateConfig) {
   const margin = template.page.marginPt;
@@ -39,12 +46,6 @@ function buildStyles(template: DocumentTemplateConfig) {
       fontSize: typography.baseFontSize + 2,
       fontStyle: 'italic',
       color: colors.muted,
-    },
-    coverLabel: {
-      fontSize: typography.baseFontSize,
-      color: colors.muted,
-      textTransform: 'uppercase',
-      marginBottom: 2,
     },
     coverSubjectBlock: {
       maxWidth: '80%',
@@ -249,7 +250,7 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
 
   const headerBlock = template.header.showEstimateNumberAndDate && (
     <View style={styles.header} fixed>
-      <Text>Estimate No. {estimate.estimateNumber}</Text>
+      <Text>{i18n.t('rendering.estimateNumberLabel', { number: estimate.estimateNumber })}</Text>
       <Text>{dateLabel}</Text>
     </View>
   );
@@ -264,13 +265,20 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
         <Text />
       )}
       {template.footer.showPageNumbers ? (
-        <Text render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
+        <Text
+          render={({ pageNumber, totalPages }) =>
+            i18n.t('rendering.pageOfLabel', { pageNumber, totalPages })
+          }
+        />
       ) : null}
     </View>
   );
 
   return (
-    <Document title={`Estimate ${estimate.estimateNumber}`} author={company.name}>
+    <Document
+      title={i18n.t('rendering.documentTitle', { number: estimate.estimateNumber })}
+      author={company.name}
+    >
       {/* Cover page: estimate number + date top-left, subject centered */}
       <Page size={template.page.size} style={styles.coverPage}>
         {template.cover.backgroundImage && (
@@ -278,13 +286,12 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
         )}
         {template.cover.showCreationLocationDate && (
           <View style={styles.coverTopLeft}>
-            <Text>Estimate No. {estimate.estimateNumber}</Text>
+            <Text>{i18n.t('rendering.estimateNumberLabel', { number: estimate.estimateNumber })}</Text>
             <Text>{dateLabel}</Text>
           </View>
         )}
 
         <View style={styles.coverSubjectBlock}>
-          <Text style={styles.coverLabel}>Subject</Text>
           <Text style={styles.coverSubjectText}>{estimate.subject}</Text>
         </View>
 
@@ -301,27 +308,27 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
         {headerBlock}
 
         <View style={styles.introSection}>
-          <Text style={styles.introSectionTitle}>Client</Text>
+          <Text style={styles.introSectionTitle}>{i18n.t('rendering.clientSectionTitle')}</Text>
           <View style={styles.introFieldRow}>
-            <Text style={styles.introFieldLabel}>Name</Text>
+            <Text style={styles.introFieldLabel}>{i18n.t('rendering.nameLabel')}</Text>
             <Text>{customer.name}</Text>
           </View>
           <View style={styles.introFieldRow}>
-            <Text style={styles.introFieldLabel}>Phone</Text>
+            <Text style={styles.introFieldLabel}>{i18n.t('rendering.phoneLabel')}</Text>
             <Text>{customer.phone}</Text>
           </View>
           <View style={styles.introFieldRow}>
-            <Text style={styles.introFieldLabel}>Email</Text>
+            <Text style={styles.introFieldLabel}>{i18n.t('rendering.emailLabel')}</Text>
             <Text>{customer.email}</Text>
           </View>
           <View style={styles.introFieldRow}>
-            <Text style={styles.introFieldLabel}>Site</Text>
+            <Text style={styles.introFieldLabel}>{i18n.t('rendering.siteLabel')}</Text>
             <Text>{estimate.site}</Text>
           </View>
         </View>
 
         <View style={styles.introSection}>
-          <Text style={styles.introSectionTitle}>Introduction</Text>
+          <Text style={styles.introSectionTitle}>{i18n.t('rendering.introductionSectionTitle')}</Text>
           <Text style={styles.introText}>{estimate.introduction}</Text>
         </View>
 
@@ -380,7 +387,11 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
 
               {template.table.showChapterSubtotal && (
                 <View style={styles.chapterSubtotalRow} wrap={false}>
-                  <Text>Chapter subtotal: {formatCurrency(calculateChapterTotal(chapter))}</Text>
+                  <Text>
+                    {i18n.t('rendering.chapterSubtotalLabel', {
+                      amount: formatCurrency(calculateChapterTotal(chapter)),
+                    })}
+                  </Text>
                 </View>
               )}
             </View>
