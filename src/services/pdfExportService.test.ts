@@ -66,6 +66,40 @@ describe('exportEstimatePdf', () => {
     expect(generateEstimatePdfBlob).toHaveBeenCalledWith(sampleData, sampleTemplate);
   });
 
+  it('swaps in the estimate’s own full template override in place of the resolved template’s config', async () => {
+    const resolvedTemplate = {
+      id: 'template-1',
+      name: 'Standard',
+      colors: { text: '#ffffff', muted: '#cccccc', tableHeaderBackground: '#111111', borderColor: '#222222' },
+      typography: { fontFamily: 'Helvetica', baseFontSize: 10, titleFontSize: 24, headingFontSize: 14 },
+    } as unknown as Template;
+    const overrideConfig = {
+      colors: { text: '#0000ff', muted: '#cccccc', tableHeaderBackground: '#111111', borderColor: '#222222' },
+      typography: { fontFamily: 'Courier', baseFontSize: 10, titleFontSize: 24, headingFontSize: 14 },
+    };
+    const dataWithOverrides = {
+      estimate: {
+        id: 'estimate-1',
+        estimateNumber: '001-26',
+        templateOverrides: overrideConfig,
+      },
+    } as unknown as EstimateDocumentData;
+
+    vi.mocked(buildEstimateDocumentData).mockResolvedValue(dataWithOverrides);
+    vi.mocked(templateService.getDefaultTemplate).mockResolvedValue(resolvedTemplate);
+
+    await exportEstimatePdf('estimate-1');
+
+    expect(generateEstimatePdfBlob).toHaveBeenCalledWith(
+      dataWithOverrides,
+      expect.objectContaining({
+        id: 'template-1',
+        colors: overrideConfig.colors,
+        typography: overrideConfig.typography,
+      })
+    );
+  });
+
   it('uses an explicitly given template instead of the default', async () => {
     const customTemplate = { id: 'template-2', name: 'Compact' } as unknown as Template;
 

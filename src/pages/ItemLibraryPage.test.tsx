@@ -6,7 +6,10 @@ import { notify } from '../notifications';
 import { Item } from '../domain/models';
 import '@testing-library/jest-dom';
 
-// Mock the actual repository module ItemLibraryPage imports
+// Mock the actual repository module ItemLibraryPage imports. Item
+// categories are NOT mocked — they go through the real (localStorage-backed)
+// itemCategoryRepositoryClient, seeding the built-in "misc" category, same
+// as the app does at runtime.
 vi.mock('../db/itemRepositoryClient');
 vi.mock('../notifications');
 
@@ -14,26 +17,27 @@ describe('ItemLibraryPage', () => {
   const mockItems: Item[] = [
     {
       id: '1',
-      code: 'BRK-001',
+      code: '0010001',
       description: 'Red brick, standard size',
       unit: 'pcs',
       defaultPrice: 0.75,
-      category: 'Masonry',
+      categoryId: 'category-1',
       keywords: 'brick red masonry',
     },
     {
       id: '2',
-      code: 'CEM-010',
+      code: '0010002',
       description: 'Portland cement, 25kg bag',
       unit: 'bag',
       defaultPrice: 8.5,
-      category: 'Masonry',
+      categoryId: 'category-1',
       keywords: 'cement concrete',
     },
   ];
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   it('displays the item list after loading', async () => {
@@ -46,7 +50,7 @@ describe('ItemLibraryPage', () => {
     expect(screen.queryByText(/loading items/i)).not.toBeInTheDocument();
   });
 
-  it('filters items by search term across code, description, category and keywords', async () => {
+  it('filters items by search term across code, description and keywords', async () => {
     vi.mocked(itemRepositoryClient.findMany).mockResolvedValue(mockItems);
 
     render(<ItemLibraryPage />);
@@ -61,16 +65,16 @@ describe('ItemLibraryPage', () => {
     expect(screen.queryByText('Red brick, standard size')).not.toBeInTheDocument();
   });
 
-  it('creates a new item when the form is submitted with valid data', async () => {
+  it('creates a new item with an auto-generated code when the form is submitted with valid data', async () => {
     vi.mocked(itemRepositoryClient.findMany).mockResolvedValue([]);
     vi.mocked(itemRepositoryClient.create).mockResolvedValue({
       id: 'new-id',
-      code: 'NEW-1',
+      code: '0010001',
       description: 'New Item',
       unit: 'pcs',
       defaultPrice: 3.5,
-      category: 'General',
-      keywords: 'new',
+      categoryId: 'category-1',
+      keywords: '',
     });
 
     const { container } = render(<ItemLibraryPage />);
@@ -80,7 +84,9 @@ describe('ItemLibraryPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /add item/i }));
 
-    fireEvent.change(screen.getByLabelText(/code:/i), { target: { value: 'NEW-1' } });
+    // No "Code:" field for new items — it's auto-generated on save.
+    expect(screen.queryByLabelText(/^code:/i)).not.toBeInTheDocument();
+
     fireEvent.change(screen.getByLabelText(/description:/i), {
       target: { value: 'New Item' },
     });
@@ -98,10 +104,11 @@ describe('ItemLibraryPage', () => {
     await waitFor(() => {
       expect(itemRepositoryClient.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: 'NEW-1',
           description: 'New Item',
           unit: 'pcs',
           defaultPrice: 3.5,
+          code: expect.stringMatching(/^\d{7}$/),
+          categoryId: expect.any(String),
         })
       );
     });
@@ -122,7 +129,7 @@ describe('ItemLibraryPage', () => {
     expect(notify).toHaveBeenCalledWith(expect.any(String), 'error');
   });
 
-  it('edits an existing item', async () => {
+  it('edits an existing item, showing its (read-only) code', async () => {
     const existing = mockItems[0];
     vi.mocked(itemRepositoryClient.findMany).mockResolvedValue([existing]);
     vi.mocked(itemRepositoryClient.update).mockResolvedValue({
@@ -136,6 +143,9 @@ describe('ItemLibraryPage', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: /edit/i }));
+    expect(screen.getByLabelText(/^code:/i)).toHaveValue(existing.code);
+    expect(screen.getByLabelText(/^code:/i)).toBeDisabled();
+
     fireEvent.change(screen.getByLabelText(/default price:/i), {
       target: { value: '1.1' },
     });

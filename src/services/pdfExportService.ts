@@ -1,4 +1,22 @@
-import type { Template } from '../domain/models';
+import type { Estimate, Template } from '../domain/models';
+
+/**
+ * Swaps in an estimate's own full presentation config (SPECS §9/§21: the
+ * template governs presentation, but a specific estimate can customize its
+ * own copy of it) in place of the resolved template's config. This is a
+ * full-object swap, not a field-by-field merge — `templateOverrides` is
+ * always a complete, self-contained config once set (see EstimateEditorPage's
+ * "Edit template" modal), so editing the shared template later never changes
+ * an estimate that already has an override. `null` means "no override": use
+ * the resolved template as-is.
+ */
+function applyTemplateOverrides(template: Template, overrides: Estimate['templateOverrides']): Template {
+  if (!overrides) {
+    return template;
+  }
+
+  return { ...template, ...overrides };
+}
 
 function isRunningInTauri(): boolean {
   if (typeof window === 'undefined') {
@@ -159,7 +177,8 @@ export async function exportEstimatePdf(
       ? await templateService.getTemplate(data.estimate.templateId)
       : null;
     const resolvedTemplate = template ?? estimateTemplate ?? (await templateService.getDefaultTemplate());
-    const blob = await generateEstimatePdfBlob(data, resolvedTemplate);
+    const effectiveTemplate = applyTemplateOverrides(resolvedTemplate, data.estimate.templateOverrides);
+    const blob = await generateEstimatePdfBlob(data, effectiveTemplate);
 
     await destination.write(blob);
   } catch (err) {

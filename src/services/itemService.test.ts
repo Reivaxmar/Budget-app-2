@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createLineItemFromItem, ensureItemExists, findExistingItem, searchItems } from './itemService';
+import {
+  createLineItemFromItem,
+  ensureItemExists,
+  findExistingItem,
+  generateItemCode,
+  searchItems,
+} from './itemService';
 import { itemRepositoryClient } from '../db/itemRepositoryClient';
+import { itemCategoryRepositoryClient } from '../db/itemCategoryRepositoryClient';
 import { lineItemRepositoryClient } from '../db/estimateRepositoryClient';
 import type { Item } from '../domain/models';
 
@@ -11,7 +18,7 @@ describe('createLineItemFromItem', () => {
     description: 'Red brick, standard size',
     unit: 'pcs',
     defaultPrice: 0.75,
-    category: 'Masonry',
+    categoryId: 'category-1',
     keywords: 'brick red masonry',
   };
 
@@ -68,7 +75,7 @@ describe('searchItems', () => {
       description: 'Red brick, standard size',
       unit: 'pcs',
       defaultPrice: 0.75,
-      category: 'Masonry',
+      categoryId: 'category-1',
       keywords: 'brick red masonry',
     },
     {
@@ -77,7 +84,7 @@ describe('searchItems', () => {
       description: 'Portland cement, 25kg bag',
       unit: 'bag',
       defaultPrice: 8.5,
-      category: 'Masonry',
+      categoryId: 'category-1',
       keywords: 'cement concrete',
     },
     {
@@ -86,7 +93,7 @@ describe('searchItems', () => {
       description: 'PVC conduit, 20mm',
       unit: 'm',
       defaultPrice: 1.2,
-      category: 'Electrical',
+      categoryId: 'category-2',
       keywords: 'conduit wiring',
     },
   ];
@@ -96,11 +103,11 @@ describe('searchItems', () => {
     expect(searchItems(items, '   ')).toEqual(items);
   });
 
-  it('matches by code, description, category or keywords, case-insensitively', () => {
+  it('matches by code, description or keywords, case-insensitively', () => {
     expect(searchItems(items, 'brk-001')).toEqual([items[0]]);
     expect(searchItems(items, 'cement')).toEqual([items[1]]);
-    expect(searchItems(items, 'ELECTRICAL')).toEqual([items[2]]);
-    expect(searchItems(items, 'masonry')).toEqual([items[0], items[1]]);
+    expect(searchItems(items, 'PVC')).toEqual([items[2]]);
+    expect(searchItems(items, 'masonry')).toEqual([items[0]]);
   });
 
   it('returns an empty array when nothing matches', () => {
@@ -119,7 +126,7 @@ describe('item library changes do not affect estimates that already used them', 
       description: 'Red brick, standard size',
       unit: 'pcs',
       defaultPrice: 0.75,
-      category: 'Masonry',
+      categoryId: 'category-1',
       keywords: 'brick red masonry',
     });
 
@@ -155,7 +162,7 @@ describe('findExistingItem', () => {
       description: 'Red brick, standard size',
       unit: 'pcs',
       defaultPrice: 0.75,
-      category: 'Masonry',
+      categoryId: 'category-1',
       keywords: 'brick red masonry',
     },
   ];
@@ -170,26 +177,76 @@ describe('findExistingItem', () => {
   });
 });
 
+describe('generateItemCode', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('formats the code as the category order (3 digits) followed by a per-category sequence (4 digits)', async () => {
+    const category = await itemCategoryRepositoryClient.create({ name: 'Electrical', order: 2 });
+
+    expect(await generateItemCode(category.id)).toBe('0020001');
+  });
+
+  it('increments the sequence per category, independent of other categories', async () => {
+    const misc = await itemCategoryRepositoryClient.create({ name: 'misc', order: 1 });
+    const electrical = await itemCategoryRepositoryClient.create({ name: 'Electrical', order: 2 });
+
+    await itemRepositoryClient.create({
+      code: await generateItemCode(misc.id),
+      description: 'Item A',
+      unit: 'pcs',
+      defaultPrice: 1,
+      categoryId: misc.id,
+      keywords: '',
+    });
+
+    expect(await generateItemCode(misc.id)).toBe('0010002');
+    expect(await generateItemCode(electrical.id)).toBe('0020001');
+  });
+
+  it('throws when the category does not exist', async () => {
+    await expect(generateItemCode('missing-category')).rejects.toThrow();
+  });
+});
+
 describe('ensureItemExists', () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
-  it('creates a new library item when no existing item matches the description', async () => {
+  it('creates a new library item under the given category, with an auto-generated code', async () => {
+    const category = await itemCategoryRepositoryClient.create({ name: 'General', order: 1 });
+
     const created = await ensureItemExists([], {
-      code: 'NEW-1',
+      description: 'Brand new item',
+      unit: 'pcs',
+      unitPrice: 4.5,
+      categoryId: category.id,
+    });
+
+    expect(created).toBeDefined();
+    expect(created?.description).toBe('Brand new item');
+    expect(created?.code).toBe('0010001');
+    expect(created?.categoryId).toBe(category.id);
+    expect(created?.defaultPrice).toBe(4.5);
+
+    const persisted = await itemRepositoryClient.findById(created!.id);
+    expect(persisted).not.toBeNull();
+  });
+
+  it('defaults to the built-in "misc" category when none is given', async () => {
+    const created = await ensureItemExists([], {
       description: 'Brand new item',
       unit: 'pcs',
       unitPrice: 4.5,
     });
 
-    expect(created).toBeDefined();
-    expect(created?.description).toBe('Brand new item');
-    expect(created?.code).toBe('NEW-1');
-    expect(created?.defaultPrice).toBe(4.5);
-
-    const persisted = await itemRepositoryClient.findById(created!.id);
-    expect(persisted).not.toBeNull();
+    const categories = await itemCategoryRepositoryClient.findMany();
+    expect(categories).toHaveLength(1);
+    expect(categories[0].name).toBe('misc');
+    expect(created?.categoryId).toBe(categories[0].id);
+    expect(created?.code).toBe('0010001');
   });
 
   it('returns the existing item and does not create a duplicate', async () => {
@@ -198,7 +255,7 @@ describe('ensureItemExists', () => {
       description: 'Red brick, standard size',
       unit: 'pcs',
       defaultPrice: 0.75,
-      category: 'Masonry',
+      categoryId: 'category-1',
       keywords: 'brick red masonry',
     });
 

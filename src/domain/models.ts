@@ -21,6 +21,15 @@ export interface Estimate {
   // changes an already-issued estimate's rendered output.
   finalNoteTitle: string
   finalNoteContent: string
+  // A full per-estimate copy of the chosen Template's presentation config
+  // (page layout, typography, colors, cover/header/footer toggles, table
+  // columns, final-page labels) — e.g. a one-off client wants blue body text
+  // instead of the template's white. `null` means this estimate has no
+  // customization of its own and simply follows whatever the selected
+  // Template currently says; once set, it's a full snapshot (not merged
+  // field-by-field with the template), so editing the shared template later
+  // never changes an estimate that already has an override.
+  templateOverrides: TemplateConfig | null
 }
 
 export interface Customer {
@@ -54,12 +63,25 @@ export interface LineItem {
 
 export interface Item {
   id: string
-  code: string // Internal code for the catalog entry
+  // Auto-generated, format "XXXYYYY" — XXX is the item's category's creation
+  // order (see ItemCategory.order), YYYY is a per-category sequence number.
+  // Never entered by hand; see itemService.generateItemCode.
+  code: string
   description: string // Default description used when inserted into an estimate
   unit: string // Default unit, e.g. 'm²', 'pcs', 'h'
   defaultPrice: number // Default unit price
-  category: string // Optional grouping/category, empty string if none
+  categoryId: string // Reference to ItemCategory
   keywords: string // Optional search keywords, empty string if none
+}
+
+export interface ItemCategory {
+  id: string
+  name: string
+  // Sequence number assigned in creation order (1 for the built-in "misc"
+  // category seeded on first use, incrementing from there). Forms the XXX
+  // part of generated item codes and never changes once assigned, even if
+  // an earlier category is later deleted.
+  order: number
 }
 
 // A template controls document *presentation* only — it never carries
@@ -118,6 +140,8 @@ export interface TemplateConfig {
   table: {
     columns: TableColumnConfig[]
     showBorders: boolean
+    /** Whether the "Chapter subtotal: ..." line is printed after each chapter's line items. */
+    showChapterSubtotal: boolean
   }
   finalPage: {
     totalLabel: string

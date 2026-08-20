@@ -25,6 +25,7 @@ const baseEstimateInput = {
   templateId: 'template-1',
   finalNoteTitle: '',
   finalNoteContent: '',
+  templateOverrides: null,
 };
 
 describe('estimateService', () => {

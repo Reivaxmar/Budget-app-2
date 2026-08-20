@@ -31,6 +31,7 @@ describe('EstimateEditorPage — insert from library', () => {
     templateId: 'template-1',
     finalNoteTitle: '',
     finalNoteContent: '',
+    templateOverrides: null,
   };
 
   const chapter: Chapter = {
@@ -46,12 +47,13 @@ describe('EstimateEditorPage — insert from library', () => {
     description: 'Red brick, standard size',
     unit: 'pcs',
     defaultPrice: 0.75,
-    category: 'Masonry',
+    categoryId: 'category-1',
     keywords: 'brick red masonry',
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     vi.mocked(estimateRepositoryClient.findById).mockResolvedValue(estimate);
     vi.mocked(chapterRepositoryClient.findByEstimateId).mockResolvedValue([chapter]);
     vi.mocked(lineItemRepositoryClient.findByChapterId).mockResolvedValue([]);

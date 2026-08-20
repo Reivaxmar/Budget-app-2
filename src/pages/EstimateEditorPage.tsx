@@ -10,10 +10,20 @@ import { customerRepositoryClient as customerRepository } from '../db/customerRe
 import { itemRepositoryClient } from '../db/itemRepositoryClient';
 import { appSettingsRepositoryClient } from '../db/appSettingsRepositoryClient';
 import { templateService } from '../services/templateService';
-import { createLineItemFromItem, ensureItemExists, searchItems } from '../services/itemService';
-import { Estimate, Chapter, Item, LineItem, Customer, Template } from '../domain/models';
+import { createLineItemFromItem, ensureItemExists, findExistingItem, searchItems } from '../services/itemService';
+import { itemCategoryService } from '../services/itemCategoryService';
+import { Estimate, Chapter, Item, ItemCategory, LineItem, Customer, Template } from '../domain/models';
 import { notify } from '../notifications';
+import { closeOnOverlayClick } from '../utils/modal';
+import {
+  emptyFormState,
+  formStateToTemplateConfig,
+  templateToFormState,
+  TemplateFormFields,
+  TemplateFormState,
+} from './TemplateForm';
 import './EstimatesPage.css';
+import './TemplatesPage.css';
 
 const EstimateEditorPage: React.FC = () => {
   const { t } = useTranslation();
@@ -48,8 +58,21 @@ const EstimateEditorPage: React.FC = () => {
   const [libraryItems, setLibraryItems] = useState<Item[]>([]);
   const [librarySearchTerm, setLibrarySearchTerm] = useState<string>('');
 
+  // Item categories — every line item is filed under one so its underlying
+  // library item gets an auto-generated code (see itemService.generateItemCode).
+  const [itemCategories, setItemCategories] = useState<ItemCategory[]>([]);
+  const [lineItemCategoryId, setLineItemCategoryId] = useState<string>('');
+
   // Templates (which one governs this estimate's export/presentation)
   const [templates, setTemplates] = useState<Template[]>([]);
+
+  // "Edit template" modal — lets the user customize a full copy of the
+  // selected template's presentation just for this estimate (SPECS §9/§21),
+  // reusing the exact same form the Templates page uses so nothing is
+  // missing. Saving writes a self-contained snapshot to
+  // estimate.templateOverrides rather than touching the shared template.
+  const [templateModalOpen, setTemplateModalOpen] = useState<boolean>(false);
+  const [templateFormData, setTemplateFormData] = useState<TemplateFormState>(emptyFormState());
 
   // Quick "add customer" modal, offered next to the customer field when
   // none is selected yet, so the user doesn't have to leave the estimate.
@@ -87,6 +110,20 @@ const EstimateEditorPage: React.FC = () => {
       }
     };
     loadLibraryItems();
+  }, []);
+
+  // Load item categories (seeds the built-in "misc" category on first use)
+  useEffect(() => {
+    const loadItemCategories = async () => {
+      try {
+        const data = await itemCategoryService.listItemCategories();
+        setItemCategories(data);
+        setLineItemCategoryId((prev) => prev || data[0]?.id || '');
+      } catch (err) {
+        console.error('Failed to load item categories:', err);
+      }
+    };
+    loadItemCategories();
   }, []);
 
   // Load templates for the "which template renders this estimate" picker
@@ -130,6 +167,7 @@ const EstimateEditorPage: React.FC = () => {
             templateId: defaultTemplate.id,
             finalNoteTitle: defaultTemplate.finalPage.noteTitle,
             finalNoteContent: defaultTemplate.finalPage.noteContent,
+            templateOverrides: null,
           };
           setEstimate(blankEstimate);
           setChapters([]);
@@ -205,6 +243,54 @@ const EstimateEditorPage: React.FC = () => {
         finalNoteTitle: shouldPrefillNote && selected ? selected.finalPage.noteTitle : prev.finalNoteTitle,
         finalNoteContent: shouldPrefillNote && selected ? selected.finalPage.noteContent : prev.finalNoteContent,
       };
+    });
+  };
+
+  // "Edit template" modal handlers. Opening it seeds the form from whatever
+  // is currently in effect for this estimate: its own override if it has
+  // one already, otherwise the selected template as-is — and the final-page
+  // note fields are seeded from the estimate's own (always-snapshotted,
+  // already-editable-elsewhere) finalNoteTitle/finalNoteContent rather than
+  // the template's default note, since that's the text that actually ends
+  // up on the rendered PDF.
+  const openTemplateModal = () => {
+    if (!estimate) return;
+    const selectedTemplate = templates.find((tpl) => tpl.id === estimate.templateId);
+    const base = estimate.templateOverrides ?? selectedTemplate;
+    const seeded = base ? templateToFormState({ ...base, name: selectedTemplate?.name }) : emptyFormState();
+    setTemplateFormData({
+      ...seeded,
+      noteTitle: estimate.finalNoteTitle,
+      noteContent: estimate.finalNoteContent,
+    });
+    setTemplateModalOpen(true);
+  };
+
+  const closeTemplateModal = () => {
+    setTemplateModalOpen(false);
+  };
+
+  const handleSaveTemplateOverride = (e: React.FormEvent) => {
+    e.preventDefault();
+    setEstimate((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        templateOverrides: formStateToTemplateConfig(templateFormData),
+        finalNoteTitle: templateFormData.noteTitle,
+        finalNoteContent: templateFormData.noteContent,
+      };
+    });
+    setTemplateModalOpen(false);
+  };
+
+  // Drops this estimate's override so it goes back to following the
+  // selected template as-is (the final-page note text is untouched — it's
+  // always estimate-owned, override or not).
+  const handleResetTemplateOverride = () => {
+    setEstimate((prev) => {
+      if (!prev) return null;
+      return { ...prev, templateOverrides: null };
     });
   };
 
@@ -451,6 +537,11 @@ const EstimateEditorPage: React.FC = () => {
         amount: lineItem.amount,
         order: lineItem.order,
       });
+      // Preselect whatever category the underlying library item (matched by
+      // description) is filed under, so it doesn't silently change if the
+      // line item is re-saved; falls back to the default when there's no match.
+      const matchingItem = findExistingItem(libraryItems, lineItem.description);
+      setLineItemCategoryId(matchingItem?.categoryId || itemCategories[0]?.id || '');
     } else {
       setEditingLineItemId(null);
       // Determine next order for this chapter
@@ -465,6 +556,7 @@ const EstimateEditorPage: React.FC = () => {
         amount: 0,
         order: nextOrder,
       });
+      setLineItemCategoryId(itemCategories[0]?.id || '');
     }
     // We need to know which chapter this line item belongs to; we'll store in a temporary state
     // For simplicity, we'll pass chapterId via a closure or use a separate state.
@@ -487,6 +579,7 @@ const EstimateEditorPage: React.FC = () => {
       order: lineItemForm.order,
     });
     setLineItemForm((prev) => ({ ...prev, ...draft }));
+    setLineItemCategoryId(item.categoryId);
   };
 
   const filteredLibraryItems = searchItems(libraryItems, librarySearchTerm);
@@ -528,8 +621,24 @@ const EstimateEditorPage: React.FC = () => {
       return;
     }
     try {
+      // Resolve (find-or-create) the library item this line item corresponds
+      // to first, so its auto-generated code (see itemService.generateItemCode)
+      // can be reused here too — exactly like "insert from library" does,
+      // whether the description matched an existing catalog entry or needed
+      // a brand new one to be created under the chosen category.
+      const resolvedItem = await ensureItemExists(libraryItems, {
+        description: lineItemForm.description,
+        unit: lineItemForm.unit,
+        unitPrice: lineItemForm.unitPrice,
+        categoryId: lineItemCategoryId,
+      });
+      if (resolvedItem && !libraryItems.some((item) => item.id === resolvedItem.id)) {
+        setLibraryItems((prev) => [...prev, resolvedItem]);
+      }
+
       const data = {
         ...lineItemForm,
+        code: resolvedItem?.code ?? lineItemForm.code ?? '',
         chapterId: activeChapterIdForLineItem,
       } as LineItem;
       if (editingLineItemId) {
@@ -563,13 +672,6 @@ const EstimateEditorPage: React.FC = () => {
           return chap;
         })
       );
-
-      // Auto-add unrecognized items to the item library so they're
-      // available for reuse next time.
-      const newLibraryItem = await ensureItemExists(libraryItems, data);
-      if (newLibraryItem && !libraryItems.some((item) => item.id === newLibraryItem.id)) {
-        setLibraryItems((prev) => [...prev, newLibraryItem]);
-      }
 
       closeLineItemModal();
     } catch (err) {
@@ -842,21 +944,31 @@ const EstimateEditorPage: React.FC = () => {
               </label>
             </div>
             <div className="form-group">
-              <label>
-                {t('estimateEditor.fields.template')}
-                <select
-                  value={estimate.templateId || ''}
-                  onChange={(e) => handleTemplateChange(e.target.value)}
-                >
-                  {templates.length === 0 && <option value="">{estimate.templateId}</option>}
-                  {templates.map((tpl) => (
-                    <option key={tpl.id} value={tpl.id}>
-                      {tpl.name}
-                      {tpl.isDefault ? ` ${t('estimateEditor.fields.templateDefaultSuffix')}` : ''}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div className="customer-select-row">
+                <label>
+                  {t('estimateEditor.fields.template')}
+                  <select
+                    value={estimate.templateId || ''}
+                    onChange={(e) => handleTemplateChange(e.target.value)}
+                  >
+                    {templates.length === 0 && <option value="">{estimate.templateId}</option>}
+                    {templates.map((tpl) => (
+                      <option key={tpl.id} value={tpl.id}>
+                        {tpl.name}
+                        {tpl.isDefault ? ` ${t('estimateEditor.fields.templateDefaultSuffix')}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button type="button" onClick={openTemplateModal} className="add-button">
+                  {t('estimateEditor.fields.editTemplate')}
+                </button>
+                {estimate.templateOverrides && (
+                  <button type="button" onClick={handleResetTemplateOverride} className="cancel-button">
+                    {t('estimateEditor.fields.resetTemplate')}
+                  </button>
+                )}
+              </div>
             </div>
             <div className="form-group">
               <label>
@@ -865,26 +977,6 @@ const EstimateEditorPage: React.FC = () => {
                   value={estimate.introduction || ''}
                   onChange={(e) => handleEstimateChange('introduction', e.target.value)}
                   rows={4}
-                />
-              </label>
-            </div>
-            <div className="form-group">
-              <label>
-                {t('estimateEditor.fields.finalNoteTitle')}
-                <input
-                  type="text"
-                  value={estimate.finalNoteTitle || ''}
-                  onChange={(e) => handleEstimateChange('finalNoteTitle', e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="form-group">
-              <label>
-                {t('estimateEditor.fields.finalNoteContent')}
-                <textarea
-                  value={estimate.finalNoteContent || ''}
-                  onChange={(e) => handleEstimateChange('finalNoteContent', e.target.value)}
-                  rows={6}
                 />
               </label>
             </div>
@@ -1034,7 +1126,7 @@ const EstimateEditorPage: React.FC = () => {
 
       {/* Chapter Modal */}
       {chapterModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={closeOnOverlayClick(closeChapterModal)}>
           <div className="modal-content">
             <h2>{editingChapterId ? t('estimateEditor.chapterModal.editTitle') : t('estimateEditor.chapterModal.addTitle')}</h2>
             <form className="customer-form" onSubmit={(e) => e.preventDefault()}>
@@ -1076,7 +1168,7 @@ const EstimateEditorPage: React.FC = () => {
 
       {/* Line Item Modal */}
       {lineItemModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={closeOnOverlayClick(closeLineItemModal)}>
           <div className="modal-content">
             <h2>{editingLineItemId ? t('estimateEditor.lineItemModal.editTitle') : t('estimateEditor.lineItemModal.addTitle')}</h2>
             <div className="form-group">
@@ -1117,17 +1209,35 @@ const EstimateEditorPage: React.FC = () => {
                   <input
                     type="text"
                     value={lineItemForm.code || ''}
-                    onChange={(e) => handleLineItemChange('code', e.target.value)}
+                    placeholder={t('estimateEditor.lineItemModal.codeAutoPlaceholder')}
+                    readOnly
+                    disabled
                   />
                 </label>
               </div>
               <div className="form-group">
                 <label>
+                  {t('estimateEditor.lineItemModal.categoryLabel')}
+                  <select
+                    value={lineItemCategoryId}
+                    onChange={(e) => setLineItemCategoryId(e.target.value)}
+                    required
+                  >
+                    {itemCategories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="form-group">
+                <label>
                   {t('estimateEditor.lineItemModal.descriptionLabel')}
-                  <input
-                    type="text"
+                  <textarea
                     value={lineItemForm.description || ''}
                     onChange={(e) => handleLineItemChange('description', e.target.value)}
+                    rows={4}
                   />
                 </label>
               </div>
@@ -1202,9 +1312,31 @@ const EstimateEditorPage: React.FC = () => {
         </div>
       )}
 
+      {/* "Edit template" modal — full template editor, but scoped to this estimate only */}
+      {templateModalOpen && (
+        <div className="modal-overlay" onClick={closeOnOverlayClick(closeTemplateModal)}>
+          <div className="modal-content template-modal-content">
+            <h2>{t('estimateEditor.templateModal.title')}</h2>
+            <p className="estimate-appearance-hint">{t('estimateEditor.templateModal.hint')}</p>
+            <form onSubmit={handleSaveTemplateOverride} className="template-form">
+              <TemplateFormFields formData={templateFormData} setFormData={setTemplateFormData} showNameField={false} />
+
+              <div className="form-actions">
+                <button type="button" onClick={closeTemplateModal} className="cancel-button">
+                  {t('common.cancel')}
+                </button>
+                <button type="submit" className="submit-button">
+                  {t('common.save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Quick "add customer" modal */}
       {customerModalOpen && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={closeOnOverlayClick(closeCustomerModal)}>
           <div className="modal-content">
             <h2>{t('customers.addCustomer')}</h2>
             <form onSubmit={handleSaveNewCustomer} className="customer-form">

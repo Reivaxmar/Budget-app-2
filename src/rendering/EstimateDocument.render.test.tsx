@@ -224,6 +224,7 @@ describe('EstimateDocument rendering: template configuration', () => {
       footer: { showPageNumbers: false, showCompanyInfo: true },
       table: {
         showBorders: false,
+        showChapterSubtotal: true,
         columns: [
           { key: 'itemNumber' as const, label: '#', width: '10%' },
           { key: 'description' as const, label: 'Concepto', width: '70%' },

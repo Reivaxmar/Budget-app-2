@@ -362,9 +362,11 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
                   );
                 })}
 
-              <View style={styles.chapterSubtotalRow} wrap={false}>
-                <Text>Chapter subtotal: {formatCurrency(calculateChapterTotal(chapter))}</Text>
-              </View>
+              {template.table.showChapterSubtotal && (
+                <View style={styles.chapterSubtotalRow} wrap={false}>
+                  <Text>Chapter subtotal: {formatCurrency(calculateChapterTotal(chapter))}</Text>
+                </View>
+              )}
             </View>
           ))}
 

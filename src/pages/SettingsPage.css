@@ -122,3 +122,85 @@
   border-radius: 4px;
   cursor: pointer;
 }
+
+.actions-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-button {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.category-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.category-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--fieldset-border);
+}
+
+.category-name {
+  flex: 1;
+}
+
+.category-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.category-edit-form input {
+  flex: 1;
+  padding: 0.35rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-background);
+  color: var(--input-text);
+}
+
+.category-add-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.category-add-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: bold;
+}
+
+.category-add-form input {
+  padding: 0.5rem;
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  background-color: var(--input-background);
+  color: var(--input-text);
+}

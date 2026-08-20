@@ -13,6 +13,7 @@ const sampleTemplate: Omit<Template, 'id'> = {
   footer: { showPageNumbers: true, showCompanyInfo: true },
   table: {
     showBorders: true,
+    showChapterSubtotal: true,
     columns: [{ key: 'description', label: 'Description', width: '100%' }],
   },
   finalPage: {

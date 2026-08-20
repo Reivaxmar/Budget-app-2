@@ -45,6 +45,7 @@ describe('getDashboardOverview', () => {
       templateId: 'template-1',
       finalNoteTitle: '',
       finalNoteContent: '',
+      templateOverrides: null,
     });
     const issuedEstimate = await estimateRepositoryClient.create({
       estimateNumber: '002-26',
@@ -59,6 +60,7 @@ describe('getDashboardOverview', () => {
       templateId: 'template-1',
       finalNoteTitle: '',
       finalNoteContent: '',
+      templateOverrides: null,
     });
 
     const chapter1 = await chapterRepositoryClient.create({
@@ -133,6 +135,7 @@ describe('getDashboardOverview', () => {
         templateId: 'template-1',
         finalNoteTitle: '',
         finalNoteContent: '',
+        templateOverrides: null,
       });
     }
 

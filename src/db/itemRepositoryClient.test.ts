@@ -12,7 +12,7 @@ describe('itemRepositoryClient', () => {
       description: 'Red brick',
       unit: 'pcs',
       defaultPrice: 0.75,
-      category: 'Masonry',
+      categoryId: 'category-1',
       keywords: 'brick',
     });
 
@@ -26,7 +26,7 @@ describe('itemRepositoryClient', () => {
       description: 'Item A',
       unit: 'pcs',
       defaultPrice: 1,
-      category: '',
+      categoryId: '',
       keywords: '',
     });
     await itemRepositoryClient.create({
@@ -34,7 +34,7 @@ describe('itemRepositoryClient', () => {
       description: 'Item B',
       unit: 'pcs',
       defaultPrice: 2,
-      category: '',
+      categoryId: '',
       keywords: '',
     });
 
@@ -49,7 +49,7 @@ describe('itemRepositoryClient', () => {
       description: 'Item A',
       unit: 'pcs',
       defaultPrice: 1,
-      category: '',
+      categoryId: '',
       keywords: '',
     });
 
@@ -63,7 +63,7 @@ describe('itemRepositoryClient', () => {
       description: 'Item A',
       unit: 'pcs',
       defaultPrice: 1,
-      category: '',
+      categoryId: '',
       keywords: '',
     });
 
@@ -90,7 +90,7 @@ describe('itemRepositoryClient', () => {
       description: 'Item A',
       unit: 'pcs',
       defaultPrice: 1,
-      category: '',
+      categoryId: '',
       keywords: '',
     });
 

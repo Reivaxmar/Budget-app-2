@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { customerRepositoryClient } from '../db/customerRepositoryClient';
 import { Customer } from '../domain/models';
 import { notify } from '../notifications';
+import { closeOnOverlayClick } from '../utils/modal';
 import './CustomersPage.css';
 
 const CustomersPage: React.FC = () => {
@@ -217,7 +218,7 @@ const CustomersPage: React.FC = () => {
 
       {/* Customer Form Modal */}
       {formVisible && (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={closeOnOverlayClick(() => setFormVisible(false))}>
           <div className="modal-content">
             <h2>{isEditing ? t('customers.editCustomer') : t('customers.addCustomer')}</h2>
             <form onSubmit={handleSaveCustomer} className="customer-form">

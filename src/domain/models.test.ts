@@ -26,6 +26,7 @@ describe('Domain Models', () => {
         templateId: 'template-1',
         finalNoteTitle: '',
         finalNoteContent: '',
+        templateOverrides: null,
       }
 
       expect(estimate).toHaveProperty('id')
@@ -177,6 +178,7 @@ describe('Domain Models', () => {
         },
         table: {
           showBorders: true,
+          showChapterSubtotal: true,
           columns: [{ key: 'description', label: 'Description', width: '100%' }],
         },
         finalPage: {

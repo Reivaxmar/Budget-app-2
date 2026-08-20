@@ -157,6 +157,7 @@ export async function duplicateEstimate(id: string): Promise<Estimate> {
     templateId: original.templateId,
     finalNoteTitle: original.finalNoteTitle,
     finalNoteContent: original.finalNoteContent,
+    templateOverrides: original.templateOverrides,
   });
 
   // Duplicate chapters and line items

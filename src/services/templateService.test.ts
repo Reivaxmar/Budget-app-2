@@ -43,6 +43,27 @@ describe('templateService', () => {
       expect(second.id).toBe(first.id);
       expect(await listTemplates()).toHaveLength(1);
     });
+
+    it('seeds only one built-in default when called concurrently (e.g. two pages mounting at once)', async () => {
+      const [first, second] = await Promise.all([getDefaultTemplate(), getDefaultTemplate()]);
+
+      expect(second.id).toBe(first.id);
+      expect(await listTemplates()).toHaveLength(1);
+    });
+
+    it('self-heals if more than one template was left marked default, keeping just one', async () => {
+      const first = await createTemplate({ ...baseConfig, name: 'First', isDefault: true });
+      const second = await createTemplate({ ...baseConfig, name: 'Second', isDefault: false });
+      // Simulate a past race having left two templates marked default.
+      const { templateRepositoryClient } = await import('../db/templateRepositoryClient');
+      await templateRepositoryClient.update(second.id, { isDefault: true });
+
+      const resolved = await getDefaultTemplate();
+
+      const templates = await listTemplates();
+      expect(templates.filter((t) => t.isDefault)).toHaveLength(1);
+      expect(resolved.id).toBe(first.id);
+    });
   });
 
   describe('createTemplate', () => {

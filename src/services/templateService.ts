@@ -117,26 +117,51 @@ export async function duplicateTemplate(id: string): Promise<Template> {
   });
 }
 
+// getDefaultTemplate is called independently from several places on mount
+// (EstimateEditorPage, TemplatesPage, ...); without this in-flight guard,
+// two calls that both see an empty template list before either finishes
+// creating the built-in "Standard" template would each seed one, leaving
+// two templates both marked default.
+let pendingDefaultTemplateSeed: Promise<Template> | null = null;
+
 /**
  * Returns the current default template, seeding a built-in "Standard"
- * template on first use so there is always something to render with.
+ * template on first use so there is always something to render with. If a
+ * past race already created more than one default (see above), the extras
+ * are demoted here so the invariant of "at most one default" is restored.
  */
 export async function getDefaultTemplate(): Promise<Template> {
   const templates = await templateRepositoryClient.findMany();
-  const existingDefault = templates.find((template) => template.isDefault);
-  if (existingDefault) {
-    return existingDefault;
+  const defaults = templates.filter((template) => template.isDefault);
+
+  if (defaults.length > 1) {
+    const [keep, ...extras] = defaults;
+    await Promise.all(
+      extras.map((extra) => templateRepositoryClient.update(extra.id, { isDefault: false }))
+    );
+    return keep;
+  }
+
+  if (defaults.length === 1) {
+    return defaults[0];
   }
 
   if (templates.length > 0) {
     return setDefaultTemplate(templates[0].id);
   }
 
-  return templateRepositoryClient.create({
-    ...defaultDocumentTemplate,
-    name: BUILT_IN_TEMPLATE_NAME,
-    isDefault: true,
-  });
+  if (!pendingDefaultTemplateSeed) {
+    pendingDefaultTemplateSeed = templateRepositoryClient
+      .create({
+        ...defaultDocumentTemplate,
+        name: BUILT_IN_TEMPLATE_NAME,
+        isDefault: true,
+      })
+      .finally(() => {
+        pendingDefaultTemplateSeed = null;
+      });
+  }
+  return pendingDefaultTemplateSeed;
 }
 
 async function demoteCurrentDefault(templates: Template[], exceptId?: string): Promise<void> {

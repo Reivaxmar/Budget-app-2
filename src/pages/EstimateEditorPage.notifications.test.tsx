@@ -98,6 +98,7 @@ describe('EstimateEditorPage — inline customer creation and single save notifi
       templateId: 'template-1',
       finalNoteTitle: '',
       finalNoteContent: '',
+      templateOverrides: null,
     };
 
     const chapter: Chapter = {

@@ -209,10 +209,17 @@ td {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.template-modal-content {
-  width: 720px;
+/* Higher specificity than plain `.modal-content` (shared by every modal in
+   the app, e.g. EstimatesPage.css/ItemLibraryPage.css/CustomersPage.css) so
+   this always wins regardless of which stylesheet Vite happens to bundle
+   last — with equal specificity, load order alone would otherwise decide,
+   and it silently capped this modal back down to 400px before. */
+.modal-content.template-modal-content {
+  width: 1600px;
+  max-width: 98vw;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .template-form {
@@ -279,7 +286,24 @@ td {
 }
 
 .column-config-table {
+  width: 100%;
+  table-layout: fixed;
   margin-top: 0.75rem;
+}
+
+.column-config-table th:nth-child(1),
+.column-config-table td:nth-child(1) {
+  width: 4rem;
+}
+
+.column-config-table th:nth-child(4),
+.column-config-table td:nth-child(4) {
+  width: 8rem;
+}
+
+.column-config-table th:nth-child(5),
+.column-config-table td:nth-child(5) {
+  width: 10rem;
 }
 
 .column-config-table input[type='text'],
@@ -333,7 +357,7 @@ td {
     padding: 0.35rem;
   }
 
-  .template-modal-content {
+  .modal-content.template-modal-content {
     width: 100%;
   }
 }

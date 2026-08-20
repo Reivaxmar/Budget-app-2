@@ -21,6 +21,7 @@ const standardTemplate: Template = {
   footer: { showPageNumbers: true, showCompanyInfo: true },
   table: {
     showBorders: true,
+    showChapterSubtotal: true,
     columns: [
       { key: 'itemNumber', label: 'Item', width: '8%' },
       { key: 'description', label: 'Description', width: '92%' },

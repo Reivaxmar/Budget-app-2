@@ -42,6 +42,7 @@ export const defaultDocumentTemplate: DocumentTemplateConfig = {
   },
   table: {
     showBorders: true,
+    showChapterSubtotal: true,
     columns: [
       { key: 'itemNumber', label: 'Item', width: '8%' },
       { key: 'description', label: 'Description', width: '44%' },
