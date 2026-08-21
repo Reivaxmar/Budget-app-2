@@ -233,7 +233,6 @@ describe('EstimateDocument rendering: template configuration', () => {
       },
       finalPage: {
         totalLabel: 'Total presupuesto',
-        totalCaption: 'IVA no incluido',
         signatureLabel: 'Firma del cliente',
         noteTitle: 'Condiciones',
         noteContent: '',

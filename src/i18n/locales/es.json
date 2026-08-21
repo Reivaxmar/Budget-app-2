@@ -9,7 +9,8 @@
     "siteLabel": "Obra",
     "introductionSectionTitle": "Introducción",
     "chapterSubtotalLabel": "Subtotal del capítulo: {{amount}}",
-    "pageOfLabel": "Página {{pageNumber}} de {{totalPages}}"
+    "pageOfLabel": "Página {{pageNumber}} de {{totalPages}}",
+    "totalCaption": "IVA no incluido"
   },
   "app": {
     "brandName": "Presupeitor2000",
@@ -243,7 +244,6 @@
         },
         "finalPage": "Última página",
         "totalLabel": "Etiqueta del total:",
-        "totalCaption": "Leyenda del total:",
         "signatureLabel": "Etiqueta de firma:",
         "noteTitle": "Título de la nota final:",
         "noteContent": "Contenido de la nota final:"
@@ -383,15 +383,12 @@
       "insertFromLibrary": "Insertar desde el catálogo:",
       "searchPlaceholder": "Buscar artículos del catálogo...",
       "noMatches": "No hay artículos que coincidan.",
-      "codeLabel": "Código:",
-      "codeAutoPlaceholder": "(generado automáticamente al guardar)",
       "categoryLabel": "Categoría:",
       "descriptionLabel": "Descripción:",
       "unitLabel": "Unidad:",
       "quantityLabel": "Cantidad:",
       "unitPriceLabel": "Precio unitario:",
-      "amountLabel": "Importe:",
-      "orderLabel": "Orden:"
+      "amountLabel": "Importe:"
     },
     "errors": {
       "loadFailed": "No se pudo cargar el presupuesto. Inténtalo de nuevo.",

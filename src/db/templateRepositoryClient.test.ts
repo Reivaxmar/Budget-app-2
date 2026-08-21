@@ -18,7 +18,6 @@ const sampleTemplate: Omit<Template, 'id'> = {
   },
   finalPage: {
     totalLabel: 'Total',
-    totalCaption: 'IVA no incluido',
     signatureLabel: 'Conforme cliente',
     noteTitle: 'Condiciones',
     noteContent: '',

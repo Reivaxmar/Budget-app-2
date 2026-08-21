@@ -184,7 +184,6 @@ describe('Domain Models', () => {
         },
         finalPage: {
           totalLabel: 'Total',
-          totalCaption: 'IVA no incluido',
           signatureLabel: 'Conforme cliente',
           noteTitle: 'Condiciones',
           noteContent: '',

@@ -52,12 +52,12 @@ export const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
   const { dialCode, rest } = splitPhoneValue(value);
 
   return (
-    <div style={{ display: 'flex', gap: '0.5rem' }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', width: '100%' }}>
       <select
         value={dialCode}
         onChange={(e) => onChange(`${e.target.value} ${rest}`.trim())}
         aria-label={countryAriaLabel}
-        style={{ flex: '0 0 auto', maxWidth: '11rem' }}
+        style={{ flex: '1 1 10rem', minWidth: '10rem', maxWidth: '14rem' }}
       >
         {COUNTRY_CALLING_CODES.map((country) => (
           <option key={country.iso2} value={country.dialCode}>
@@ -71,7 +71,7 @@ export const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         onChange={(e) => onChange(`${dialCode} ${e.target.value}`.trim())}
         required={required}
         aria-label={numberAriaLabel}
-        style={{ flex: '1 1 auto', minWidth: 0 }}
+        style={{ flex: '2 1 12rem', minWidth: '12rem' }}
       />
     </div>
   );

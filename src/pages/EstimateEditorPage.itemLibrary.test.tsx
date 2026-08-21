@@ -99,7 +99,6 @@ describe('EstimateEditorPage — insert from library', () => {
     fireEvent.click(suggestion);
 
     // Form fields should now contain a copy of the library item's values
-    expect(screen.getByLabelText(/^code:/i)).toHaveValue(libraryItem.code);
     expect(screen.getByLabelText(/^description:/i)).toHaveValue(libraryItem.description);
     expect(screen.getByLabelText(/^unit:/i)).toHaveValue(libraryItem.unit);
     expect(screen.getByLabelText(/^unit price:/i)).toHaveValue(libraryItem.defaultPrice);

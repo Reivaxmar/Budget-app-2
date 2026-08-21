@@ -104,6 +104,16 @@
   min-width: 8rem;
 }
 
+.form-row label.address-field {
+  flex: 3;
+  min-width: 12rem;
+}
+
+.form-row label.phone-field {
+  flex: 2;
+  min-width: 22rem;
+}
+
 .form-group input,
 .form-group textarea,
 .form-row input {

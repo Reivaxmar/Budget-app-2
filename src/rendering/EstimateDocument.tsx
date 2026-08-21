@@ -406,7 +406,7 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
               <Text>{template.finalPage.totalLabel}</Text>
               <Text>{formatCurrency(total)}</Text>
             </View>
-            <Text style={styles.totalCaption}>{template.finalPage.totalCaption}</Text>
+            <Text style={styles.totalCaption}>{i18n.t('rendering.totalCaption')}</Text>
           </View>
 
           <View style={styles.standardNoteBlock}>

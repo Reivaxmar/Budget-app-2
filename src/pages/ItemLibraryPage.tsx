@@ -124,7 +124,10 @@ const ItemLibraryPage: React.FC = () => {
     }
   };
 
-  const filteredItems = searchItems(items, searchTerm);
+  const categoryNameById = Object.fromEntries(
+    categories.map((category) => [category.id, category.name])
+  );
+  const filteredItems = searchItems(items, searchTerm, categoryNameById);
 
   return (
     <div className="item-library-page">

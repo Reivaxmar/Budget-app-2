@@ -150,7 +150,6 @@ export interface TemplateConfig {
   }
   finalPage: {
     totalLabel: string
-    totalCaption: string
     signatureLabel: string
     /** Default title/content for the final-page note, snapshotted onto new estimates that use this template. */
     noteTitle: string

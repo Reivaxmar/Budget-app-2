@@ -62,8 +62,8 @@ const CompanyProfilePage: React.FC = () => {
               />
             </label>
           </div>
-          <div className="form-group">
-            <label>
+          <div className="form-row">
+            <label className="address-field">
               {t('companyProfile.fields.address')}
               <input
                 type="text"
@@ -75,8 +75,6 @@ const CompanyProfilePage: React.FC = () => {
                 }
               />
             </label>
-          </div>
-          <div className="form-row">
             <label>
               {t('companyProfile.fields.postalCode')}
               <input
@@ -91,7 +89,9 @@ const CompanyProfilePage: React.FC = () => {
                 }
               />
             </label>
-            <label>
+          </div>
+          <div className="form-row">
+            <label className="phone-field">
               {t('companyProfile.fields.phone')}
               <PhoneNumberInput
                 value={settings.profile.phone}

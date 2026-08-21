@@ -65,7 +65,6 @@ export interface TemplateFormState {
   showChapterSubtotal: boolean;
   columns: ColumnFormState[];
   totalLabel: string;
-  totalCaption: string;
   signatureLabel: string;
   noteTitle: string;
   noteContent: string;
@@ -104,7 +103,6 @@ export function emptyFormState(): TemplateFormState {
     showChapterSubtotal: defaultDocumentTemplate.table.showChapterSubtotal,
     columns: blankColumns(),
     totalLabel: defaultDocumentTemplate.finalPage.totalLabel,
-    totalCaption: defaultDocumentTemplate.finalPage.totalCaption,
     signatureLabel: defaultDocumentTemplate.finalPage.signatureLabel,
     noteTitle: defaultDocumentTemplate.finalPage.noteTitle,
     noteContent: defaultDocumentTemplate.finalPage.noteContent,
@@ -148,7 +146,6 @@ export function templateToFormState(template: TemplateConfig & Partial<Pick<Temp
     showChapterSubtotal: template.table.showChapterSubtotal,
     columns,
     totalLabel: template.finalPage.totalLabel,
-    totalCaption: template.finalPage.totalCaption,
     signatureLabel: template.finalPage.signatureLabel,
     noteTitle: template.finalPage.noteTitle,
     noteContent: template.finalPage.noteContent,
@@ -196,7 +193,6 @@ export function formStateToTemplateConfig(form: TemplateFormState): TemplateConf
     },
     finalPage: {
       totalLabel: form.totalLabel,
-      totalCaption: form.totalCaption,
       signatureLabel: form.signatureLabel,
       noteTitle: form.noteTitle,
       noteContent: form.noteContent,
@@ -551,16 +547,6 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
               type="text"
               value={formData.totalLabel}
               onChange={(e) => setFormData((prev) => ({ ...prev, totalLabel: e.target.value }))}
-            />
-          </label>
-        </div>
-        <div className="form-group">
-          <label>
-            {t('templates.modal.sections.totalCaption')}
-            <input
-              type="text"
-              value={formData.totalCaption}
-              onChange={(e) => setFormData((prev) => ({ ...prev, totalCaption: e.target.value }))}
             />
           </label>
         </div>

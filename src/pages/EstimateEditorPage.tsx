@@ -584,7 +584,10 @@ const EstimateEditorPage: React.FC = () => {
     setLineItemCategoryId(item.categoryId);
   };
 
-  const filteredLibraryItems = searchItems(libraryItems, librarySearchTerm);
+  const itemCategoryNameById = Object.fromEntries(
+    itemCategories.map((category) => [category.id, category.name])
+  );
+  const filteredLibraryItems = searchItems(libraryItems, librarySearchTerm, itemCategoryNameById);
 
   const closeLineItemModal = () => {
     setLineItemModalOpen(false);
@@ -1207,18 +1210,6 @@ const EstimateEditorPage: React.FC = () => {
             <form className="customer-form" onSubmit={(e) => e.preventDefault()}>
               <div className="form-group">
                 <label>
-                  {t('estimateEditor.lineItemModal.codeLabel')}
-                  <input
-                    type="text"
-                    value={lineItemForm.code || ''}
-                    placeholder={t('estimateEditor.lineItemModal.codeAutoPlaceholder')}
-                    readOnly
-                    disabled
-                  />
-                </label>
-              </div>
-              <div className="form-group">
-                <label>
                   {t('estimateEditor.lineItemModal.categoryLabel')}
                   <select
                     value={lineItemCategoryId}
@@ -1286,18 +1277,6 @@ const EstimateEditorPage: React.FC = () => {
                     type="number"
                     value={lineItemForm.amount || ''}
                     readOnly
-                  />
-                </label>
-              </div>
-              <div className="form-group">
-                <label>
-                  {t('estimateEditor.lineItemModal.orderLabel')}
-                  <input
-                    type="number"
-                    value={lineItemForm.order || ''}
-                    onChange={(e) => handleLineItemChange('order', parseInt(e.target.value) || 0)}
-                    min="1"
-                    required
                   />
                 </label>
               </div>

@@ -32,16 +32,20 @@ export function createLineItemFromItem(
   };
 }
 
-export function searchItems(items: Item[], term: string): Item[] {
+export function searchItems(
+  items: Item[],
+  term: string,
+  categoryNameById: Record<string, string> = {}
+): Item[] {
   const normalized = term.trim().toLowerCase();
   if (!normalized) {
     return items;
   }
 
   return items.filter((item) =>
-    [item.code, item.description, item.keywords]
+    [item.code, item.description, item.keywords, categoryNameById[item.categoryId]]
       .filter(Boolean)
-      .some((field) => field.toLowerCase().includes(normalized))
+      .some((field) => field!.toLowerCase().includes(normalized))
   );
 }
 
