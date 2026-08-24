@@ -1,5 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+vi.mock('../lib/supabaseClient', async () => {
+  const { createFakeSupabaseClient } = await import('../test/fakeSupabaseClient');
+  return { supabase: createFakeSupabaseClient(), isSupabaseConfigured: true };
+});
+
 import { templateRepositoryClient } from './templateRepositoryClient';
+import { supabase } from '../lib/supabaseClient';
 import type { Template } from '../domain/models';
 
 const sampleTemplate: Omit<Template, 'id'> = {
@@ -26,7 +33,7 @@ const sampleTemplate: Omit<Template, 'id'> = {
 
 describe('templateRepositoryClient', () => {
   beforeEach(() => {
-    localStorage.clear();
+    (supabase as unknown as { __reset: () => void }).__reset();
   });
 
   it('creates a template and assigns an id', async () => {

@@ -63,6 +63,7 @@ const EstimateEditorPage: React.FC = () => {
   // library item gets an auto-generated code (see itemService.generateItemCode).
   const [itemCategories, setItemCategories] = useState<ItemCategory[]>([]);
   const [lineItemCategoryId, setLineItemCategoryId] = useState<string>('');
+  const [newCategoryName, setNewCategoryName] = useState<string>('');
 
   // Templates (which one governs this estimate's export/presentation)
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -565,6 +566,7 @@ const EstimateEditorPage: React.FC = () => {
     // We'll create a state variable for active chapterId for line item modal.
     setActiveChapterIdForLineItem(chapterId);
     setLibrarySearchTerm('');
+    setNewCategoryName('');
     setLineItemModalOpen(true);
   };
 
@@ -584,6 +586,24 @@ const EstimateEditorPage: React.FC = () => {
     setLineItemCategoryId(item.categoryId);
   };
 
+  // Lets the user create a brand new item category directly from the line
+  // item modal, instead of having to leave the estimate and go to Settings
+  // first — the new category is selected immediately for this line item.
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    try {
+      const created = await itemCategoryService.createItemCategory(newCategoryName);
+      setItemCategories((prev) => [...prev, created]);
+      setLineItemCategoryId(created.id);
+      setNewCategoryName('');
+    } catch (err) {
+      notify(
+        err instanceof Error ? err.message : t('settings.itemCategories.errors.saveFailed'),
+        'error'
+      );
+    }
+  };
+
   const itemCategoryNameById = Object.fromEntries(
     itemCategories.map((category) => [category.id, category.name])
   );
@@ -593,6 +613,7 @@ const EstimateEditorPage: React.FC = () => {
     setLineItemModalOpen(false);
     setEditingLineItemId(null);
     setLibrarySearchTerm('');
+    setNewCategoryName('');
     setLineItemForm({
       code: '',
       description: '',
@@ -647,7 +668,24 @@ const EstimateEditorPage: React.FC = () => {
         chapterId: activeChapterIdForLineItem,
       } as LineItem;
       if (editingLineItemId) {
-        await lineItemRepository.update(editingLineItemId, data);
+        const updated = await lineItemRepository.update(editingLineItemId, data);
+        // Reflect the change in local state — the repository update alone
+        // doesn't touch the line items already held in state, so without
+        // this the editor kept showing the old values (only a fresh fetch,
+        // e.g. via PDF export, saw the update) until the page was reloaded.
+        setChapters((prev) =>
+          prev.map((chap) => {
+            if (chap.id === activeChapterIdForLineItem) {
+              return {
+                ...chap,
+                lineItems: chap.lineItems.map((li) =>
+                  li.id === editingLineItemId ? { ...li, ...updated } : li
+                ),
+              };
+            }
+            return chap;
+          })
+        );
       } else {
         const newLineItem = await lineItemRepository.create(
           data as Omit<LineItem, 'id'>
@@ -1223,6 +1261,20 @@ const EstimateEditorPage: React.FC = () => {
                     ))}
                   </select>
                 </label>
+                <div className="customer-select-row">
+                  <label style={{ flex: 1 }}>
+                    {t('estimateEditor.lineItemModal.newCategoryLabel')}
+                    <input
+                      type="text"
+                      placeholder={t('settings.itemCategories.newCategoryPlaceholder')}
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                    />
+                  </label>
+                  <button type="button" onClick={handleAddCategory} className="add-button">
+                    {t('settings.itemCategories.addButton')}
+                  </button>
+                </div>
               </div>
               <div className="form-group">
                 <label>

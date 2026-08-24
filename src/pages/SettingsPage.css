@@ -204,3 +204,24 @@
   background-color: var(--input-background);
   color: var(--input-text);
 }
+
+.settings-mfa-enroll {
+  margin-top: 1rem;
+  max-width: 360px;
+}
+
+.settings-mfa-qr {
+  margin: 0.75rem 0;
+  width: 180px;
+}
+
+.settings-mfa-qr svg {
+  width: 100%;
+  height: auto;
+}
+
+.settings-mfa-secret {
+  font-size: 0.85rem;
+  color: var(--text-muted, #666);
+  word-break: break-all;
+}

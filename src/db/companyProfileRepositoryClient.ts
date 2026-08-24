@@ -1,6 +1,5 @@
 import type { UserProfile } from '../domain/models'
-
-const STORAGE_KEY = 'budgetapp.companyProfile'
+import { supabase } from '../lib/supabaseClient'
 
 /**
  * The identity and document defaults used when generating PDFs: the
@@ -23,37 +22,57 @@ const DEFAULT_SETTINGS: CompanyProfileSettings = {
     postalCode: '',
     phone: '',
     email: '',
+    taxId: '',
     slogan: '',
   },
   creationLocation: '',
 }
 
-const read = (): CompanyProfileSettings => {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) {
-    return DEFAULT_SETTINGS
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as Partial<CompanyProfileSettings>
-    return {
-      profile: { ...DEFAULT_SETTINGS.profile, ...parsed.profile },
-      creationLocation: parsed.creationLocation ?? DEFAULT_SETTINGS.creationLocation,
-    }
-  } catch {
-    return DEFAULT_SETTINGS
-  }
+interface CompanyProfileRow {
+  user_id: string
+  profile: UserProfile
+  creation_location: string
 }
 
-const write = (settings: CompanyProfileSettings): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+const currentUserId = async (): Promise<string> => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not signed in.')
+  }
+  return user.id
 }
 
 export const companyProfileRepositoryClient = {
-  get: async (): Promise<CompanyProfileSettings> => read(),
+  // One row per user, keyed by user_id — there is exactly one company
+  // profile per account, so this reads/upserts rather than exposing
+  // create/findById/delete like the array-backed repositories.
+  get: async (): Promise<CompanyProfileSettings> => {
+    const userId = await currentUserId()
+    const { data, error } = await supabase
+      .from('company_profile')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (error) throw new Error(error.message)
+    if (!data) return DEFAULT_SETTINGS
+
+    const row = data as CompanyProfileRow
+    return {
+      profile: { ...DEFAULT_SETTINGS.profile, ...row.profile },
+      creationLocation: row.creation_location ?? DEFAULT_SETTINGS.creationLocation,
+    }
+  },
 
   update: async (settings: CompanyProfileSettings): Promise<CompanyProfileSettings> => {
-    write(settings)
+    const userId = await currentUserId()
+    const { error } = await supabase.from('company_profile').upsert({
+      user_id: userId,
+      profile: settings.profile,
+      creation_location: settings.creationLocation,
+    })
+    if (error) throw new Error(error.message)
     return settings
   },
 }

@@ -115,6 +115,47 @@
         "saveFailed": "No se pudo guardar la categoría.",
         "deleteFailed": "No se pudo eliminar la categoría."
       }
+    },
+    "security": {
+      "title": "Cuenta y seguridad",
+      "description": "Sesión iniciada como {{email}}. Añade un segundo paso al iniciar sesión mediante una aplicación de autenticación (TOTP).",
+      "enableButton": "Activar verificación en dos pasos",
+      "scanInstructions": "Escanea este código QR con una aplicación de autenticación (Google Authenticator, 1Password, Authy...) y luego introduce el código de 6 dígitos que muestre.",
+      "manualEntryLabel": "¿No puedes escanearlo? Introduce este código manualmente:",
+      "codeLabel": "Código de 6 dígitos:",
+      "confirmButton": "Confirmar y activar",
+      "authenticatorAppLabel": "Aplicación de autenticación",
+      "enrollSuccess": "La verificación en dos pasos ya está activada.",
+      "confirmRemove": "¿Eliminar este método de verificación en dos pasos? Después podrás iniciar sesión solo con tu contraseña.",
+      "errors": {
+        "enrollFailed": "No se pudo activar la verificación en dos pasos.",
+        "removeFailed": "No se pudo eliminar el método de verificación en dos pasos."
+      }
+    },
+    "data": {
+      "title": "Datos",
+      "description": "Todo en tu cuenta — clientes, presupuestos, el catálogo de artículos, plantillas y ajustes — vive en tu proyecto de Supabase. Exporta una copia de seguridad completa cuando quieras, o sustituye todo por una copia exportada previamente.",
+      "exportButton": "Exportar todos los datos (.json)",
+      "exporting": "Exportando…",
+      "importButton": "Importar datos…",
+      "importSuccess": "Datos importados. Recargando…",
+      "errors": {
+        "exportFailed": "No se pudieron exportar los datos.",
+        "invalidFile": "Este archivo no es una copia de seguridad válida de Presupeitor2000.",
+        "importFailed": "No se pudieron importar los datos."
+      },
+      "importModal": {
+        "title": "Importar datos",
+        "warningTitle": "Esto sustituye TODOS tus datos actuales.",
+        "warningBody": "Cada cliente, presupuesto, artículo, plantilla y ajuste que tengas actualmente en tu cuenta se eliminará permanentemente y se sustituirá por el contenido del archivo que selecciones. Esto no se puede deshacer desde la aplicación.",
+        "warningIrreversible": "Asegúrate de haber exportado una copia de seguridad actual primero si existe alguna posibilidad de que quieras recuperar los datos de hoy.",
+        "fileLabel": "Archivo de copia de seguridad (.json):",
+        "fileHint": "Acepta tanto una exportación completa de la cuenta como una copia de seguridad local de una versión antigua de la aplicación, previa a las cuentas.",
+        "passwordLabel": "Confirma tu contraseña de cuenta:",
+        "confirmPhraseLabel": "Escribe {{phrase}} para confirmar:",
+        "confirmButton": "Eliminar todo e importar",
+        "importing": "Importando…"
+      }
     }
   },
   "customers": {
@@ -267,6 +308,7 @@
       "phone": "Teléfono:",
       "phoneCountry": "Código de país del teléfono",
       "email": "Correo electrónico:",
+      "taxId": "NIF/CIF:",
       "slogan": "Eslogan:",
       "creationLocation": "Lugar de creación (p. ej. \"Barcelona\"):"
     }
@@ -384,6 +426,7 @@
       "searchPlaceholder": "Buscar artículos del catálogo...",
       "noMatches": "No hay artículos que coincidan.",
       "categoryLabel": "Categoría:",
+      "newCategoryLabel": "Nueva categoría:",
       "descriptionLabel": "Descripción:",
       "unitLabel": "Unidad:",
       "quantityLabel": "Cantidad:",
@@ -404,5 +447,51 @@
       "deleteLineItemFailed": "No se pudo eliminar la partida.",
       "deleteEstimateFailed": "No se pudo eliminar el presupuesto."
     }
+  },
+  "auth": {
+    "notConfigured": {
+      "title": "No configurado",
+      "message": "A esta compilación le falta la configuración de Supabase, por lo que no es posible iniciar sesión. Consulta DIST.md → \"Configuración de Supabase\" si estás configurando esta aplicación."
+    },
+    "signOutButton": "Cerrar sesión",
+    "fields": {
+      "email": "Correo electrónico:",
+      "password": "Contraseña:",
+      "confirmPassword": "Confirmar contraseña:"
+    },
+    "errors": {
+      "passwordMismatch": "Las contraseñas no coinciden."
+    },
+    "signIn": {
+      "title": "Iniciar sesión",
+      "submit": "Iniciar sesión",
+      "switchToSignUp": "¿No tienes cuenta? Crea una"
+    },
+    "signUp": {
+      "title": "Crear cuenta",
+      "submit": "Crear cuenta",
+      "switchToSignIn": "¿Ya tienes cuenta? Inicia sesión"
+    },
+    "confirmEmail": {
+      "title": "Revisa tu correo",
+      "message": "Hemos enviado un enlace de confirmación a {{email}}. Haz clic en él para activar tu cuenta y luego inicia sesión.",
+      "backToSignIn": "Volver a iniciar sesión"
+    },
+    "mfaChallenge": {
+      "title": "Verificación en dos pasos",
+      "description": "Introduce el código de 6 dígitos de tu aplicación de autenticación.",
+      "codeLabel": "Código de verificación:",
+      "verifyButton": "Verificar"
+    }
+  },
+  "localBackup": {
+    "title": "Haz primero una copia de tus datos locales",
+    "description": "Este dispositivo tiene presupuestos, clientes u otros datos guardados de una versión anterior de esta aplicación, solo local. Esos datos existen únicamente en este dispositivo y no se trasladarán automáticamente a tu cuenta.",
+    "warning": "Si continúas sin exportar ahora una copia de seguridad, estos datos locales no se eliminan, pero dejarán de mostrarse en cualquier parte de la aplicación.",
+    "exportButton": "Exportar copia local (.json)",
+    "continueButton": "Ya la he guardado, continuar",
+    "continueDisabledHint": "Exporta primero una copia de seguridad, o quedará oculta pero inaccesible desde la aplicación.",
+    "exporting": "Exportando…",
+    "exportFailed": "No se pudo exportar la copia de seguridad local."
   }
 }

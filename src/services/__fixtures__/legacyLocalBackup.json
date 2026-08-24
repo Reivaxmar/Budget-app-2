@@ -1,0 +1,605 @@
+{
+  "exportedAt": "2026-08-24T12:35:26.838Z",
+  "budgetapp.companyProfile": {
+    "profile": {
+      "id": "company-profile",
+      "name": "Paco Jones SL",
+      "address": "Mi casa",
+      "postalCode": "12345",
+      "phone": "667676767",
+      "email": "jaja@gaymail.com",
+      "slogan": "El que lo lea es gay"
+    },
+    "creationLocation": "Barcelona",
+    "standardNote": {
+      "id": "standard-note-default",
+      "key": "estimate-final-note",
+      "title": "Condiciones del presupuesto",
+      "content": "Bla bla bla ble ble blu blu blu"
+    }
+  },
+  "budgetapp.appSettings": {
+    "defaultTaxRate": 6
+  },
+  "budgetapp.customers": [
+    {
+      "name": "Juan de la asdasd asdasdasdasdasdasdasd asdasdasdasdasdasd ",
+      "address": "Su casa el juanico",
+      "phone": "+34 123456789",
+      "email": "juandela@gmail.com",
+      "taxId": "",
+      "notes": "Juan.",
+      "id": "64c2bb2a-5946-4f3f-95e7-6b225aefc1d3"
+    },
+    {
+      "name": "ñordo",
+      "address": "uk,ikygiul",
+      "phone": "+34 667676767",
+      "email": "khuugul67677667674@gaylord.com",
+      "taxId": "iyln86b9y8li9yli86",
+      "notes": "gay",
+      "id": "bb1d34c0-d3f5-4e77-b68c-c1f54ea57071"
+    },
+    {
+      "name": "Nigger man",
+      "address": "Lloreria",
+      "phone": "+34 694201212",
+      "email": "ni.ga@blackmail.com",
+      "taxId": "",
+      "notes": "",
+      "id": "e09107b4-d70f-46fd-8e61-662262e1453f"
+    }
+  ],
+  "budgetapp.items": [
+    {
+      "code": "67",
+      "description": "haha funny",
+      "unit": "Skull",
+      "defaultPrice": 12.5,
+      "category": "",
+      "keywords": "",
+      "id": "f28be5b0-8334-4333-8c8a-1cc4c87226d5"
+    },
+    {
+      "code": "456",
+      "description": "Madera",
+      "unit": "m²",
+      "defaultPrice": 35.5,
+      "category": "",
+      "keywords": "",
+      "id": "1e4f16bd-ab85-4c7e-8234-bae592d2068c"
+    },
+    {
+      "code": "",
+      "description": "Pintura de pared en blanco",
+      "unit": "m²",
+      "defaultPrice": 12,
+      "category": "",
+      "keywords": "",
+      "id": "9324d7c2-c767-47d8-ad94-3f31ecb7de97"
+    },
+    {
+      "code": "0020001",
+      "description": "Cosas de carpenter",
+      "unit": "m²",
+      "defaultPrice": 6.7,
+      "categoryId": "5f155fe6-04ae-4d53-b76f-f3c3e9aa678a",
+      "keywords": "",
+      "id": "b57e2470-3f8f-4118-bc4a-07e3a663a655"
+    },
+    {
+      "code": "0020002",
+      "description": "Cosas de carpenter123123",
+      "unit": "m²",
+      "defaultPrice": 6.7,
+      "categoryId": "5f155fe6-04ae-4d53-b76f-f3c3e9aa678a",
+      "keywords": "",
+      "id": "6252453a-d304-4ba6-82b6-1671bda9b4b5"
+    }
+  ],
+  "budgetapp.itemCategories": [
+    {
+      "name": "misc",
+      "order": 1,
+      "id": "013d1303-941c-4c69-831a-c72921d1c4de"
+    },
+    {
+      "name": "Carpinteria metálica",
+      "order": 2,
+      "id": "5f155fe6-04ae-4d53-b76f-f3c3e9aa678a"
+    }
+  ],
+  "budgetapp.templates": [
+    {
+      "page": {
+        "size": "A4",
+        "marginPt": 48
+      },
+      "typography": {
+        "fontFamily": "Helvetica",
+        "baseFontSize": 9,
+        "titleFontSize": 22,
+        "headingFontSize": 12
+      },
+      "colors": {
+        "text": "#1a1a1a",
+        "muted": "#666666",
+        "tableHeaderBackground": "#eeeeee",
+        "borderColor": "#cccccc"
+      },
+      "cover": {
+        "showCreationLocationDate": true,
+        "showSlogan": true
+      },
+      "header": {
+        "showEstimateNumberAndDate": true
+      },
+      "footer": {
+        "showPageNumbers": true,
+        "showCompanyInfo": true
+      },
+      "table": {
+        "showBorders": true,
+        "columns": [
+          {
+            "key": "itemNumber",
+            "label": "Item",
+            "width": "8%",
+            "align": "left"
+          },
+          {
+            "key": "description",
+            "label": "Description",
+            "width": "44%",
+            "align": "left"
+          },
+          {
+            "key": "unit",
+            "label": "Unit",
+            "width": "10%",
+            "align": "center"
+          },
+          {
+            "key": "quantity",
+            "label": "Qty",
+            "width": "12%",
+            "align": "right"
+          },
+          {
+            "key": "unitPrice",
+            "label": "Unit price",
+            "width": "13%",
+            "align": "right"
+          },
+          {
+            "key": "amount",
+            "label": "Amount",
+            "width": "13%",
+            "align": "right"
+          }
+        ]
+      },
+      "finalPage": {
+        "totalLabel": "Total",
+        "totalCaption": "IVA no incluido / VAT not included",
+        "signatureLabel": "Conforme cliente",
+        "noteTitle": "",
+        "noteContent": ""
+      },
+      "name": "Standard",
+      "isDefault": false,
+      "id": "9a85711c-fc64-4ea5-a9b9-8bf44de65f0c"
+    },
+    {
+      "page": {
+        "size": "A4",
+        "marginPt": 48
+      },
+      "typography": {
+        "fontFamily": "Helvetica",
+        "baseFontSize": 9,
+        "titleFontSize": 22,
+        "headingFontSize": 12
+      },
+      "colors": {
+        "text": "#1a1a1a",
+        "muted": "#666666",
+        "tableHeaderBackground": "#eeeeee",
+        "borderColor": "#cccccc"
+      },
+      "cover": {
+        "showCreationLocationDate": true,
+        "showSlogan": true
+      },
+      "header": {
+        "showEstimateNumberAndDate": true
+      },
+      "footer": {
+        "showPageNumbers": true,
+        "showCompanyInfo": true
+      },
+      "table": {
+        "showBorders": true,
+        "showChapterSubtotal": true,
+        "columns": [
+          {
+            "key": "itemNumber",
+            "label": "Item",
+            "width": "8%",
+            "align": "left"
+          },
+          {
+            "key": "description",
+            "label": "Description",
+            "width": "44%",
+            "align": "left"
+          },
+          {
+            "key": "unit",
+            "label": "Unit",
+            "width": "10%",
+            "align": "center"
+          },
+          {
+            "key": "quantity",
+            "label": "Qty",
+            "width": "12%",
+            "align": "right"
+          }
+        ]
+      },
+      "finalPage": {
+        "totalLabel": "Total",
+        "totalCaption": "IVA no incluido / VAT not included",
+        "signatureLabel": "Conforme cliente",
+        "noteTitle": "Notas",
+        "noteContent": " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut sit amet magna vel metus cursus gravida. Aenean luctus, velit sed lacinia dignissim, libero dui lacinia nisi, a tempor mauris justo a nibh. In posuere euismod nibh non rhoncus. Pellentesque sodales nulla commodo, facilisis felis non, condimentum tortor. Proin eu eros vel nisi consequat posuere in auctor nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Etiam ultrices dui sem, a molestie mauris luctus nec. Donec a dolor felis. Morbi a ante ullamcorper, pretium lectus et, scelerisque justo.\n\nPraesent ac semper orci. Maecenas lacinia elit malesuada, vulputate ligula ac, auctor enim. Maecenas venenatis rutrum enim, vel vehicula orci tincidunt at. Nam et ex turpis. Donec ac turpis enim. Maecenas nunc velit, lobortis sed mi in, sodales pharetra elit. Fusce ornare sapien in felis molestie laoreet. Quisque sed mattis elit. Praesent sodales massa eu enim interdum, eu efficitur lectus faucibus. Mauris ullamcorper pellentesque turpis, gravida dapibus turpis vulputate sed. Proin ut risus ex. "
+      },
+      "name": "Standard (copy)",
+      "isDefault": true,
+      "id": "7204993c-23e4-4c05-9378-a51b60427590"
+    }
+  ],
+  "budgetapp.estimates": [
+    {
+      "id": "cbe63224-bab5-4bcc-b0b2-a33e56c71192",
+      "estimateNumber": "001-26",
+      "year": 2026,
+      "customerId": "64c2bb2a-5946-4f3f-95e7-6b225aefc1d3",
+      "subject": "Reforma integral como el pan",
+      "site": "Mi casa",
+      "creationDate": "2026-08-18T09:58:33.927Z",
+      "status": "draft",
+      "taxRate": 67,
+      "chapters": [
+        {
+          "title": "Pequeños cambios 23",
+          "order": 1,
+          "estimateId": "cbe63224-bab5-4bcc-b0b2-a33e56c71192",
+          "id": "7ee1626b-d9ac-41d1-9f4d-475ee9c83477",
+          "lineItems": [
+            {
+              "code": "67",
+              "description": "haha funny",
+              "unit": "Skull",
+              "quantity": 2,
+              "unitPrice": 12.5,
+              "amount": 25,
+              "order": 1,
+              "chapterId": "7ee1626b-d9ac-41d1-9f4d-475ee9c83477",
+              "id": "f627452b-8aaf-4f7a-82d1-2041b5ece487"
+            },
+            {
+              "code": "123",
+              "description": "Cosa1",
+              "unit": "Cosaca",
+              "quantity": 1,
+              "unitPrice": 19,
+              "amount": 19,
+              "order": 2,
+              "chapterId": "7ee1626b-d9ac-41d1-9f4d-475ee9c83477",
+              "id": "e6b446ca-9c3d-46a5-aca8-0e7bd0c969ef"
+            },
+            {
+              "code": "456",
+              "description": "Madera",
+              "unit": "m²",
+              "quantity": 2,
+              "unitPrice": 35.5,
+              "amount": 71,
+              "order": 3,
+              "chapterId": "7ee1626b-d9ac-41d1-9f4d-475ee9c83477",
+              "id": "11f27cd1-685f-4895-9c58-ebd532b7e95b"
+            }
+          ]
+        },
+        {
+          "title": "Final",
+          "order": 2,
+          "estimateId": "cbe63224-bab5-4bcc-b0b2-a33e56c71192",
+          "id": "9475b3f1-b927-41bb-8d4f-88f346c6eea0",
+          "lineItems": [
+            {
+              "code": "",
+              "description": "Pintura de pared en blanco",
+              "unit": "m²",
+              "quantity": 123,
+              "unitPrice": 12,
+              "amount": 1476,
+              "order": 1,
+              "chapterId": "9475b3f1-b927-41bb-8d4f-88f346c6eea0",
+              "id": "e014041b-3d09-4a64-8d2a-0d8feb450bdd"
+            }
+          ]
+        }
+      ],
+      "introduction": "Bueno mi gente aqui estamos",
+      "templateId": "7204993c-23e4-4c05-9378-a51b60427590",
+      "finalNoteTitle": "Notas",
+      "finalNoteContent": " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut sit amet magna vel metus cursus gravida. Aenean luctus, velit sed lacinia dignissim, libero dui lacinia nisi, a tempor mauris justo a nibh. In posuere euismod nibh non rhoncus. Pellentesque sodales nulla commodo, facilisis felis non, condimentum tortor. Proin eu eros vel nisi consequat posuere in auctor nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Etiam ultrices dui sem, a molestie mauris luctus nec. Donec a dolor felis. Morbi a ante ullamcorper, pretium lectus et, scelerisque justo. NIG\n\nPraesent ac semper orci. Maecenas lacinia elit malesuada, vulputate ligula ac, auctor enim. Maecenas venenatis rutrum enim, vel vehicula orci tincidunt at. Nam et ex turpis. Donec ac turpis enim. Maecenas nunc velit, lobortis sed mi in, sodales pharetra elit. Fusce ornare sapien in felis molestie laoreet. Quisque sed mattis elit. Praesent sodales massa eu enim interdum, eu efficitur lectus faucibus. Mauris ullamcorper pellentesque turpis, gravida dapibus turpis vulputate sed. Proin ut risus ex. ",
+      "updatedAt": "2026-08-21T10:37:33.029Z",
+      "templateOverrides": {
+        "page": {
+          "size": "A4",
+          "marginPt": 48
+        },
+        "typography": {
+          "fontFamily": "Helvetica",
+          "baseFontSize": 10,
+          "titleFontSize": 15,
+          "headingFontSize": 24
+        },
+        "colors": {
+          "text": "#e01b24",
+          "muted": "#f5c211",
+          "tableHeaderBackground": "#dc8add",
+          "borderColor": "#1a5fb4"
+        },
+        "cover": {
+          "showCreationLocationDate": true,
+          "showSlogan": true
+        },
+        "header": {
+          "showEstimateNumberAndDate": true
+        },
+        "footer": {
+          "showPageNumbers": true,
+          "showCompanyInfo": true
+        },
+        "table": {
+          "showBorders": true,
+          "showChapterSubtotal": true,
+          "columns": [
+            {
+              "key": "itemNumber",
+              "label": "Item",
+              "width": "8%",
+              "align": "left"
+            },
+            {
+              "key": "description",
+              "label": "Description",
+              "width": "44%",
+              "align": "left"
+            }
+          ]
+        },
+        "finalPage": {
+          "totalLabel": "Total",
+          "signatureLabel": "Conforme cliente",
+          "noteTitle": "Notas",
+          "noteContent": " Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut sit amet magna vel metus cursus gravida. Aenean luctus, velit sed lacinia dignissim, libero dui lacinia nisi, a tempor mauris justo a nibh. In posuere euismod nibh non rhoncus. Pellentesque sodales nulla commodo, facilisis felis non, condimentum tortor. Proin eu eros vel nisi consequat posuere in auctor nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Etiam ultrices dui sem, a molestie mauris luctus nec. Donec a dolor felis. Morbi a ante ullamcorper, pretium lectus et, scelerisque justo. NIG\n\nPraesent ac semper orci. Maecenas lacinia elit malesuada, vulputate ligula ac, auctor enim. Maecenas venenatis rutrum enim, vel vehicula orci tincidunt at. Nam et ex turpis. Donec ac turpis enim. Maecenas nunc velit, lobortis sed mi in, sodales pharetra elit. Fusce ornare sapien in felis molestie laoreet. Quisque sed mattis elit. Praesent sodales massa eu enim interdum, eu efficitur lectus faucibus. Mauris ullamcorper pellentesque turpis, gravida dapibus turpis vulputate sed. Proin ut risus ex. "
+        }
+      }
+    },
+    {
+      "id": "2eed0e89-9f58-46b4-a642-405afdd64de5",
+      "estimateNumber": "002-26",
+      "year": 2026,
+      "customerId": "64c2bb2a-5946-4f3f-95e7-6b225aefc1d3",
+      "subject": "asdasd",
+      "site": "",
+      "creationDate": "2026-08-18T09:58:40.864Z",
+      "status": "draft",
+      "taxRate": 0,
+      "chapters": []
+    },
+    {
+      "id": "26eac9ba-47da-47a3-a948-f2ce47870e7f",
+      "estimateNumber": "003-26",
+      "year": 2026,
+      "customerId": "64c2bb2a-5946-4f3f-95e7-6b225aefc1d3",
+      "subject": "asdasd123123",
+      "site": "123123",
+      "creationDate": "2026-08-18T12:51:09.548Z",
+      "status": "draft",
+      "taxRate": 1
+    },
+    {
+      "id": "f992d8cf-710c-4c58-99d4-56b6070d127e",
+      "estimateNumber": "004-26",
+      "year": 2026,
+      "customerId": "bb1d34c0-d3f5-4e77-b68c-c1f54ea57071",
+      "subject": "Cosa",
+      "site": "Tu casa",
+      "creationDate": "2026-08-18T20:29:23.784Z",
+      "status": "draft",
+      "taxRate": 67,
+      "introduction": "Bueno cosas",
+      "templateId": "9a85711c-fc64-4ea5-a9b9-8bf44de65f0c",
+      "finalNoteTitle": "aaaa",
+      "finalNoteContent": "bbbbb"
+    },
+    {
+      "id": "89e8ba45-61d5-44b8-a55a-6a39ddb665aa",
+      "estimateNumber": "005-26",
+      "year": 2026,
+      "customerId": "bb1d34c0-d3f5-4e77-b68c-c1f54ea57071",
+      "subject": "Cosaaaa",
+      "site": "",
+      "creationDate": "2026-08-19T15:26:40.157Z",
+      "status": "draft",
+      "taxRate": 0,
+      "introduction": "",
+      "templateId": "9a85711c-fc64-4ea5-a9b9-8bf44de65f0c",
+      "finalNoteTitle": "aaaa",
+      "finalNoteContent": "bbbbb",
+      "styleOverrides": {}
+    },
+    {
+      "id": "9e7d7f03-c7be-488b-86b8-3ca062c9a935",
+      "estimateNumber": "006-26",
+      "year": 2026,
+      "customerId": "e09107b4-d70f-46fd-8e61-662262e1453f",
+      "subject": "aaa 1213123",
+      "site": "",
+      "creationDate": "2026-08-20T18:02:34.624Z",
+      "status": "draft",
+      "taxRate": 6,
+      "introduction": "",
+      "templateId": "9a85711c-fc64-4ea5-a9b9-8bf44de65f0c",
+      "finalNoteTitle": "aaaa",
+      "finalNoteContent": "bbbbb",
+      "templateOverrides": null
+    }
+  ],
+  "budgetapp.chapters": [
+    {
+      "title": "Pequeños cambios 23",
+      "order": 1,
+      "estimateId": "cbe63224-bab5-4bcc-b0b2-a33e56c71192",
+      "id": "7ee1626b-d9ac-41d1-9f4d-475ee9c83477"
+    },
+    {
+      "title": "asddassdaadssd123123",
+      "order": 1,
+      "estimateId": "26eac9ba-47da-47a3-a948-f2ce47870e7f",
+      "id": "a8dfcdc5-f005-46aa-b770-10b30d7ef289"
+    },
+    {
+      "title": "Carpinteria",
+      "order": 1,
+      "estimateId": "2eed0e89-9f58-46b4-a642-405afdd64de5",
+      "id": "2674e37d-42ed-4b78-b58f-db6d21d58089"
+    },
+    {
+      "title": "Final",
+      "order": 2,
+      "estimateId": "cbe63224-bab5-4bcc-b0b2-a33e56c71192",
+      "id": "9475b3f1-b927-41bb-8d4f-88f346c6eea0"
+    },
+    {
+      "title": "Primerita cosa",
+      "order": 1,
+      "estimateId": "f992d8cf-710c-4c58-99d4-56b6070d127e",
+      "id": "1ce9a16f-d9de-4eec-951e-4aaf13896ce7"
+    },
+    {
+      "title": "Cosa primera",
+      "order": 1,
+      "estimateId": "9e7d7f03-c7be-488b-86b8-3ca062c9a935",
+      "id": "e5f61f07-cdbe-4a30-a83e-d4c29d95d886"
+    }
+  ],
+  "budgetapp.lineItems": [
+    {
+      "code": "123",
+      "description": "Cosa1",
+      "unit": "Cosaca",
+      "quantity": 1,
+      "unitPrice": 19,
+      "amount": 19,
+      "order": 2,
+      "chapterId": "7ee1626b-d9ac-41d1-9f4d-475ee9c83477",
+      "id": "e6b446ca-9c3d-46a5-aca8-0e7bd0c969ef"
+    },
+    {
+      "code": "67",
+      "description": "haha funny",
+      "unit": "Skull",
+      "quantity": 2,
+      "unitPrice": 12.5,
+      "amount": 25,
+      "order": 1,
+      "chapterId": "7ee1626b-d9ac-41d1-9f4d-475ee9c83477",
+      "id": "f627452b-8aaf-4f7a-82d1-2041b5ece487"
+    },
+    {
+      "code": "67",
+      "description": "haha funny",
+      "unit": "Skull",
+      "quantity": 50,
+      "unitPrice": 12.5,
+      "amount": 625,
+      "order": 1,
+      "chapterId": "a8dfcdc5-f005-46aa-b770-10b30d7ef289",
+      "id": "5611b79d-2703-4c3b-bfff-ccd7921e4169"
+    },
+    {
+      "code": "456",
+      "description": "Madera",
+      "unit": "m²",
+      "quantity": 2,
+      "unitPrice": 35.5,
+      "amount": 71,
+      "order": 3,
+      "chapterId": "7ee1626b-d9ac-41d1-9f4d-475ee9c83477",
+      "id": "11f27cd1-685f-4895-9c58-ebd532b7e95b"
+    },
+    {
+      "code": "456",
+      "description": "Madera",
+      "unit": "m²",
+      "quantity": 1,
+      "unitPrice": 35.5,
+      "amount": 35.5,
+      "order": 1,
+      "chapterId": "2674e37d-42ed-4b78-b58f-db6d21d58089",
+      "id": "7d51f46a-f909-455b-9d3d-504dd36645ba"
+    },
+    {
+      "code": "67",
+      "description": "haha funny",
+      "unit": "Skull",
+      "quantity": 1,
+      "unitPrice": 12.5,
+      "amount": 12.5,
+      "order": 2,
+      "chapterId": "2674e37d-42ed-4b78-b58f-db6d21d58089",
+      "id": "fa7e403a-cc05-4fb2-a3c1-b04ad833d9c9"
+    },
+    {
+      "code": "",
+      "description": "Pintura de pared en blanco",
+      "unit": "m²",
+      "quantity": 123,
+      "unitPrice": 12,
+      "amount": 1476,
+      "order": 1,
+      "chapterId": "9475b3f1-b927-41bb-8d4f-88f346c6eea0",
+      "id": "e014041b-3d09-4a64-8d2a-0d8feb450bdd"
+    },
+    {
+      "code": "67",
+      "description": "haha funny",
+      "unit": "Skull",
+      "quantity": 1,
+      "unitPrice": 12.5,
+      "amount": 12.5,
+      "order": 1,
+      "chapterId": "1ce9a16f-d9de-4eec-951e-4aaf13896ce7",
+      "id": "a0678b47-7afe-4bcb-8352-843fd07b0835"
+    },
+    {
+      "code": "0020002",
+      "description": "Cosas de carpenter123123",
+      "unit": "m²",
+      "quantity": 10,
+      "unitPrice": 69,
+      "amount": 690,
+      "order": 1,
+      "chapterId": "e5f61f07-cdbe-4a30-a83e-d4c29d95d886",
+      "id": "0f6e7de7-4378-4e53-9046-2ac30cdd9afa"
+    }
+  ]
+}

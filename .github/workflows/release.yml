@@ -67,6 +67,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # Vite inlines these into the built bundle at compile time (see
+          # src/lib/supabaseClient.ts) — there's no runtime config file, so
+          # they must be present here, not just in a local .env. See
+          # DIST.md -> "Supabase setup" for where these values come from.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         with:
           tagName: app-v__VERSION__
           releaseName: 'Presupeitor2000 v__VERSION__'

@@ -226,6 +226,7 @@ describe('Domain Models', () => {
         postalCode: '12345',
         phone: '555-9876',
         email: 'info@testcompany.com',
+        taxId: 'B12345678',
         slogan: 'Quality Construction Since 2020',
       }
 
@@ -235,6 +236,7 @@ describe('Domain Models', () => {
       expect(userProfile).toHaveProperty('postalCode')
       expect(userProfile).toHaveProperty('phone')
       expect(userProfile).toHaveProperty('email')
+      expect(userProfile).toHaveProperty('taxId')
       expect(userProfile).toHaveProperty('slogan')
 
       // Check types
@@ -244,6 +246,7 @@ describe('Domain Models', () => {
       expect(typeof userProfile.postalCode).toBe('string')
       expect(typeof userProfile.phone).toBe('string')
       expect(typeof userProfile.email).toBe('string')
+      expect(typeof userProfile.taxId).toBe('string')
       expect(typeof userProfile.slogan).toBe('string')
     })
   })

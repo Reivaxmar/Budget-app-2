@@ -1,0 +1,52 @@
+.auth-gate {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.auth-gate-card {
+  width: 100%;
+  max-width: 380px;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.auth-gate-brand {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-gate-error {
+  color: #b91c1c;
+  margin-bottom: 1rem;
+}
+
+.auth-gate-notice {
+  margin-bottom: 1rem;
+}
+
+.auth-gate-switch {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.auth-gate-switch button {
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+
+.auth-gate-warning-box {
+  border: 1px solid #b45309;
+  background: rgba(180, 83, 9, 0.08);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin: 0.75rem 0;
+}

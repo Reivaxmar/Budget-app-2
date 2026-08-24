@@ -1,77 +1,37 @@
 import type { Customer } from '../domain/models'
+import { createSupabaseCrudRepository } from './supabaseCrudRepository'
 
-const STORAGE_KEY = 'budgetapp.customers'
-
-const readCustomers = (): Customer[] => {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) {
-    return []
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as Customer[]
-    if (!Array.isArray(parsed)) {
-      return []
-    }
-    return parsed
-  } catch {
-    return []
-  }
+interface CustomerRow {
+  id: string
+  name: string
+  address: string
+  phone: string
+  email: string
+  tax_id: string
+  notes: string
 }
 
-const writeCustomers = (customers: Customer[]): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(customers))
-}
+const toRow = (customer: Partial<Omit<Customer, 'id'>>): Record<string, unknown> => ({
+  ...(customer.name !== undefined && { name: customer.name }),
+  ...(customer.address !== undefined && { address: customer.address }),
+  ...(customer.phone !== undefined && { phone: customer.phone }),
+  ...(customer.email !== undefined && { email: customer.email }),
+  ...(customer.taxId !== undefined && { tax_id: customer.taxId }),
+  ...(customer.notes !== undefined && { notes: customer.notes }),
+})
 
-const createId = (): string => {
-  if (typeof globalThis.crypto?.randomUUID === 'function') {
-    return globalThis.crypto.randomUUID()
-  }
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`
-}
+const fromRow = (row: CustomerRow): Customer => ({
+  id: row.id,
+  name: row.name,
+  address: row.address,
+  phone: row.phone,
+  email: row.email,
+  taxId: row.tax_id,
+  notes: row.notes,
+})
 
-export const customerRepositoryClient = {
-  create: async (customer: Omit<Customer, 'id'>): Promise<Customer> => {
-    const newCustomer: Customer = { ...customer, id: createId() }
-    const customers = readCustomers()
-    customers.push(newCustomer)
-    writeCustomers(customers)
-    return newCustomer
-  },
-
-  findById: async (id: string): Promise<Customer | null> => {
-    const customers = readCustomers()
-    return customers.find((customer) => customer.id === id) ?? null
-  },
-
-  findMany: async (): Promise<Customer[]> => {
-    return readCustomers()
-  },
-
-  update: async (
-    id: string,
-    customer: Partial<Omit<Customer, 'id'>>,
-  ): Promise<Customer> => {
-    const customers = readCustomers()
-    const index = customers.findIndex((item) => item.id === id)
-
-    if (index < 0) {
-      throw new Error(`Customer ${id} not found`)
-    }
-
-    const updatedCustomer: Customer = {
-      ...customers[index],
-      ...customer,
-      id,
-    }
-
-    customers[index] = updatedCustomer
-    writeCustomers(customers)
-    return updatedCustomer
-  },
-
-  delete: async (id: string): Promise<void> => {
-    const customers = readCustomers().filter((customer) => customer.id !== id)
-    writeCustomers(customers)
-  },
-}
+export const customerRepositoryClient = createSupabaseCrudRepository<Customer, CustomerRow>(
+  'customers',
+  toRow,
+  fromRow
+)

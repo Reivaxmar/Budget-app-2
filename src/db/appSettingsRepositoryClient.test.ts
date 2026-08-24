@@ -1,9 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+vi.mock('../lib/supabaseClient', async () => {
+  const { createFakeSupabaseClient } = await import('../test/fakeSupabaseClient');
+  return { supabase: createFakeSupabaseClient(), isSupabaseConfigured: true };
+});
+
 import { appSettingsRepositoryClient } from './appSettingsRepositoryClient';
+import { supabase } from '../lib/supabaseClient';
 
 describe('appSettingsRepositoryClient', () => {
   beforeEach(() => {
-    localStorage.clear();
+    (supabase as unknown as { __reset: () => void }).__reset();
   });
 
   it('returns built-in defaults when nothing has been saved yet', async () => {
@@ -19,10 +26,11 @@ describe('appSettingsRepositoryClient', () => {
     expect(settings.defaultTaxRate).toBe(21);
   });
 
-  it('backfills missing fields from defaults when reading a partial/legacy record', async () => {
-    localStorage.setItem('budgetapp.appSettings', JSON.stringify({}));
+  it('overwrites the previous value on a second update rather than duplicating rows', async () => {
+    await appSettingsRepositoryClient.update({ defaultTaxRate: 10 });
+    await appSettingsRepositoryClient.update({ defaultTaxRate: 21 });
 
     const settings = await appSettingsRepositoryClient.get();
-    expect(settings.defaultTaxRate).toBe(0);
+    expect(settings.defaultTaxRate).toBe(21);
   });
 });

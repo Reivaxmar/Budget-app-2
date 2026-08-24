@@ -115,6 +115,47 @@
         "saveFailed": "Failed to save category.",
         "deleteFailed": "Failed to delete category."
       }
+    },
+    "security": {
+      "title": "Account & security",
+      "description": "Signed in as {{email}}. Add a second step to sign-in using an authenticator app (TOTP).",
+      "enableButton": "Enable two-factor authentication",
+      "scanInstructions": "Scan this QR code with an authenticator app (Google Authenticator, 1Password, Authy...), then enter the 6-digit code it shows.",
+      "manualEntryLabel": "Can't scan it? Enter this code manually:",
+      "codeLabel": "6-digit code:",
+      "confirmButton": "Confirm and enable",
+      "authenticatorAppLabel": "Authenticator app",
+      "enrollSuccess": "Two-factor authentication is now enabled.",
+      "confirmRemove": "Remove this two-factor method? You'll be able to sign in with just your password afterwards.",
+      "errors": {
+        "enrollFailed": "Failed to enable two-factor authentication.",
+        "removeFailed": "Failed to remove two-factor method."
+      }
+    },
+    "data": {
+      "title": "Data",
+      "description": "Everything in your account — customers, estimates, the item library, templates and settings — lives in your Supabase project. Export a full backup any time, or replace everything with a previously exported backup.",
+      "exportButton": "Export all data (.json)",
+      "exporting": "Exporting…",
+      "importButton": "Import data…",
+      "importSuccess": "Data imported. Reloading…",
+      "errors": {
+        "exportFailed": "Failed to export data.",
+        "invalidFile": "This file is not a valid Presupeitor2000 backup.",
+        "importFailed": "Failed to import data."
+      },
+      "importModal": {
+        "title": "Import data",
+        "warningTitle": "This replaces ALL of your current data.",
+        "warningBody": "Every customer, estimate, item, template and setting currently in your account will be permanently deleted and replaced with the contents of the file you select. This cannot be undone from within the app.",
+        "warningIrreversible": "Make sure you have exported a current backup first if there's any chance you'll want today's data back.",
+        "fileLabel": "Backup file (.json):",
+        "fileHint": "Accepts either a full account export or a local backup from an old, pre-account version of the app.",
+        "passwordLabel": "Confirm your account password:",
+        "confirmPhraseLabel": "Type {{phrase}} to confirm:",
+        "confirmButton": "Delete everything and import",
+        "importing": "Importing…"
+      }
     }
   },
   "customers": {
@@ -267,6 +308,7 @@
       "phone": "Phone:",
       "phoneCountry": "Phone country code",
       "email": "Email:",
+      "taxId": "NIF/CIF:",
       "slogan": "Slogan:",
       "creationLocation": "Creation location (e.g. \"Barcelona\"):"
     }
@@ -384,6 +426,7 @@
       "searchPlaceholder": "Search library items...",
       "noMatches": "No matching items.",
       "categoryLabel": "Category:",
+      "newCategoryLabel": "New category:",
       "descriptionLabel": "Description:",
       "unitLabel": "Unit:",
       "quantityLabel": "Quantity:",
@@ -404,5 +447,51 @@
       "deleteLineItemFailed": "Failed to delete line item.",
       "deleteEstimateFailed": "Failed to delete estimate."
     }
+  },
+  "auth": {
+    "notConfigured": {
+      "title": "Not configured",
+      "message": "This build is missing its Supabase configuration, so signing in isn't possible. See DIST.md → \"Supabase setup\" if you're setting this app up."
+    },
+    "signOutButton": "Sign out",
+    "fields": {
+      "email": "Email:",
+      "password": "Password:",
+      "confirmPassword": "Confirm password:"
+    },
+    "errors": {
+      "passwordMismatch": "Passwords do not match."
+    },
+    "signIn": {
+      "title": "Sign in",
+      "submit": "Sign in",
+      "switchToSignUp": "Need an account? Create one"
+    },
+    "signUp": {
+      "title": "Create account",
+      "submit": "Create account",
+      "switchToSignIn": "Already have an account? Sign in"
+    },
+    "confirmEmail": {
+      "title": "Check your email",
+      "message": "We sent a confirmation link to {{email}}. Click it to activate your account, then sign in.",
+      "backToSignIn": "Back to sign in"
+    },
+    "mfaChallenge": {
+      "title": "Two-factor verification",
+      "description": "Enter the 6-digit code from your authenticator app.",
+      "codeLabel": "Verification code:",
+      "verifyButton": "Verify"
+    }
+  },
+  "localBackup": {
+    "title": "Back up your local data first",
+    "description": "This device has estimates, customers or other data saved from an older, local-only version of this app. That data lives only on this device and will not be moved into your signed-in account automatically.",
+    "warning": "If you continue without exporting a backup now, this local data is not deleted, but it will no longer be shown anywhere in the app.",
+    "exportButton": "Export local backup (.json)",
+    "continueButton": "I've backed it up, continue",
+    "continueDisabledHint": "Export a backup first, or it stays hidden but unrecoverable through the app.",
+    "exporting": "Exporting…",
+    "exportFailed": "Failed to export local backup."
   }
 }

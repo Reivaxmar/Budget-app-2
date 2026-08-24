@@ -248,6 +248,7 @@ export const mockEstimateDocumentData: EstimateDocumentData = {
     postalCode: '08006 Barcelona',
     phone: '+34 93 200 44 11',
     email: 'info@reformasortiz.example',
+    taxId: 'B12345678',
     slogan: 'Construimos confianza, reforma a reforma',
   },
   standardNote: {

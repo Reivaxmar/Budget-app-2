@@ -7,15 +7,18 @@ the full product specification and [`AGENTS.md`](./AGENTS.md) for engineering co
 
 Built with Tauri, React, TypeScript and Vite. Document rendering is handled by
 [`@react-pdf/renderer`](https://react-pdf.org/), driven by structured estimate data and a
-template configuration rather than hard-coded page layouts.
+template configuration rather than hard-coded page layouts. Accounts and data storage are
+handled by [Supabase](https://supabase.com) (Postgres + Auth) — see [`DIST.md`](./DIST.md) →
+"Supabase setup" for the one-time project setup this requires.
 
 ## Status
 
 This is an early-stage build. Customers, the item library, templates, company profile, the
 estimate editor (chapters, line items, PDF export), a dashboard overview and app settings
-(theme, default tax rate) are implemented and persisted to local storage. Persistence currently
-uses the browser's `localStorage` rather than the SQLite/Drizzle backend sketched in
-`src/db/schema.ts` / `src/db/repository.ts`.
+(theme, default tax rate) are implemented. Every user signs in (email/password, with email
+confirmation and optional TOTP two-factor login) and all data is stored per-account in Supabase
+Postgres, scoped by Row Level Security — there is no offline/local-only mode. A full account data
+export/import is available from Settings → Data.
 
 ## Getting started
 
@@ -23,6 +26,14 @@ Install dependencies:
 
 ```bash
 npm install
+```
+
+Set up a Supabase project and provide its URL/anon key (see [`DIST.md`](./DIST.md) →
+"Supabase setup" for the full walkthrough, including the SQL schema to run):
+
+```bash
+cp .env.example .env.local
+# then fill in VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local
 ```
 
 Run the app in the browser (Vite dev server):
@@ -58,8 +69,10 @@ custom template configurations (`src/rendering/EstimateDocument.render.test.tsx`
 ```
 src/
   domain/      # Entity types and pure calculations (no I/O)
-  db/          # Repository clients (persistence)
-  services/    # Application logic: numbering, totals, validation, PDF export
+  db/          # Repository clients (persistence, backed by Supabase Postgres)
+  lib/         # Supabase client setup
+  auth/        # Sign in / create account / TOTP two-factor UI and context
+  services/    # Application logic: numbering, totals, validation, PDF export, backup/restore
   rendering/   # Structured-data + template -> PDF (react-pdf)
   pages/       # React screens
   i18n/        # i18next setup and translation resources

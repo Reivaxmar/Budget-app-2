@@ -260,6 +260,7 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
       {template.footer.showCompanyInfo ? (
         <Text>
           {company.address}, {company.postalCode} · {company.phone} · {company.email}
+          {company.taxId ? ` · ${company.taxId}` : ''}
         </Text>
       ) : (
         <Text />

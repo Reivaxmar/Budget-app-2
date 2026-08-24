@@ -13,20 +13,16 @@
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
     "test": "vitest",
-    "test:ui": "vitest --ui",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.6.1",
+    "@supabase/supabase-js": "^2.112.4",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2.7.2",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-process": "^2.3.1",
     "@tauri-apps/plugin-updater": "^2.10.1",
-    "better-sqlite3": "^13.0.3",
-    "drizzle-orm": "^0.45.2",
     "i18next": "^26.3.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -37,7 +33,6 @@
     "@tauri-apps/cli": "^2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
-    "@types/better-sqlite3": "^9.6.0",
     "@types/jest": "^30.0.0",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
@@ -45,7 +40,6 @@
     "@typescript-eslint/parser": "^8.67.0",
     "@vitejs/plugin-react": "^4.6.0",
     "@vitest/ui": "^4.1.10",
-    "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -59,7 +53,6 @@
   "allowScripts": {
     "esbuild@0.18.20": true,
     "esbuild@0.25.12": true,
-    "esbuild@0.28.2": true,
-    "better-sqlite3@13.0.3": true
+    "esbuild@0.28.2": true
   }
 }

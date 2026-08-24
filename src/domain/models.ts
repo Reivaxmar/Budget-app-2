@@ -172,6 +172,7 @@ export interface UserProfile {
   postalCode: string
   phone: string
   email: string
+  taxId: string // NIF/CIF, shown alongside address/postalCode/phone/email in the document footer
   slogan: string
 }
 

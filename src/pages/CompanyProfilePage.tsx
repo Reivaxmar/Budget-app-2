@@ -119,6 +119,20 @@ const CompanyProfilePage: React.FC = () => {
           </div>
           <div className="form-group">
             <label>
+              {t('companyProfile.fields.taxId')}
+              <input
+                type="text"
+                value={settings.profile.taxId}
+                onChange={(e) =>
+                  setSettings((prev) =>
+                    prev ? { ...prev, profile: { ...prev.profile, taxId: e.target.value } } : prev
+                  )
+                }
+              />
+            </label>
+          </div>
+          <div className="form-group">
+            <label>
               {t('companyProfile.fields.slogan')}
               <input
                 type="text"

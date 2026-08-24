@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'budgetapp.appSettings'
+import { supabase } from '../lib/supabaseClient'
 
 /** Application-wide preferences (SPECS.md §3 Settings) beyond appearance,
  * which is handled separately in src/theme.ts since it must be readable
@@ -12,29 +12,44 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultTaxRate: 0,
 }
 
-const read = (): AppSettings => {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) {
-    return DEFAULT_SETTINGS
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as Partial<AppSettings>
-    return { ...DEFAULT_SETTINGS, ...parsed }
-  } catch {
-    return DEFAULT_SETTINGS
-  }
+interface AppSettingsRow {
+  user_id: string
+  default_tax_rate: number
 }
 
-const write = (settings: AppSettings): void => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+const currentUserId = async (): Promise<string> => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('Not signed in.')
+  }
+  return user.id
 }
 
 export const appSettingsRepositoryClient = {
-  get: async (): Promise<AppSettings> => read(),
+  // One row per user, keyed by user_id — see companyProfileRepositoryClient
+  // for the same read/upsert pattern.
+  get: async (): Promise<AppSettings> => {
+    const userId = await currentUserId()
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (error) throw new Error(error.message)
+    if (!data) return DEFAULT_SETTINGS
+
+    const row = data as AppSettingsRow
+    return { defaultTaxRate: row.default_tax_rate ?? DEFAULT_SETTINGS.defaultTaxRate }
+  },
 
   update: async (settings: AppSettings): Promise<AppSettings> => {
-    write(settings)
+    const userId = await currentUserId()
+    const { error } = await supabase
+      .from('app_settings')
+      .upsert({ user_id: userId, default_tax_rate: settings.defaultTaxRate })
+    if (error) throw new Error(error.message)
     return settings
   },
 }

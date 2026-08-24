@@ -13,6 +13,9 @@ import {
 } from './components/NavIcons'
 import UpdateDialog from './components/UpdateDialog'
 import ToastContainer from './components/ToastContainer'
+import LocalBackupNotice from './components/LocalBackupNotice'
+import { AuthProvider, useAuth } from './auth/AuthContext'
+import AuthGate from './auth/AuthGate'
 
 // Import page components
 import DashboardPage from './pages/DashboardPage'
@@ -81,11 +84,13 @@ const RouteErrorBoundary = withTranslation()(RouteErrorBoundaryBase)
 const MainLayout: React.FC = () => {
   const location = useLocation()
   const { t } = useTranslation()
+  const { user, signOut } = useAuth()
 
   return (
     <div className="app">
       <UpdateDialog />
       <ToastContainer />
+      <LocalBackupNotice />
       <aside className="app-sidebar">
         <div className="app-brand">
           <span className="app-brand-mark">P2K</span>
@@ -108,6 +113,14 @@ const MainLayout: React.FC = () => {
       <div className="app-content">
         <header className="app-topbar">
           <h1>{t('app.brandName')}</h1>
+          {user && (
+            <div className="app-topbar-account">
+              <span>{user.email}</span>
+              <button type="button" className="cancel-button" onClick={() => signOut()}>
+                {t('auth.signOutButton')}
+              </button>
+            </div>
+          )}
         </header>
         <main className="app-main">
           <RouteErrorBoundary key={location.pathname}>
@@ -131,10 +144,27 @@ const MainLayout: React.FC = () => {
   )
 }
 
+const AuthenticatedApp: React.FC = () => {
+  const { t } = useTranslation()
+  const { status } = useAuth()
+
+  if (status === 'loading') {
+    return <p className="app-loading">{t('common.loading')}</p>
+  }
+
+  if (status === 'signed-out' || status === 'mfa-required') {
+    return <AuthGate />
+  }
+
+  return <MainLayout />
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <MainLayout />
+      <AuthProvider>
+        <AuthenticatedApp />
+      </AuthProvider>
     </BrowserRouter>
   )
 }

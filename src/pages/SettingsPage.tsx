@@ -8,10 +8,31 @@ import { SUPPORTED_LANGUAGES, setLanguage } from '../i18n'
 import type { SupportedLanguage } from '../i18n'
 import type { ItemCategory } from '../domain/models'
 import { notify } from '../notifications'
+import { useAuth } from '../auth/AuthContext'
+import {
+  challengeAndVerifyTotp,
+  enrollTotp,
+  listTotpFactors,
+  unenrollTotp,
+} from '../auth/mfa'
+import type { TotpEnrollment, TotpFactor } from '../auth/mfa'
+import {
+  exportAllData,
+  importAllData,
+  isAccountBackup,
+  IMPORT_CONFIRMATION_PHRASE,
+} from '../services/dataBackupService'
+import {
+  convertLegacyBackupToAccountBackup,
+  isLegacyLocalBackup,
+} from '../services/legacyBackupImportService'
+import { resolveSaveDestination } from '../utils/saveFile'
+import '../auth/AuthGate.css'
 import './SettingsPage.css'
 
 const SettingsPage: React.FC = () => {
   const { t, i18n } = useTranslation()
+  const { user, refreshMfaStatus } = useAuth()
   const [theme, setThemeState] = useState<ThemeMode>('system')
   const [defaultTaxRate, setDefaultTaxRate] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(true)
@@ -23,8 +44,30 @@ const SettingsPage: React.FC = () => {
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null)
   const [editingCategoryName, setEditingCategoryName] = useState<string>('')
 
+  // Account & security — TOTP (authenticator app) two-factor login.
+  const [totpFactors, setTotpFactors] = useState<TotpFactor[]>([])
+  const [enrolling, setEnrolling] = useState<TotpEnrollment | null>(null)
+  const [enrollCode, setEnrollCode] = useState<string>('')
+  const [mfaBusy, setMfaBusy] = useState<boolean>(false)
+
+  // Data export / destructive import (SettingsPage "Data" section below).
+  const [exporting, setExporting] = useState<boolean>(false)
+  const [importModalOpen, setImportModalOpen] = useState<boolean>(false)
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [importPassword, setImportPassword] = useState<string>('')
+  const [importConfirmPhrase, setImportConfirmPhrase] = useState<string>('')
+  const [importing, setImporting] = useState<boolean>(false)
+
   const loadCategories = async () => {
     setCategories(await itemCategoryService.listItemCategories())
+  }
+
+  const loadTotpFactors = async () => {
+    try {
+      setTotpFactors(await listTotpFactors())
+    } catch (err) {
+      console.error('Failed to load two-factor methods:', err)
+    }
   }
 
   useEffect(() => {
@@ -34,6 +77,7 @@ const SettingsPage: React.FC = () => {
       setLoading(false)
     })
     loadCategories()
+    loadTotpFactors()
   }, [])
 
   const handleThemeChange = (mode: ThemeMode) => {
@@ -94,6 +138,123 @@ const SettingsPage: React.FC = () => {
       await loadCategories()
     } catch (err) {
       notify(err instanceof Error ? err.message : t('settings.itemCategories.errors.deleteFailed'), 'error')
+    }
+  }
+
+  const handleStartMfaEnrollment = async () => {
+    setMfaBusy(true)
+    try {
+      setEnrolling(await enrollTotp())
+      setEnrollCode('')
+    } catch (err) {
+      notify(err instanceof Error ? err.message : t('settings.security.errors.enrollFailed'), 'error')
+    } finally {
+      setMfaBusy(false)
+    }
+  }
+
+  const handleConfirmMfaEnrollment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!enrolling) return
+    setMfaBusy(true)
+    try {
+      await challengeAndVerifyTotp(enrolling.factorId, enrollCode.trim())
+      setEnrolling(null)
+      setEnrollCode('')
+      await loadTotpFactors()
+      await refreshMfaStatus()
+      notify(t('settings.security.enrollSuccess'), 'success')
+    } catch (err) {
+      notify(err instanceof Error ? err.message : t('settings.security.errors.enrollFailed'), 'error')
+    } finally {
+      setMfaBusy(false)
+    }
+  }
+
+  const handleCancelMfaEnrollment = () => {
+    setEnrolling(null)
+    setEnrollCode('')
+  }
+
+  const handleRemoveTotpFactor = async (factorId: string) => {
+    if (!window.confirm(t('settings.security.confirmRemove'))) return
+    setMfaBusy(true)
+    try {
+      await unenrollTotp(factorId)
+      await loadTotpFactors()
+      await refreshMfaStatus()
+    } catch (err) {
+      notify(err instanceof Error ? err.message : t('settings.security.errors.removeFailed'), 'error')
+    } finally {
+      setMfaBusy(false)
+    }
+  }
+
+  const handleExportData = async () => {
+    setExporting(true)
+    try {
+      // Resolved before the (network) data fetch below — see
+      // resolveSaveDestination's doc comment: a browser's save picker only
+      // stays available while the click that triggered it is still an
+      // active user gesture, so the destination must be chosen first.
+      const destination = await resolveSaveDestination(`presupeitor2000-backup-${Date.now()}.json`, [
+        { name: 'JSON', extensions: ['json'] },
+      ])
+      if (!destination) return
+
+      const backup = await exportAllData()
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' })
+      await destination.write(blob)
+    } catch (err) {
+      notify(err instanceof Error ? err.message : t('settings.data.errors.exportFailed'), 'error')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const openImportModal = () => {
+    setImportFile(null)
+    setImportPassword('')
+    setImportConfirmPhrase('')
+    setImportModalOpen(true)
+  }
+
+  const closeImportModal = () => {
+    setImportModalOpen(false)
+  }
+
+  const importReady =
+    importFile !== null && importPassword.length > 0 && importConfirmPhrase === IMPORT_CONFIRMATION_PHRASE
+
+  const handleImportData = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!importReady || !importFile) return
+    setImporting(true)
+    try {
+      const text = await importFile.text()
+      const parsed = JSON.parse(text)
+      // Two different file formats can land here: a full account export
+      // (Settings → Data → "Export all data") and a *local* backup — the
+      // raw pre-Supabase localStorage dump offered by the one-time notice
+      // shown right after signing in on a machine with old local data
+      // (LocalBackupNotice). The latter needs converting to the account
+      // export shape before it can be imported the same way.
+      const backup = isLegacyLocalBackup(parsed) ? convertLegacyBackupToAccountBackup(parsed) : parsed
+      if (!isAccountBackup(backup)) {
+        notify(t('settings.data.errors.invalidFile'), 'error')
+        return
+      }
+      await importAllData(backup, importPassword)
+      notify(t('settings.data.importSuccess'), 'success')
+      setImportModalOpen(false)
+      // Every page/service in the app holds its own already-loaded state
+      // from before the wipe-and-replace; reloading is the simplest way to
+      // guarantee nothing keeps showing data that the import just deleted.
+      window.location.reload()
+    } catch (err) {
+      notify(err instanceof Error ? err.message : t('settings.data.errors.importFailed'), 'error')
+    } finally {
+      setImporting(false)
     }
   }
 
@@ -229,6 +390,158 @@ const SettingsPage: React.FC = () => {
           </button>
         </form>
       </fieldset>
+
+      <fieldset className="settings-section">
+        <legend>{t('settings.security.title')}</legend>
+        <p className="settings-section-description">
+          {t('settings.security.description', { email: user?.email ?? '' })}
+        </p>
+
+        {totpFactors.filter((f) => f.status === 'verified').length === 0 && !enrolling && (
+          <button type="button" onClick={handleStartMfaEnrollment} className="add-button" disabled={mfaBusy}>
+            {t('settings.security.enableButton')}
+          </button>
+        )}
+
+        {enrolling && (
+          <div className="settings-mfa-enroll">
+            <p>{t('settings.security.scanInstructions')}</p>
+            <div
+              className="settings-mfa-qr"
+              // Supabase returns the enrollment QR code as a ready-to-render
+              // inline SVG string (`data.totp.qr_code`) — there is no image
+              // URL to point an <img> at instead.
+              dangerouslySetInnerHTML={{ __html: enrolling.qrCodeSvg }}
+            />
+            <p className="settings-mfa-secret">
+              {t('settings.security.manualEntryLabel')} <code>{enrolling.secret}</code>
+            </p>
+            <form onSubmit={handleConfirmMfaEnrollment} className="form-group">
+              <label>
+                {t('settings.security.codeLabel')}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={enrollCode}
+                  onChange={(e) => setEnrollCode(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </label>
+              <div className="form-actions">
+                <button type="button" onClick={handleCancelMfaEnrollment} className="cancel-button">
+                  {t('common.cancel')}
+                </button>
+                <button type="submit" className="submit-button" disabled={mfaBusy}>
+                  {t('settings.security.confirmButton')}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {totpFactors.filter((f) => f.status === 'verified').length > 0 && (
+          <ul className="category-list">
+            {totpFactors
+              .filter((f) => f.status === 'verified')
+              .map((factor) => (
+                <li key={factor.id} className="category-list-item">
+                  <span className="category-name">{t('settings.security.authenticatorAppLabel')}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTotpFactor(factor.id)}
+                    className="delete-button"
+                    disabled={mfaBusy}
+                  >
+                    {t('common.delete')}
+                  </button>
+                </li>
+              ))}
+          </ul>
+        )}
+      </fieldset>
+
+      <fieldset className="settings-section">
+        <legend>{t('settings.data.title')}</legend>
+        <p className="settings-section-description">{t('settings.data.description')}</p>
+        <div className="form-actions">
+          <button type="button" onClick={handleExportData} className="add-button" disabled={exporting}>
+            {exporting ? t('settings.data.exporting') : t('settings.data.exportButton')}
+          </button>
+          <button type="button" onClick={openImportModal} className="delete-button">
+            {t('settings.data.importButton')}
+          </button>
+        </div>
+      </fieldset>
+
+      {importModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>{t('settings.data.importModal.title')}</h2>
+
+            <div className="auth-gate-warning-box">
+              <p>
+                <strong>{t('settings.data.importModal.warningTitle')}</strong>
+              </p>
+              <p>{t('settings.data.importModal.warningBody')}</p>
+            </div>
+            <div className="auth-gate-warning-box">
+              <p>{t('settings.data.importModal.warningIrreversible')}</p>
+            </div>
+
+            <form onSubmit={handleImportData} className="customer-form">
+              <div className="form-group">
+                <label>
+                  {t('settings.data.importModal.fileLabel')}
+                  <p className="settings-section-description">
+                    {t('settings.data.importModal.fileHint')}
+                  </p>
+                  <input
+                    type="file"
+                    accept="application/json"
+                    onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
+                    required
+                  />
+                </label>
+              </div>
+              <div className="form-group">
+                <label>
+                  {t('settings.data.importModal.passwordLabel')}
+                  <input
+                    type="password"
+                    value={importPassword}
+                    onChange={(e) => setImportPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                  />
+                </label>
+              </div>
+              <div className="form-group">
+                <label>
+                  {t('settings.data.importModal.confirmPhraseLabel', {
+                    phrase: IMPORT_CONFIRMATION_PHRASE,
+                  })}
+                  <input
+                    type="text"
+                    value={importConfirmPhrase}
+                    onChange={(e) => setImportConfirmPhrase(e.target.value)}
+                    placeholder={IMPORT_CONFIRMATION_PHRASE}
+                    required
+                  />
+                </label>
+              </div>
+              <div className="form-actions">
+                <button type="button" onClick={closeImportModal} className="cancel-button">
+                  {t('common.cancel')}
+                </button>
+                <button type="submit" className="delete-button" disabled={!importReady || importing}>
+                  {importing ? t('settings.data.importModal.importing') : t('settings.data.importModal.confirmButton')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

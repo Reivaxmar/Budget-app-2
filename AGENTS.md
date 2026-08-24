@@ -20,8 +20,7 @@ Unless explicitly changed:
 - TypeScript
 - React
 - Tauri
-- SQLite
-- Drizzle ORM
+- Supabase (Postgres + Auth) via `@supabase/supabase-js`
 - Tailwind CSS
 - Zod
 - Vitest
@@ -64,6 +63,19 @@ Money must use a safe numeric representation; formatting belongs to the UI/rende
 Finalized estimates must remain reproducible even if customers, library items, templates, or settings change later. Use snapshots/versioning where necessary.
 
 All database schema changes require migrations.
+
+## Accounts & Data
+
+Every user signs in (email/password, with email confirmation and optional TOTP two-factor login)
+via Supabase Auth before using the app; there is no offline/local-only mode. All persisted data
+lives in Supabase Postgres, scoped per-account by Row Level Security (`supabase/schema.sql`) —
+never rely on client-side filtering alone to keep one account's data private from another.
+
+A full account data export/import exists (Settings → Data) for backups and disaster recovery.
+Import is destructive (replaces all of the signed-in account's data) — any change to that flow
+must keep its safeguards (password re-authentication, explicit typed confirmation, clear warning
+copy) intact rather than streamlining them away. See DIST.md → "Supabase setup" for the one-time
+project configuration this depends on.
 
 ## AI-Assisted Development
 
