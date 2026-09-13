@@ -4,7 +4,13 @@ import { defaultDocumentTemplate } from '../rendering/templateConfig';
 import { resizeImageToA4 } from '../utils/imageResize';
 import { resizePdfToA4 } from '../utils/pdfBackgroundResize';
 import { notify } from '../notifications';
-import type { Template, TemplateConfig, TableColumnKey } from '../domain/models';
+import type { Template, TemplateConfig, TableColumnKey, CoverPosition } from '../domain/models';
+
+export const COVER_POSITIONS: CoverPosition[] = [
+  'top-left', 'top-center', 'top-right',
+  'middle-left', 'middle-center', 'middle-right',
+  'bottom-left', 'bottom-center', 'bottom-right',
+];
 
 // Structured, constrained template editor (SPECS.md §9), shared between the
 // Templates page (editing a saved, reusable template) and the estimate
@@ -59,6 +65,16 @@ export interface TemplateFormState {
   borderColor: string;
   showCreationLocationDate: boolean;
   showSlogan: boolean;
+  /** Where the estimate number/date block sits on the cover page. */
+  headerPosition: CoverPosition;
+  /** Fine-tune offset (points) on top of headerPosition. */
+  headerOffsetX: number;
+  headerOffsetY: number;
+  /** Where the subject/title text sits on the cover page. */
+  subjectPosition: CoverPosition;
+  /** Fine-tune offset (points) on top of subjectPosition. */
+  subjectOffsetX: number;
+  subjectOffsetY: number;
   showEstimateNumberAndDate: boolean;
   showPageNumbers: boolean;
   showCompanyInfo: boolean;
@@ -97,6 +113,12 @@ export function emptyFormState(): TemplateFormState {
     borderColor: defaultDocumentTemplate.colors.borderColor,
     showCreationLocationDate: defaultDocumentTemplate.cover.showCreationLocationDate,
     showSlogan: defaultDocumentTemplate.cover.showSlogan,
+    headerPosition: defaultDocumentTemplate.cover.headerPosition ?? 'top-left',
+    headerOffsetX: defaultDocumentTemplate.cover.headerOffsetX ?? 0,
+    headerOffsetY: defaultDocumentTemplate.cover.headerOffsetY ?? 0,
+    subjectPosition: defaultDocumentTemplate.cover.subjectPosition ?? 'middle-center',
+    subjectOffsetX: defaultDocumentTemplate.cover.subjectOffsetX ?? 0,
+    subjectOffsetY: defaultDocumentTemplate.cover.subjectOffsetY ?? 0,
     showEstimateNumberAndDate: defaultDocumentTemplate.header.showEstimateNumberAndDate,
     showPageNumbers: defaultDocumentTemplate.footer.showPageNumbers,
     showCompanyInfo: defaultDocumentTemplate.footer.showCompanyInfo,
@@ -140,6 +162,12 @@ export function templateToFormState(template: TemplateConfig & Partial<Pick<Temp
     borderColor: template.colors.borderColor,
     showCreationLocationDate: template.cover.showCreationLocationDate,
     showSlogan: template.cover.showSlogan,
+    headerPosition: template.cover.headerPosition ?? 'top-left',
+    headerOffsetX: template.cover.headerOffsetX ?? 0,
+    headerOffsetY: template.cover.headerOffsetY ?? 0,
+    subjectPosition: template.cover.subjectPosition ?? 'middle-center',
+    subjectOffsetX: template.cover.subjectOffsetX ?? 0,
+    subjectOffsetY: template.cover.subjectOffsetY ?? 0,
     showEstimateNumberAndDate: template.header.showEstimateNumberAndDate,
     showPageNumbers: template.footer.showPageNumbers,
     showCompanyInfo: template.footer.showCompanyInfo,
@@ -172,6 +200,12 @@ export function formStateToTemplateConfig(form: TemplateFormState): TemplateConf
       showCreationLocationDate: form.showCreationLocationDate,
       showSlogan: form.showSlogan,
       backgroundImage: form.coverBackgroundImage,
+      headerPosition: form.headerPosition,
+      headerOffsetX: form.headerOffsetX,
+      headerOffsetY: form.headerOffsetY,
+      subjectPosition: form.subjectPosition,
+      subjectOffsetX: form.subjectOffsetX,
+      subjectOffsetY: form.subjectOffsetY,
     },
     header: {
       showEstimateNumberAndDate: form.showEstimateNumberAndDate,
@@ -218,6 +252,23 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
   showNameField = true,
 }) => {
   const { t } = useTranslation();
+  const [previewing, setPreviewing] = React.useState(false);
+
+  const handlePreview = async () => {
+    setPreviewing(true);
+    try {
+      // Previews whatever is currently in the form, including unsaved
+      // edits — the whole point is checking a change before committing to
+      // it, not requiring a save first.
+      const { previewTemplate } = await import('../services/templatePreviewService');
+      await previewTemplate(formStateToTemplateConfig(formData), formData.name);
+    } catch (err) {
+      console.error('Failed to preview template:', { formData, error: err });
+      notify(err instanceof Error ? err.message : t('templates.modal.sections.previewError'), 'error');
+    } finally {
+      setPreviewing(false);
+    }
+  };
 
   const handleColumnToggle = (key: TableColumnKey) => {
     setFormData((prev) => ({
@@ -293,6 +344,11 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
 
   return (
     <>
+      <div className="form-actions template-preview-action">
+        <button type="button" className="add-button" onClick={handlePreview} disabled={previewing}>
+          {previewing ? t('templates.modal.sections.previewing') : t('templates.modal.sections.preview')}
+        </button>
+      </div>
       {showNameField && (
         <fieldset>
           <legend>{t('templates.modal.sections.name')}</legend>
@@ -426,6 +482,48 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
           />
           {t('templates.modal.sections.showCreationLocationDate')}
         </label>
+        <div className="form-group">
+          <label>
+            {t('templates.modal.sections.headerPosition')}
+            <select
+              value={formData.headerPosition}
+              disabled={!formData.showCreationLocationDate}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, headerPosition: e.target.value as CoverPosition }))
+              }
+            >
+              {COVER_POSITIONS.map((position) => (
+                <option key={position} value={position}>
+                  {t(`templates.modal.sections.coverPositions.${position}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="form-row">
+          <label>
+            {t('templates.modal.sections.offsetX')}
+            <input
+              type="number"
+              value={formData.headerOffsetX}
+              disabled={!formData.showCreationLocationDate}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, headerOffsetX: parseFloat(e.target.value) || 0 }))
+              }
+            />
+          </label>
+          <label>
+            {t('templates.modal.sections.offsetY')}
+            <input
+              type="number"
+              value={formData.headerOffsetY}
+              disabled={!formData.showCreationLocationDate}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, headerOffsetY: parseFloat(e.target.value) || 0 }))
+              }
+            />
+          </label>
+        </div>
         <label className="checkbox-label">
           <input
             type="checkbox"
@@ -434,6 +532,45 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
           />
           {t('templates.modal.sections.showSlogan')}
         </label>
+        <div className="form-group">
+          <label>
+            {t('templates.modal.sections.subjectPosition')}
+            <select
+              value={formData.subjectPosition}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, subjectPosition: e.target.value as CoverPosition }))
+              }
+            >
+              {COVER_POSITIONS.map((position) => (
+                <option key={position} value={position}>
+                  {t(`templates.modal.sections.coverPositions.${position}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="form-row">
+          <label>
+            {t('templates.modal.sections.offsetX')}
+            <input
+              type="number"
+              value={formData.subjectOffsetX}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, subjectOffsetX: parseFloat(e.target.value) || 0 }))
+              }
+            />
+          </label>
+          <label>
+            {t('templates.modal.sections.offsetY')}
+            <input
+              type="number"
+              value={formData.subjectOffsetY}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, subjectOffsetY: parseFloat(e.target.value) || 0 }))
+              }
+            />
+          </label>
+        </div>
         {renderBackgroundImagePicker('coverBackgroundImage', t('templates.modal.sections.coverBackgroundImage'))}
       </fieldset>
 

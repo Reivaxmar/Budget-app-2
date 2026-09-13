@@ -9,7 +9,7 @@ import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/render
 import type { DocumentProps } from '@react-pdf/renderer';
 import type { EstimateDocumentData } from './types';
 import { defaultDocumentTemplate, resolveColumnValue } from './templateConfig';
-import type { DocumentTemplateConfig } from './templateConfig';
+import type { CoverPosition, DocumentTemplateConfig } from './templateConfig';
 import { calculateChapterTotal, calculateEstimateTotal } from '../domain/calculations';
 // The i18n singleton (not the useTranslation() hook) — this component is
 // rendered outside the app's normal React tree, directly through
@@ -28,24 +28,64 @@ import i18n from '../i18n';
 const A4_WIDTH_PT = 595.28;
 const A4_HEIGHT_PT = 841.89;
 
+// Splits a CoverPosition ('top-left', 'middle-center', ...) into its two
+// independent axes.
+function parseCoverPosition(position: CoverPosition): {
+  vertical: 'top' | 'middle' | 'bottom';
+  horizontal: 'left' | 'center' | 'right';
+} {
+  const [vertical, horizontal] = position.split('-') as [
+    'top' | 'middle' | 'bottom',
+    'left' | 'center' | 'right',
+  ];
+  return { vertical, horizontal };
+}
+
+const JUSTIFY_BY_VERTICAL = {
+  top: 'flex-start',
+  middle: 'center',
+  bottom: 'flex-end',
+} as const;
+
+const ALIGN_BY_HORIZONTAL = {
+  left: 'flex-start',
+  center: 'center',
+  right: 'flex-end',
+} as const;
+
+/**
+ * Style for a full-page absolutely positioned overlay (top/left/right/
+ * bottom all 0, so it always covers the exact page bounds regardless of the
+ * Page's own padding — see the A4_WIDTH_PT/A4_HEIGHT_PT comment above for
+ * why an explicit inset like this, rather than a percentage size, is what
+ * reliably spans the full page in react-pdf) whose single child is placed
+ * at the given 3x3 grid position via flexbox justify/align, with its own
+ * `padding: margin` keeping that content off the page edges.
+ */
+function coverPositionOverlayStyle(position: CoverPosition, margin: number) {
+  const { vertical, horizontal } = parseCoverPosition(position);
+  return {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: margin,
+    flexDirection: 'column' as const,
+    justifyContent: JUSTIFY_BY_VERTICAL[vertical],
+    alignItems: ALIGN_BY_HORIZONTAL[horizontal],
+  };
+}
+
 function buildStyles(template: DocumentTemplateConfig) {
   const margin = template.page.marginPt;
   const { colors, typography } = template;
 
   return StyleSheet.create({
     coverPage: {
-      padding: margin,
       fontFamily: typography.fontFamily,
       fontSize: typography.baseFontSize,
       color: colors.text,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    coverTopLeft: {
-      position: 'absolute',
-      top: margin,
-      left: margin,
-      textAlign: 'left',
     },
     coverSlogan: {
       position: 'absolute',
@@ -58,12 +98,10 @@ function buildStyles(template: DocumentTemplateConfig) {
     },
     coverSubjectBlock: {
       maxWidth: '80%',
-      alignItems: 'center',
     },
     coverSubjectText: {
       fontSize: typography.titleFontSize,
       fontWeight: 700,
-      textAlign: 'center',
     },
 
     introSection: {
@@ -256,6 +294,21 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
     ? `${creationLocation}, a ${formatDate(estimate.creationDate)}`
     : formatDate(estimate.creationDate);
   const columns = template.table.columns;
+  const headerPosition = template.cover.headerPosition ?? 'top-left';
+  const subjectPosition = template.cover.subjectPosition ?? 'middle-center';
+  const headerHorizontal = parseCoverPosition(headerPosition).horizontal;
+  const subjectHorizontal = parseCoverPosition(subjectPosition).horizontal;
+  // Fine-tune nudge on top of the grid position, as plain margin on the
+  // inner (aligned) block — positive X/Y moves right/down regardless of
+  // which grid cell it's nudging from.
+  const headerOffsetStyle = {
+    marginLeft: template.cover.headerOffsetX ?? 0,
+    marginTop: template.cover.headerOffsetY ?? 0,
+  };
+  const subjectOffsetStyle = {
+    marginLeft: template.cover.subjectOffsetX ?? 0,
+    marginTop: template.cover.subjectOffsetY ?? 0,
+  };
 
   const headerBlock = template.header.showEstimateNumberAndDate && (
     <View style={styles.header} fixed>
@@ -289,7 +342,10 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
       title={i18n.t('rendering.documentTitle', { number: estimate.estimateNumber })}
       author={company.name}
     >
-      {/* Cover page: estimate number + date top-left, subject centered */}
+      {/* Cover page: estimate number/date and subject, each independently
+          positioned on a 3x3 grid (template.cover.headerPosition /
+          subjectPosition — defaults preserve the historical top-left /
+          centered layout). */}
       <Page size={template.page.size} style={styles.coverPage}>
         {template.cover.backgroundImage && (
           // `fixed`: without it, react-pdf's pagination pass sees this
@@ -301,14 +357,22 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
           <Image src={template.cover.backgroundImage} style={styles.backgroundImage} fixed />
         )}
         {template.cover.showCreationLocationDate && (
-          <View style={styles.coverTopLeft}>
-            <Text>{i18n.t('rendering.estimateNumberLabel', { number: estimate.estimateNumber })}</Text>
-            <Text>{dateLabel}</Text>
+          <View style={coverPositionOverlayStyle(headerPosition, template.page.marginPt)}>
+            <View style={{ alignItems: ALIGN_BY_HORIZONTAL[headerHorizontal], ...headerOffsetStyle }}>
+              <Text style={{ textAlign: headerHorizontal }}>
+                {i18n.t('rendering.estimateNumberLabel', { number: estimate.estimateNumber })}
+              </Text>
+              <Text style={{ textAlign: headerHorizontal }}>{dateLabel}</Text>
+            </View>
           </View>
         )}
 
-        <View style={styles.coverSubjectBlock}>
-          <Text style={styles.coverSubjectText}>{estimate.subject}</Text>
+        <View style={coverPositionOverlayStyle(subjectPosition, template.page.marginPt)}>
+          <View style={[styles.coverSubjectBlock, subjectOffsetStyle]}>
+            <Text style={[styles.coverSubjectText, { textAlign: subjectHorizontal }]}>
+              {estimate.subject}
+            </Text>
+          </View>
         </View>
 
         {template.cover.showSlogan && company.slogan ? (

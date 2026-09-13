@@ -109,6 +109,17 @@ export interface TableColumnConfig {
   align?: 'left' | 'center' | 'right'
 }
 
+/** A position in a 3x3 grid over the cover page, used to place the subject
+ * title and the estimate number/date block independently. Optional on
+ * TemplateConfig['cover'] (rather than required) so templates saved before
+ * this setting existed keep rendering exactly as before — EstimateDocument
+ * falls back to the historical fixed positions ('top-left' for the header
+ * block, 'middle-center' for the subject) when unset. */
+export type CoverPosition =
+  | 'top-left' | 'top-center' | 'top-right'
+  | 'middle-left' | 'middle-center' | 'middle-right'
+  | 'bottom-left' | 'bottom-center' | 'bottom-right'
+
 /** The resolved presentation configuration a template supplies to the renderer. */
 export interface TemplateConfig {
   page: {
@@ -134,6 +145,18 @@ export interface TemplateConfig {
     showSlogan: boolean
     /** Data URI or bundled asset path; omitted when the cover has no background image. */
     backgroundImage?: string
+    /** Where the estimate number/date block sits. Defaults to 'top-left'. */
+    headerPosition?: CoverPosition
+    /** Fine-tune offset (points) applied on top of headerPosition — positive
+     * X moves right, positive Y moves down. Defaults to 0. */
+    headerOffsetX?: number
+    headerOffsetY?: number
+    /** Where the subject/title text sits. Defaults to 'middle-center'. */
+    subjectPosition?: CoverPosition
+    /** Fine-tune offset (points) applied on top of subjectPosition —
+     * positive X moves right, positive Y moves down. Defaults to 0. */
+    subjectOffsetX?: number
+    subjectOffsetY?: number
   }
   header: {
     showEstimateNumberAndDate: boolean

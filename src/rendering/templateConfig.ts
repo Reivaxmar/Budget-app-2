@@ -7,7 +7,7 @@
 
 import type { LineItem, TableColumnConfig, TemplateConfig } from '../domain/models';
 
-export type { TableColumnKey, TableColumnConfig } from '../domain/models';
+export type { TableColumnKey, TableColumnConfig, CoverPosition } from '../domain/models';
 
 /** Alias kept for readability where this config is used purely for rendering. */
 export type DocumentTemplateConfig = TemplateConfig;
@@ -32,6 +32,12 @@ export const defaultDocumentTemplate: DocumentTemplateConfig = {
   cover: {
     showCreationLocationDate: true,
     showSlogan: true,
+    headerPosition: 'top-left',
+    headerOffsetX: 0,
+    headerOffsetY: 0,
+    subjectPosition: 'middle-center',
+    subjectOffsetX: 0,
+    subjectOffsetY: 0,
   },
   header: {
     showEstimateNumberAndDate: true,
