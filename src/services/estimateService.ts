@@ -3,6 +3,7 @@ import {
   chapterRepositoryClient as chapterRepository,
   lineItemRepositoryClient as lineItemRepository,
 } from '../db/estimateRepositoryClient';
+import { appSettingsRepositoryClient } from '../db/appSettingsRepositoryClient';
 import { Estimate } from '../domain/models';
 import {
   calculateChapterTotal,
@@ -15,31 +16,24 @@ export type { ChapterWithLineItems, EstimateWithDetails };
 export { calculateChapterTotal, calculateEstimateTotal };
 
 /**
- * Generates an estimate number in the format "###-YY" (e.g., "001-24")
- * based on the year and the count of existing estimates in that year.
- * @param year - The year for the estimate
+ * Generates an estimate number in the format "###-YY" (e.g., "001-24") and
+ * consumes it: the sequence part comes from the user-editable
+ * `nextEstimateNumber` counter in Settings, which this then advances by one
+ * and persists. Unlike the old "count existing estimates, take the max + 1"
+ * approach, this counter is global — it is never reset by year, and its
+ * starting value can be chosen by the user in Settings (e.g. to continue a
+ * series from a previous system).
+ * @param year - The year for the estimate (used only for the "-YY" suffix)
  * @returns The generated estimate number
  */
 export async function generateEstimateNumber(year: number): Promise<string> {
-  // Get all estimates for the given year to find the maximum sequence number
-  const estimates = await estimateRepository.findMany();
-  const yearEstimates = estimates.filter(est => est.year === year);
+  const settings = await appSettingsRepositoryClient.get();
+  const sequence = settings.nextEstimateNumber;
 
-  // Extract the sequence number (part before the '-') from existing estimate numbers
-  const sequenceNumbers = yearEstimates
-    .map(est => {
-      const match = est.estimateNumber.match(/^(\d+)-/);
-      return match ? parseInt(match[1], 10) : 0;
-    })
-    .filter(num => !isNaN(num));
-
-  // Find the next sequence number
-  const nextSequence = sequenceNumbers.length > 0
-    ? Math.max(...sequenceNumbers) + 1
-    : 1;
+  await appSettingsRepositoryClient.update({ ...settings, nextEstimateNumber: sequence + 1 });
 
   // Format as 3 digits with leading zeros
-  const sequenceStr = nextSequence.toString().padStart(3, '0');
+  const sequenceStr = sequence.toString().padStart(3, '0');
   const yearStr = (year % 100).toString().padStart(2, '0'); // Last two digits of year
 
   return `${sequenceStr}-${yearStr}`;

@@ -19,6 +19,15 @@ import { calculateChapterTotal, calculateEstimateTotal } from '../domain/calcula
 // global instance the rest of the app uses.
 import i18n from '../i18n';
 
+// A4 page dimensions in points (react-pdf's own size="A4" values). Used to
+// size full-bleed background images explicitly: percentage width/height on
+// an absolutely positioned child resolves against the *content* box (i.e.
+// shrunk by the Page's own padding), not the full page, which left a gap —
+// "missing bottom line" — at the page edge. Explicit point values sidestep
+// that percentage resolution entirely.
+const A4_WIDTH_PT = 595.28;
+const A4_HEIGHT_PT = 841.89;
+
 function buildStyles(template: DocumentTemplateConfig) {
   const margin = template.page.marginPt;
   const { colors, typography } = template;
@@ -204,8 +213,8 @@ function buildStyles(template: DocumentTemplateConfig) {
       position: 'absolute',
       top: 0,
       left: 0,
-      width: '100%',
-      height: '100%',
+      width: A4_WIDTH_PT,
+      height: A4_HEIGHT_PT,
     },
   });
 }
@@ -283,7 +292,13 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
       {/* Cover page: estimate number + date top-left, subject centered */}
       <Page size={template.page.size} style={styles.coverPage}>
         {template.cover.backgroundImage && (
-          <Image src={template.cover.backgroundImage} style={styles.backgroundImage} />
+          // `fixed`: without it, react-pdf's pagination pass sees this
+          // image node as normal (non-repeating) flow content, judges it
+          // "bigger than available page height" against the page's padded
+          // content box, and pushes the rest of the cover (title, date,
+          // slogan) onto a second physical page instead of layering them
+          // over the same page.
+          <Image src={template.cover.backgroundImage} style={styles.backgroundImage} fixed />
         )}
         {template.cover.showCreationLocationDate && (
           <View style={styles.coverTopLeft}>

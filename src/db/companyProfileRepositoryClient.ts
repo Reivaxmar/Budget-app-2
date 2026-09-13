@@ -55,7 +55,15 @@ export const companyProfileRepositoryClient = {
       .select('*')
       .eq('user_id', userId)
       .maybeSingle()
-    if (error) throw new Error(error.message)
+    if (error) {
+      console.error('Supabase select failed on "company_profile":', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      })
+      throw new Error(error.message)
+    }
     if (!data) return DEFAULT_SETTINGS
 
     const row = data as CompanyProfileRow
@@ -67,12 +75,22 @@ export const companyProfileRepositoryClient = {
 
   update: async (settings: CompanyProfileSettings): Promise<CompanyProfileSettings> => {
     const userId = await currentUserId()
-    const { error } = await supabase.from('company_profile').upsert({
+    const row = {
       user_id: userId,
       profile: settings.profile,
       creation_location: settings.creationLocation,
-    })
-    if (error) throw new Error(error.message)
+    }
+    const { error } = await supabase.from('company_profile').upsert(row)
+    if (error) {
+      console.error('Supabase upsert failed on "company_profile":', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        payload: row,
+      })
+      throw new Error(error.message)
+    }
     return settings
   },
 }

@@ -35,6 +35,7 @@ const SettingsPage: React.FC = () => {
   const { user, refreshMfaStatus } = useAuth()
   const [theme, setThemeState] = useState<ThemeMode>('system')
   const [defaultTaxRate, setDefaultTaxRate] = useState<number>(0)
+  const [nextEstimateNumber, setNextEstimateNumber] = useState<number>(1)
   const [loading, setLoading] = useState<boolean>(true)
   const [saving, setSaving] = useState<boolean>(false)
   const [saved, setSaved] = useState<boolean>(false)
@@ -74,6 +75,7 @@ const SettingsPage: React.FC = () => {
     setThemeState(getStoredTheme())
     appSettingsRepositoryClient.get().then((settings) => {
       setDefaultTaxRate(settings.defaultTaxRate)
+      setNextEstimateNumber(settings.nextEstimateNumber)
       setLoading(false)
     })
     loadCategories()
@@ -90,8 +92,11 @@ const SettingsPage: React.FC = () => {
     setSaving(true)
     setSaved(false)
     try {
-      await appSettingsRepositoryClient.update({ defaultTaxRate })
+      await appSettingsRepositoryClient.update({ defaultTaxRate, nextEstimateNumber })
       setSaved(true)
+    } catch (err) {
+      console.error('Failed to save estimate defaults:', { defaultTaxRate, nextEstimateNumber, error: err })
+      notify(err instanceof Error ? err.message : t('settings.estimateDefaults.errors.saveFailed'), 'error')
     } finally {
       setSaving(false)
     }
@@ -105,6 +110,7 @@ const SettingsPage: React.FC = () => {
       setNewCategoryName('')
       await loadCategories()
     } catch (err) {
+      console.error('Failed to create item category:', { newCategoryName, error: err })
       notify(err instanceof Error ? err.message : t('settings.itemCategories.errors.saveFailed'), 'error')
     }
   }
@@ -127,6 +133,11 @@ const SettingsPage: React.FC = () => {
       cancelEditingCategory()
       await loadCategories()
     } catch (err) {
+      console.error('Failed to rename item category:', {
+        editingCategoryId,
+        editingCategoryName,
+        error: err,
+      })
       notify(err instanceof Error ? err.message : t('settings.itemCategories.errors.saveFailed'), 'error')
     }
   }
@@ -319,6 +330,21 @@ const SettingsPage: React.FC = () => {
                 step="0.01"
               />
             </label>
+          </div>
+          <div className="form-group">
+            <label>
+              {t('settings.estimateDefaults.nextEstimateNumber')}
+              <input
+                type="number"
+                value={nextEstimateNumber}
+                onChange={(e) => setNextEstimateNumber(parseInt(e.target.value, 10) || 1)}
+                min="1"
+                step="1"
+              />
+            </label>
+            <p className="settings-section-description">
+              {t('settings.estimateDefaults.nextEstimateNumberHint')}
+            </p>
           </div>
           <div className="form-actions">
             {saved && <span className="saved-indicator">{t('settings.saved')}</span>}

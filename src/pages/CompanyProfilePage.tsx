@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { companyProfileRepositoryClient } from '../db/companyProfileRepositoryClient';
 import type { CompanyProfileSettings } from '../db/companyProfileRepositoryClient';
 import { PhoneNumberInput } from '../components/PhoneNumberInput';
+import { notify } from '../notifications';
 import './CompanyProfilePage.css';
 
 // Company/user identity and document defaults shown on generated PDFs
@@ -31,6 +32,9 @@ const CompanyProfilePage: React.FC = () => {
     try {
       await companyProfileRepositoryClient.update(settings);
       setSaved(true);
+    } catch (err) {
+      console.error('Failed to save company profile:', { settings, error: err });
+      notify(err instanceof Error ? err.message : t('companyProfile.errors.saveFailed'), 'error');
     } finally {
       setSaving(false);
     }

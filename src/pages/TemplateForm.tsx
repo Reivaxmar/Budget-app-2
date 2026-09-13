@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { defaultDocumentTemplate } from '../rendering/templateConfig';
 import { resizeImageToA4 } from '../utils/imageResize';
+import { resizePdfToA4 } from '../utils/pdfBackgroundResize';
 import { notify } from '../notifications';
 import type { Template, TemplateConfig, TableColumnKey } from '../domain/models';
 
@@ -242,10 +243,22 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
     e.target.value = ''; // allow re-selecting the same file again later
     if (!file) return;
     try {
-      const dataUri = await resizeImageToA4(file);
+      // A PDF background (e.g. a vector letterhead exported from a design
+      // tool) is rasterized to the same A4 raster format as an image
+      // upload — the rendering pipeline only ever deals with images.
+      const dataUri =
+        file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+          ? await resizePdfToA4(file)
+          : await resizeImageToA4(file);
       setFormData((prev) => ({ ...prev, [field]: dataUri }));
     } catch (err) {
-      console.error('Failed to process background image:', err);
+      console.error('Failed to process background image:', {
+        field,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        error: err,
+      });
       notify(t('templates.modal.sections.backgroundImageError'), 'error');
     }
   };
@@ -257,7 +270,11 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
     <div className="form-group background-image-picker">
       <label>
         {label}
-        <input type="file" accept="image/*" onChange={(e) => handleBackgroundImageChange(field, e)} />
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          onChange={(e) => handleBackgroundImageChange(field, e)}
+        />
       </label>
       {formData[field] && (
         <div className="background-image-preview">

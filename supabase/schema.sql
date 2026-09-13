@@ -120,8 +120,13 @@ create table if not exists company_profile (
 -- ── app_settings (one row per user) ──────────────────────────────────────
 create table if not exists app_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  default_tax_rate numeric not null default 0
+  default_tax_rate numeric not null default 0,
+  next_estimate_number integer not null default 1
 );
+
+-- Existing installs: re-running this file must add the column rather than
+-- silently no-op via `create table if not exists`.
+alter table app_settings add column if not exists next_estimate_number integer not null default 1;
 
 -- ── Row Level Security ────────────────────────────────────────────────────
 -- Every table gets the same policy shape: a user may select/insert/update/

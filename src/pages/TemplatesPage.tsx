@@ -75,7 +75,15 @@ const TemplatesPage: React.FC = () => {
       setFormVisible(false);
       await loadTemplates();
     } catch (err) {
-      console.error('Failed to save template:', err);
+      // Background images are large base64 data URIs — log their length
+      // rather than the full string so the console stays readable.
+      console.error('Failed to save template:', {
+        editingId,
+        name: formData.name,
+        coverBackgroundImageLength: formData.coverBackgroundImage?.length,
+        pageBackgroundImageLength: formData.pageBackgroundImage?.length,
+        error: err,
+      });
       notify(err instanceof Error ? err.message : t('templates.errors.saveFailed'), 'error');
     }
   };

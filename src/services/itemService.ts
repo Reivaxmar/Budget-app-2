@@ -53,9 +53,8 @@ export function searchItems(
  * Generates the next code for a new item in the given category, in the
  * format "XXXYYYY": XXX is the category's creation order (see
  * ItemCategory.order), YYYY is a per-category sequence number that
- * increases by one each time an item is created in that category — mirrors
- * estimateService.generateEstimateNumber's "count existing, take the max +
- * 1" approach.
+ * increases by one each time an item is created in that category, by
+ * counting existing items and taking the max + 1.
  */
 export async function generateItemCode(categoryId: string): Promise<string> {
   const category = await itemCategoryRepositoryClient.findById(categoryId);

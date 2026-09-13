@@ -15,6 +15,17 @@ fn write_binary_file(path: String, contents: Vec<u8>) -> Result<(), String> {
     std::fs::write(&path, contents).map_err(|e| e.to_string())
 }
 
+// The webview's JS console (console.error/warn) only ever shows up in the
+// webview's own devtools inspector — never in the terminal `tauri dev`/the
+// built app runs from, which only sees stdout/stderr from this Rust
+// process. main.tsx forwards console.error/warn calls here (see
+// src/debugLog.ts) specifically so a user without devtools open can copy
+// what printed in that terminal straight back for debugging.
+#[tauri::command]
+fn frontend_log(level: String, message: String) {
+    eprintln!("[frontend:{level}] {message}");
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -30,7 +41,7 @@ pub fn run() {
             }
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet, write_binary_file])
+        .invoke_handler(tauri::generate_handler![greet, write_binary_file, frontend_log])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

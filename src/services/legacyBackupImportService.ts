@@ -143,8 +143,12 @@ function buildEstimatesWithChapters(legacy: Record<string, unknown>): EstimateBa
 
 export function convertLegacyBackupToAccountBackup(legacy: Record<string, unknown>): AccountBackup {
   const itemCategories = asArray<ItemCategory>(legacy['budgetapp.itemCategories']);
-  const appSettings = (legacy['budgetapp.appSettings'] as AppSettings | undefined) ?? {
-    defaultTaxRate: 0,
+  const legacyAppSettings = legacy['budgetapp.appSettings'] as Partial<AppSettings> | undefined;
+  // Legacy backups predate the `nextEstimateNumber` counter, so it's never
+  // present here — default to 1 rather than leaving it undefined.
+  const appSettings: AppSettings = {
+    defaultTaxRate: legacyAppSettings?.defaultTaxRate ?? 0,
+    nextEstimateNumber: legacyAppSettings?.nextEstimateNumber ?? 1,
   };
 
   return {

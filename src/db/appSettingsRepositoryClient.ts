@@ -6,15 +6,23 @@ import { supabase } from '../lib/supabaseClient'
 export interface AppSettings {
   /** Applied to new estimates when they're created (SPECS.md §4 Estimate.taxRate). */
   defaultTaxRate: number
+  /** The sequence number that will be assigned to the next estimate created
+   * (see estimateService.generateEstimateNumber). User-editable so an
+   * estimate series can be started at an arbitrary number (e.g. to
+   * continue numbering from a previous system); auto-incremented by one
+   * every time an estimate is created, and never reset by year. */
+  nextEstimateNumber: number
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   defaultTaxRate: 0,
+  nextEstimateNumber: 1,
 }
 
 interface AppSettingsRow {
   user_id: string
   default_tax_rate: number
+  next_estimate_number: number
 }
 
 const currentUserId = async (): Promise<string> => {
@@ -37,19 +45,42 @@ export const appSettingsRepositoryClient = {
       .select('*')
       .eq('user_id', userId)
       .maybeSingle()
-    if (error) throw new Error(error.message)
+    if (error) {
+      console.error('Supabase select failed on "app_settings":', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      })
+      throw new Error(error.message)
+    }
     if (!data) return DEFAULT_SETTINGS
 
     const row = data as AppSettingsRow
-    return { defaultTaxRate: row.default_tax_rate ?? DEFAULT_SETTINGS.defaultTaxRate }
+    return {
+      defaultTaxRate: row.default_tax_rate ?? DEFAULT_SETTINGS.defaultTaxRate,
+      nextEstimateNumber: row.next_estimate_number ?? DEFAULT_SETTINGS.nextEstimateNumber,
+    }
   },
 
   update: async (settings: AppSettings): Promise<AppSettings> => {
     const userId = await currentUserId()
-    const { error } = await supabase
-      .from('app_settings')
-      .upsert({ user_id: userId, default_tax_rate: settings.defaultTaxRate })
-    if (error) throw new Error(error.message)
+    const row = {
+      user_id: userId,
+      default_tax_rate: settings.defaultTaxRate,
+      next_estimate_number: settings.nextEstimateNumber,
+    }
+    const { error } = await supabase.from('app_settings').upsert(row)
+    if (error) {
+      console.error('Supabase upsert failed on "app_settings":', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        payload: row,
+      })
+      throw new Error(error.message)
+    }
     return settings
   },
 }

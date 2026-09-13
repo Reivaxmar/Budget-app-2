@@ -278,5 +278,6 @@ export async function importAllData(backup: AccountBackup, password: string): Pr
   });
   await appSettingsRepositoryClient.update({
     defaultTaxRate: backup.appSettings.defaultTaxRate ?? 0,
+    nextEstimateNumber: backup.appSettings.nextEstimateNumber ?? 1,
   });
 }

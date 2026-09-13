@@ -12,6 +12,7 @@ import {
   chapterRepositoryClient,
   lineItemRepositoryClient,
 } from '../db/estimateRepositoryClient';
+import { appSettingsRepositoryClient } from '../db/appSettingsRepositoryClient';
 
 const baseEstimateInput = {
   year: 2026,
@@ -35,23 +36,25 @@ describe('estimateService', () => {
   });
 
   describe('generateEstimateNumber', () => {
-    it('starts at 001 for the first estimate of a year', async () => {
+    it('starts at 001 by default', async () => {
       expect(await generateEstimateNumber(2026)).toBe('001-26');
     });
 
-    it('increments sequentially within the same year', async () => {
+    it('increments sequentially, consuming the shared counter each call', async () => {
       await createEstimate(baseEstimateInput);
       await createEstimate(baseEstimateInput);
 
       expect(await generateEstimateNumber(2026)).toBe('003-26');
     });
 
-    it('keeps numbering independent per year', async () => {
+    it('does not reset the sequence across years — it is a single global counter', async () => {
       await createEstimate(baseEstimateInput);
       await createEstimate({ ...baseEstimateInput, year: 2027 });
 
-      expect(await generateEstimateNumber(2026)).toBe('002-26');
-      expect(await generateEstimateNumber(2027)).toBe('002-27');
+      // Both estimates draw from the same counter regardless of year, so
+      // the next call continues at 003 rather than restarting at 001 for
+      // the new year.
+      expect(await generateEstimateNumber(2027)).toBe('003-27');
     });
 
     it('never reuses a number even after the highest-numbered estimate is deleted', async () => {
@@ -63,6 +66,14 @@ describe('estimateService', () => {
       // fill the gap left by the deleted "001-26" (SPECS.md §5: never
       // reuse/duplicate a number once assigned).
       expect(await generateEstimateNumber(2026)).toBe('003-26');
+    });
+
+    it('starts the series from the user-chosen number in Settings', async () => {
+      const settings = await appSettingsRepositoryClient.get();
+      await appSettingsRepositoryClient.update({ ...settings, nextEstimateNumber: 50 });
+
+      expect(await generateEstimateNumber(2026)).toBe('050-26');
+      expect(await generateEstimateNumber(2026)).toBe('051-26');
     });
   });
 
@@ -76,10 +87,9 @@ describe('estimateService', () => {
     });
 
     it('refuses to create an estimate whose generated number already exists (SPECS.md §15)', async () => {
-      // Simulate corrupted/manually-edited data where a record's `year`
-      // field disagrees with its `estimateNumber` — generateEstimateNumber
-      // filters by `year`, so it won't see this record and will (wrongly)
-      // propose "001-26" again. createEstimate must still catch the clash.
+      // Simulate manually-seeded/imported data holding the number the
+      // shared counter is about to hand out next — createEstimate must
+      // still catch the clash rather than create a duplicate.
       await estimateRepositoryClient.create({
         ...baseEstimateInput,
         year: 2099,

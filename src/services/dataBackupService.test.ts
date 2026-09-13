@@ -27,7 +27,7 @@ const validBackup: AccountBackup = {
     },
     creationLocation: '',
   },
-  appSettings: { defaultTaxRate: 0 },
+  appSettings: { defaultTaxRate: 0, nextEstimateNumber: 1 },
 };
 
 describe('isAccountBackup', () => {

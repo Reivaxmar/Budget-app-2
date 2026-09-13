@@ -24,7 +24,7 @@ describe('EstimateEditorPage — inline customer creation and single save notifi
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(itemRepositoryClient.findMany).mockResolvedValue([]);
-    vi.mocked(appSettingsRepositoryClient.get).mockResolvedValue({ defaultTaxRate: 0 });
+    vi.mocked(appSettingsRepositoryClient.get).mockResolvedValue({ defaultTaxRate: 0, nextEstimateNumber: 1 });
   });
 
   describe('adding a customer inline (no customer selected)', () => {

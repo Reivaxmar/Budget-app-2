@@ -1,7 +1,9 @@
 // A4 portrait at 150 DPI (8.27in x 11.69in) — sharp enough to print without
-// bloating the PDF with a full-resolution photo.
-const A4_WIDTH_PX = 1240;
-const A4_HEIGHT_PX = 1754;
+// bloating the PDF with a full-resolution photo. Exported so
+// pdfBackgroundResize.ts (rasterizing a PDF background upload) targets the
+// exact same canvas size.
+export const A4_WIDTH_PX = 1240;
+export const A4_HEIGHT_PX = 1754;
 
 /**
  * Resizes an uploaded image to exactly fill an A4 page (cover-fit: scaled up

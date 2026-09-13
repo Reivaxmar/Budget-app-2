@@ -101,7 +101,12 @@
     "estimateDefaults": {
       "title": "Estimate defaults",
       "description": "Applied automatically when you create a new estimate.",
-      "defaultTaxRate": "Default tax rate (%):"
+      "defaultTaxRate": "Default tax rate (%):",
+      "nextEstimateNumber": "Next estimate number:",
+      "nextEstimateNumberHint": "The sequence number the next estimate you create will get. Keeps counting up forever — it never resets at the start of a new year.",
+      "errors": {
+        "saveFailed": "Failed to save. Please try again."
+      }
     },
     "itemCategories": {
       "title": "Item categories",
@@ -255,10 +260,10 @@
         "coverPage": "Cover page",
         "showCreationLocationDate": "Show creation location/date",
         "showSlogan": "Show slogan",
-        "coverBackgroundImage": "Cover (first page) background image:",
-        "pageBackgroundImage": "Background image for the rest of the pages:",
+        "coverBackgroundImage": "Cover (first page) background (image or PDF):",
+        "pageBackgroundImage": "Background for the rest of the pages (image or PDF):",
         "removeBackgroundImage": "Remove image",
-        "backgroundImageError": "Failed to process that image. Please try a different file.",
+        "backgroundImageError": "Failed to process that file. Please try a different image or PDF.",
         "header": "Header",
         "showEstimateNumberAndDate": "Show estimate number and date",
         "footer": "Footer",
@@ -297,6 +302,9 @@
     "intro": "This identity and these defaults appear on every exported estimate PDF: the cover, the repeating header/footer, and the final page.",
     "saved": "Saved.",
     "saving": "Saving…",
+    "errors": {
+      "saveFailed": "Failed to save. Please try again."
+    },
     "sections": {
       "identity": "Company identity",
       "documentDefaults": "Document defaults"

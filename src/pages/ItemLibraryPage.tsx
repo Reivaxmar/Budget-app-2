@@ -107,7 +107,12 @@ const ItemLibraryPage: React.FC = () => {
       setFormVisible(false);
       await loadItems();
     } catch (err) {
-      console.error('Failed to save item:', err);
+      console.error('Failed to save item:', {
+        isEditing,
+        itemId: selectedItem?.id,
+        formData,
+        error: err,
+      });
       notify(t('itemLibrary.errors.saveFailed'), 'error');
     }
   };

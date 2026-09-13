@@ -333,7 +333,7 @@ const EstimateEditorPage: React.FC = () => {
       setCustomerModalOpen(false);
       notify(t('estimateEditor.customerCreated'), 'success');
     } catch (err) {
-      console.error('Failed to create customer:', err);
+      console.error('Failed to create customer:', { customerForm, error: err });
       notify(t('customers.errors.saveFailed'), 'error');
     }
   };
@@ -351,12 +351,10 @@ const EstimateEditorPage: React.FC = () => {
     try {
       // If estimate.id is empty, we are creating a new estimate
       if (!estimate.id) {
-        // Generate estimate number
-        const estimateNumber = await estimateService.generateEstimateNumber(estimate.year);
-        const estimateToCreate = {
-          ...estimate,
-          estimateNumber,
-        } as Omit<Estimate, 'id' | 'estimateNumber'>;
+        // createEstimate generates (and consumes) the estimate number
+        // itself — generating one here too would burn two numbers from the
+        // counter for a single estimate.
+        const estimateToCreate = estimate as Omit<Estimate, 'id' | 'estimateNumber'>;
         const created = await estimateService.createEstimate(estimateToCreate);
         setEstimate((prev) => {
           if (!prev) return estimate; // This shouldn't happen due to the check above, but for type safety
@@ -380,7 +378,15 @@ const EstimateEditorPage: React.FC = () => {
       }
       return true;
     } catch (err) {
-      console.error('Failed to save estimate header:', err);
+      console.error('Failed to save estimate header:', {
+        isCreating: !estimate.id,
+        estimateId: estimate.id,
+        year: estimate.year,
+        customerId: estimate.customerId,
+        subject: estimate.subject,
+        templateId: estimate.templateId,
+        error: err,
+      });
       notify(t('estimateEditor.errors.saveHeaderFailed'), 'error');
       return false;
     }
@@ -465,7 +471,12 @@ const EstimateEditorPage: React.FC = () => {
       setChapters((prev) => [...prev].sort((a, b) => a.order - b.order));
       closeChapterModal();
     } catch (err) {
-      console.error('Failed to save chapter:', err);
+      console.error('Failed to save chapter:', {
+        estimateId: estimate.id,
+        editingChapterId,
+        chapterForm,
+        error: err,
+      });
       notify(t('estimateEditor.errors.saveChapterFailed'), 'error');
     }
   };
@@ -597,6 +608,7 @@ const EstimateEditorPage: React.FC = () => {
       setLineItemCategoryId(created.id);
       setNewCategoryName('');
     } catch (err) {
+      console.error('Failed to create item category:', { newCategoryName, error: err });
       notify(
         err instanceof Error ? err.message : t('settings.itemCategories.errors.saveFailed'),
         'error'
@@ -718,7 +730,12 @@ const EstimateEditorPage: React.FC = () => {
 
       closeLineItemModal();
     } catch (err) {
-      console.error('Failed to save line item:', err);
+      console.error('Failed to save line item:', {
+        chapterId: activeChapterIdForLineItem,
+        editingLineItemId,
+        lineItemForm,
+        error: err,
+      });
       notify(t('estimateEditor.errors.saveLineItemFailed'), 'error');
     }
   };

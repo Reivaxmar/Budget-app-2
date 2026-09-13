@@ -112,7 +112,12 @@ const CustomersPage: React.FC = () => {
       setFormVisible(false);
       await loadCustomers();
     } catch (err) {
-      console.error('Failed to save customer:', err);
+      console.error('Failed to save customer:', {
+        isEditing,
+        customerId: selectedCustomer?.id,
+        formData,
+        error: err,
+      });
       notify(t('customers.errors.saveFailed'), 'error');
     }
   };

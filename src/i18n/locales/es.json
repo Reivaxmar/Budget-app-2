@@ -101,7 +101,12 @@
     "estimateDefaults": {
       "title": "Valores predeterminados del presupuesto",
       "description": "Se aplican automáticamente al crear un nuevo presupuesto.",
-      "defaultTaxRate": "Tasa de IVA predeterminada (%):"
+      "defaultTaxRate": "Tasa de IVA predeterminada (%):",
+      "nextEstimateNumber": "Próximo número de presupuesto:",
+      "nextEstimateNumberHint": "El número de secuencia que recibirá el próximo presupuesto que crees. Sigue aumentando sin fin — nunca se reinicia al empezar un año nuevo.",
+      "errors": {
+        "saveFailed": "No se pudo guardar. Inténtalo de nuevo."
+      }
     },
     "itemCategories": {
       "title": "Categorías de artículos",
@@ -255,10 +260,10 @@
         "coverPage": "Portada",
         "showCreationLocationDate": "Mostrar lugar/fecha de creación",
         "showSlogan": "Mostrar eslogan",
-        "coverBackgroundImage": "Imagen de fondo de la portada (primera página):",
-        "pageBackgroundImage": "Imagen de fondo para el resto de páginas:",
+        "coverBackgroundImage": "Fondo de la portada (primera página) (imagen o PDF):",
+        "pageBackgroundImage": "Fondo para el resto de páginas (imagen o PDF):",
         "removeBackgroundImage": "Quitar imagen",
-        "backgroundImageError": "No se pudo procesar esa imagen. Prueba con otro archivo.",
+        "backgroundImageError": "No se pudo procesar ese archivo. Prueba con otra imagen o PDF.",
         "header": "Cabecera",
         "showEstimateNumberAndDate": "Mostrar número de presupuesto y fecha",
         "footer": "Pie de página",
@@ -297,6 +302,9 @@
     "intro": "Esta identidad y estos valores predeterminados aparecen en cada presupuesto exportado a PDF: la portada, la cabecera/pie repetidos y la última página.",
     "saved": "Guardado.",
     "saving": "Guardando…",
+    "errors": {
+      "saveFailed": "No se pudo guardar. Inténtalo de nuevo."
+    },
     "sections": {
       "identity": "Identidad de la empresa",
       "documentDefaults": "Valores predeterminados del documento"
