@@ -67,6 +67,20 @@
   font-variant-numeric: tabular-nums;
 }
 
+.pdf-viewer-print-button {
+  background-color: var(--button-background);
+  color: var(--button-text);
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pdf-viewer-print-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* Plain block layout (not flex) so page canvases can be centered with
    `margin: 0 auto` while still scrolling correctly in both directions once
    zoomed content is wider than the container — centering via flexbox
@@ -95,5 +109,63 @@
   .modal-content.pdf-viewer-content {
     width: 100%;
     padding: 0.75rem;
+  }
+}
+
+/* Printing the viewer prints only the rendered page canvases, one per sheet
+   of paper, at full size — not the modal chrome (title, zoom/print/close
+   buttons) or the dimmed backdrop behind it. `overflow: visible` on the
+   scroll container matters: browsers still clip an `overflow: auto`
+   element's offscreen content when printing, so without it only whatever
+   happened to be scrolled into view would print. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .pdf-viewer-pages,
+  .pdf-viewer-pages * {
+    visibility: visible;
+  }
+
+  .pdf-viewer-header {
+    display: none;
+  }
+
+  .modal-overlay.pdf-viewer-overlay {
+    position: static;
+    background: none;
+    padding: 0;
+    display: block;
+    overflow: visible;
+  }
+
+  .modal-content.pdf-viewer-content {
+    width: auto;
+    max-width: none;
+    max-height: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .pdf-viewer-pages {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: visible;
+    background: none;
+    padding: 0;
+  }
+
+  .pdf-viewer-page {
+    width: 100% !important;
+    height: auto !important;
+    margin: 0;
+    box-shadow: none;
+    page-break-after: always;
+  }
+
+  .pdf-viewer-page:last-child {
+    page-break-after: auto;
   }
 }

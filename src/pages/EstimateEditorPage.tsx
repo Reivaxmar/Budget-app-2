@@ -16,6 +16,7 @@ import { Estimate, Chapter, Item, ItemCategory, LineItem, Customer, Template } f
 import { notify } from '../notifications';
 import { closeOnOverlayClick } from '../utils/modal';
 import { PhoneNumberInput } from '../components/PhoneNumberInput';
+import { PdfViewerModal } from '../components/PdfViewerModal';
 import {
   emptyFormState,
   formStateToTemplateConfig,
@@ -38,6 +39,10 @@ const EstimateEditorPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [exportingPdf, setExportingPdf] = useState<boolean>(false);
+  const [previewingPdf, setPreviewingPdf] = useState<boolean>(false);
+  const [printingPdf, setPrintingPdf] = useState<boolean>(false);
+  const [pdfPreviewBlob, setPdfPreviewBlob] = useState<Blob | null>(null);
+  const [autoPrintPdfPreview, setAutoPrintPdfPreview] = useState<boolean>(false);
 
   // Modal states
   const [chapterModalOpen, setChapterModalOpen] = useState<boolean>(false);
@@ -407,6 +412,42 @@ const EstimateEditorPage: React.FC = () => {
       notify(err instanceof Error ? err.message : t('estimateEditor.errors.exportFailed'), 'error');
     } finally {
       setExportingPdf(false);
+    }
+  };
+
+  const handlePreviewPdf = async () => {
+    if (!estimate?.id) return;
+    setPreviewingPdf(true);
+    try {
+      // Same dynamic import as handleExportPdf, for the same reason — keep
+      // react-pdf out of this page's eagerly-loaded main bundle.
+      const { buildEstimatePdfBlob } = await import('../services/pdfExportService');
+      const blob = await buildEstimatePdfBlob(estimate.id);
+      setAutoPrintPdfPreview(false);
+      setPdfPreviewBlob(blob);
+    } catch (err) {
+      console.error('Failed to preview PDF:', err);
+      notify(err instanceof Error ? err.message : t('estimateEditor.errors.previewFailed'), 'error');
+    } finally {
+      setPreviewingPdf(false);
+    }
+  };
+
+  const handlePrintPdf = async () => {
+    if (!estimate?.id) return;
+    setPrintingPdf(true);
+    try {
+      const { buildEstimatePdfBlob } = await import('../services/pdfExportService');
+      const blob = await buildEstimatePdfBlob(estimate.id);
+      // Opens the same in-app viewer as Preview, but tells it to jump
+      // straight into the print dialog once the pages are rendered.
+      setAutoPrintPdfPreview(true);
+      setPdfPreviewBlob(blob);
+    } catch (err) {
+      console.error('Failed to prepare PDF for printing:', err);
+      notify(err instanceof Error ? err.message : t('estimateEditor.errors.printFailed'), 'error');
+    } finally {
+      setPrintingPdf(false);
     }
   };
 
@@ -873,9 +914,17 @@ const EstimateEditorPage: React.FC = () => {
           {t('estimateEditor.saveEstimate')}
         </button>
         {estimate.id && (
-          <button onClick={handleExportPdf} className="add-button" disabled={exportingPdf}>
-            {exportingPdf ? t('estimateEditor.exporting') : t('estimateEditor.exportPdf')}
-          </button>
+          <>
+            <button onClick={handlePreviewPdf} className="add-button" disabled={previewingPdf}>
+              {previewingPdf ? t('estimateEditor.previewingPdf') : t('estimateEditor.previewPdf')}
+            </button>
+            <button onClick={handlePrintPdf} className="add-button" disabled={printingPdf}>
+              {printingPdf ? t('estimateEditor.printingPdf') : t('estimateEditor.printPdf')}
+            </button>
+            <button onClick={handleExportPdf} className="add-button" disabled={exportingPdf}>
+              {exportingPdf ? t('estimateEditor.exporting') : t('estimateEditor.exportPdf')}
+            </button>
+          </>
         )}
         <button
           onClick={handleDeleteEstimate}
@@ -1361,6 +1410,22 @@ const EstimateEditorPage: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* In-app PDF viewer, shared by "Preview" and "Print" — the latter just
+          sets autoPrintPdfPreview so it jumps straight into the print dialog
+          once rendering finishes. */}
+      {pdfPreviewBlob && (
+        <PdfViewerModal
+          blob={pdfPreviewBlob}
+          title={
+            estimate.id
+              ? t('estimateEditor.titleEdit', { number: estimate.estimateNumber })
+              : t('estimateEditor.titleNew')
+          }
+          onClose={() => setPdfPreviewBlob(null)}
+          autoPrint={autoPrintPdfPreview}
+        />
       )}
 
       {/* "Edit template" modal — full template editor, but scoped to this estimate only */}

@@ -54,7 +54,8 @@
     "loadError": "No se pudo mostrar la vista previa del PDF. Inténtalo de nuevo.",
     "zoomGroupLabel": "Zoom",
     "zoomIn": "Acercar",
-    "zoomOut": "Alejar"
+    "zoomOut": "Alejar",
+    "print": "Imprimir"
   },
   "dashboard": {
     "title": "Panel",
@@ -397,6 +398,10 @@
     "titleNew": "Nuevo presupuesto",
     "backToList": "Volver al listado",
     "saveEstimate": "Guardar presupuesto",
+    "previewPdf": "Vista previa",
+    "previewingPdf": "Generando vista previa…",
+    "printPdf": "Imprimir",
+    "printingPdf": "Preparando…",
     "exportPdf": "Exportar PDF",
     "exporting": "Exportando…",
     "deleteEstimate": "Eliminar presupuesto",
@@ -474,6 +479,8 @@
       "customerSubjectRequired": "El cliente y el asunto son obligatorios.",
       "saveHeaderFailed": "No se pudo guardar la cabecera del presupuesto.",
       "exportFailed": "No se pudo exportar el PDF.",
+      "previewFailed": "No se pudo generar la vista previa. Inténtalo de nuevo.",
+      "printFailed": "No se pudo preparar el PDF para imprimir. Inténtalo de nuevo.",
       "saveEstimateBeforeChapters": "Guarda la cabecera del presupuesto antes de añadir capítulos.",
       "chapterTitleRequired": "El título del capítulo es obligatorio.",
       "saveChapterFailed": "No se pudo guardar el capítulo.",

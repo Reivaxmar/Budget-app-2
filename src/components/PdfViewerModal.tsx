@@ -19,6 +19,10 @@ export interface PdfViewerModalProps {
   blob: Blob;
   title: string;
   onClose: () => void;
+  /** Open the browser's print dialog as soon as this blob's pages finish
+   * rendering — for a "Print" action that opens straight into the print
+   * flow rather than requiring an extra click once the viewer is up. */
+  autoPrint?: boolean;
 }
 
 /**
@@ -30,11 +34,12 @@ export interface PdfViewerModalProps {
  * the packaged Tauri app (whose native webview can't be relied on to offer
  * its own inline PDF viewer on every platform).
  */
-export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ blob, title, onClose }) => {
+export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ blob, title, onClose, autoPrint = false }) => {
   const { t } = useTranslation();
   const pagesContainerRef = React.useRef<HTMLDivElement>(null);
   const [status, setStatus] = React.useState<'loading' | 'ready' | 'error'>('loading');
   const [zoom, setZoom] = React.useState(1);
+  const autoPrintedBlobRef = React.useRef<Blob | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -118,6 +123,16 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ blob, title, onC
   const zoomIn = () => setZoom((z) => Math.min(MAX_ZOOM, Math.round((z + ZOOM_STEP) * 100) / 100));
   const zoomOut = () => setZoom((z) => Math.max(MIN_ZOOM, Math.round((z - ZOOM_STEP) * 100) / 100));
 
+  // Fires once per blob (not once per render/effect run) so re-opening the
+  // viewer for a *new* PDF with autoPrint still prints, but a re-render
+  // while the same PDF is already open doesn't reopen the print dialog.
+  React.useEffect(() => {
+    if (status === 'ready' && autoPrint && autoPrintedBlobRef.current !== blob) {
+      autoPrintedBlobRef.current = blob;
+      window.print();
+    }
+  }, [status, autoPrint, blob]);
+
   return (
     <div className="modal-overlay pdf-viewer-overlay" onClick={closeOnOverlayClick(onClose)}>
       <div className="modal-content pdf-viewer-content">
@@ -145,6 +160,14 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ blob, title, onC
                 +
               </button>
             </div>
+            <button
+              type="button"
+              className="pdf-viewer-print-button"
+              onClick={() => window.print()}
+              disabled={status !== 'ready'}
+            >
+              {t('pdfViewer.print')}
+            </button>
             <button type="button" className="cancel-button" onClick={onClose}>
               {t('common.close')}
             </button>

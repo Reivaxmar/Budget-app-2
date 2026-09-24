@@ -26,23 +26,16 @@ export interface ExportEstimatePdfOptions {
 }
 
 /**
- * Builds the PDF for a real, persisted estimate (SPECS.md §10 Export PDF)
- * and asks the user where to save it. Uses the given template, or the
- * user's default template when none is specified.
+ * Builds the PDF for a real, persisted estimate (SPECS.md §10 Export PDF),
+ * as a Blob — used both for the actual "Export PDF" download and for the
+ * in-app "Preview"/"Print" actions, which never write anything to disk.
+ * Uses the given template, or the estimate's own/the user's default
+ * template when none is specified.
  */
-export async function exportEstimatePdf(
+export async function buildEstimatePdfBlob(
   estimateId: string,
-  { template, estimateNumber }: ExportEstimatePdfOptions = {}
-): Promise<void> {
-  const filename = `estimate-${estimateNumber || estimateId}.pdf`;
-
-  // Resolved before any of the (potentially slow, cold-import) PDF-building
-  // work — see resolveSaveDestination's own doc comment for why.
-  const destination = await resolveSaveDestination(filename, [{ name: 'PDF', extensions: ['pdf'] }]);
-  if (!destination) {
-    return;
-  }
-
+  { template }: Pick<ExportEstimatePdfOptions, 'template'> = {}
+): Promise<Blob> {
   const [{ buildEstimateDocumentData }, { generateEstimatePdfBlob }, { templateService }] =
     await Promise.all([
       import('./documentDataService'),
@@ -60,11 +53,31 @@ export async function exportEstimatePdf(
     : null;
   const resolvedTemplate = template ?? estimateTemplate ?? (await templateService.getDefaultTemplate());
   const effectiveTemplate = applyTemplateOverrides(resolvedTemplate, data.estimate.templateOverrides);
-  const blob = await generateEstimatePdfBlob(data, effectiveTemplate);
+  return generateEstimatePdfBlob(data, effectiveTemplate);
+}
 
+/**
+ * Builds the PDF for a real, persisted estimate and asks the user where to
+ * save it. See {@link buildEstimatePdfBlob} for the actual rendering.
+ */
+export async function exportEstimatePdf(
+  estimateId: string,
+  { template, estimateNumber }: ExportEstimatePdfOptions = {}
+): Promise<void> {
+  const filename = `estimate-${estimateNumber || estimateId}.pdf`;
+
+  // Resolved before any of the (potentially slow, cold-import) PDF-building
+  // work — see resolveSaveDestination's own doc comment for why.
+  const destination = await resolveSaveDestination(filename, [{ name: 'PDF', extensions: ['pdf'] }]);
+  if (!destination) {
+    return;
+  }
+
+  const blob = await buildEstimatePdfBlob(estimateId, { template });
   await destination.write(blob);
 }
 
 export const pdfExportService = {
+  buildEstimatePdfBlob,
   exportEstimatePdf,
 };
