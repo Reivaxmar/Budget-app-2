@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { exportEstimatePdf } from './pdfExportService';
+import { buildEstimatePdfBlob, exportEstimatePdf } from './pdfExportService';
 import { buildEstimateDocumentData } from './documentDataService';
 import { generateEstimatePdfBlob } from './pdfService';
 import { templateService } from './templateService';
@@ -19,6 +19,68 @@ const sampleData = {
 } as unknown as EstimateDocumentData;
 
 const sampleTemplate = { id: 'template-1', name: 'Standard' } as unknown as Template;
+
+describe('buildEstimatePdfBlob', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(buildEstimateDocumentData).mockResolvedValue(sampleData);
+    vi.mocked(generateEstimatePdfBlob).mockResolvedValue(new Blob(['pdf-bytes']));
+    vi.mocked(templateService.getDefaultTemplate).mockResolvedValue(sampleTemplate);
+  });
+
+  it('builds document data for the given estimate and renders it with the default template, without any save dialog', async () => {
+    const blob = await buildEstimatePdfBlob('estimate-1');
+
+    expect(blob).toBeInstanceOf(Blob);
+    expect(buildEstimateDocumentData).toHaveBeenCalledWith('estimate-1');
+    expect(templateService.getDefaultTemplate).toHaveBeenCalled();
+    expect(generateEstimatePdfBlob).toHaveBeenCalledWith(sampleData, sampleTemplate);
+  });
+
+  it('uses the estimate’s own chosen template over the default one', async () => {
+    const estimateTemplate = { id: 'template-2', name: 'Compact' } as unknown as Template;
+    vi.mocked(buildEstimateDocumentData).mockResolvedValue({
+      estimate: { id: 'estimate-1', estimateNumber: '001-26', templateId: 'template-2' },
+    } as unknown as EstimateDocumentData);
+    vi.mocked(templateService.getTemplate).mockResolvedValue(estimateTemplate);
+
+    await buildEstimatePdfBlob('estimate-1');
+
+    expect(templateService.getTemplate).toHaveBeenCalledWith('template-2');
+    expect(templateService.getDefaultTemplate).not.toHaveBeenCalled();
+    expect(generateEstimatePdfBlob).toHaveBeenCalledWith(expect.anything(), estimateTemplate);
+  });
+
+  it('uses an explicitly given template instead of the estimate’s own or the default', async () => {
+    const customTemplate = { id: 'template-3', name: 'Custom' } as unknown as Template;
+
+    await buildEstimatePdfBlob('estimate-1', { template: customTemplate });
+
+    expect(templateService.getDefaultTemplate).not.toHaveBeenCalled();
+    expect(generateEstimatePdfBlob).toHaveBeenCalledWith(sampleData, customTemplate);
+  });
+
+  it('swaps in the estimate’s own full template override in place of the resolved template’s config', async () => {
+    const overrideConfig = {
+      colors: { text: '#0000ff', muted: '#cccccc', tableHeaderBackground: '#111111', borderColor: '#222222' },
+      typography: { fontFamily: 'Courier', baseFontSize: 10, titleFontSize: 24, headingFontSize: 14 },
+    };
+    vi.mocked(buildEstimateDocumentData).mockResolvedValue({
+      estimate: { id: 'estimate-1', estimateNumber: '001-26', templateOverrides: overrideConfig },
+    } as unknown as EstimateDocumentData);
+
+    await buildEstimatePdfBlob('estimate-1');
+
+    expect(generateEstimatePdfBlob).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        id: sampleTemplate.id,
+        colors: overrideConfig.colors,
+        typography: overrideConfig.typography,
+      })
+    );
+  });
+});
 
 describe('exportEstimatePdf', () => {
   let clickSpy: ReturnType<typeof vi.fn>;

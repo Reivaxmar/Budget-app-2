@@ -54,8 +54,7 @@
     "loadError": "Failed to display the PDF preview. Please try again.",
     "zoomGroupLabel": "Zoom",
     "zoomIn": "Zoom in",
-    "zoomOut": "Zoom out",
-    "print": "Print"
+    "zoomOut": "Zoom out"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -400,8 +399,6 @@
     "saveEstimate": "Save Estimate",
     "previewPdf": "Preview",
     "previewingPdf": "Generating preview…",
-    "printPdf": "Print",
-    "printingPdf": "Preparing…",
     "exportPdf": "Export PDF",
     "exporting": "Exporting…",
     "deleteEstimate": "Delete Estimate",
@@ -480,7 +477,6 @@
       "saveHeaderFailed": "Failed to save estimate header.",
       "exportFailed": "Failed to export PDF.",
       "previewFailed": "Failed to generate the preview. Please try again.",
-      "printFailed": "Failed to prepare the PDF for printing. Please try again.",
       "saveEstimateBeforeChapters": "Save the estimate header before adding chapters.",
       "chapterTitleRequired": "Chapter title is required.",
       "saveChapterFailed": "Failed to save chapter.",
