@@ -478,10 +478,21 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
           ))}
 
         {/* `break` unconditionally starts a new page before this section —
-            the total/note/signature always get their own page, even when
-            there'd be room to fit them after the last chapter. */}
-        <View style={styles.finalSection} wrap={false} break>
-          <View style={styles.totalBlock}>
+            the conditions/total/signature always start on their own page,
+            even when there'd be room to fit them after the last chapter.
+            The section itself stays wrappable (no `wrap={false}` here) so a
+            long conditions text can flow across as many pages as it needs;
+            conditions, total and signature simply follow one another in a
+            single flow with no further intentional page split between them.
+            Only the small, must-stay-together blocks (total, signature) are
+            themselves non-splittable. */}
+        <View style={styles.finalSection} break>
+          <View style={styles.standardNoteBlock}>
+            <Text style={styles.standardNoteTitle}>{standardNote.title}</Text>
+            <Text style={styles.standardNoteContent}>{standardNote.content}</Text>
+          </View>
+
+          <View style={styles.totalBlock} wrap={false}>
             <View style={styles.totalRow}>
               <Text>{template.finalPage.totalLabel}</Text>
               <Text>{formatCurrency(total)}</Text>
@@ -489,12 +500,7 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
             <Text style={styles.totalCaption}>{i18n.t('rendering.totalCaption')}</Text>
           </View>
 
-          <View style={styles.standardNoteBlock}>
-            <Text style={styles.standardNoteTitle}>{standardNote.title}</Text>
-            <Text style={styles.standardNoteContent}>{standardNote.content}</Text>
-          </View>
-
-          <View style={styles.signatureBlock}>
+          <View style={styles.signatureBlock} wrap={false}>
             <View style={styles.signatureBox}>
               <Text style={styles.signatureLabel}>{template.finalPage.signatureLabel}</Text>
               <Text style={styles.signatureLine}>{customer.name}</Text>
