@@ -228,6 +228,24 @@ td {
   gap: 1rem;
 }
 
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.modal-title-row h2 {
+  margin: 0;
+}
+
+.template-preview-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .template-form fieldset {
   border: 1px solid var(--fieldset-border);
   border-radius: 6px;

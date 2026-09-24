@@ -1,0 +1,99 @@
+/* `.modal-content.pdf-viewer-content` (not plain `.pdf-viewer-content`):
+   every page that opens a modal (Customers/Estimates/ItemLibrary/Templates)
+   defines its own plain `.modal-content { width: 400px }` rule at the same
+   specificity — see TemplatesPage.css's own note on `.template-modal-
+   content` for this exact problem — so with equal specificity, whichever
+   stylesheet Vite happens to bundle last would otherwise silently win and
+   cap this modal back down to 400px regardless of what's set here. The
+   compound selector's higher specificity always wins instead. */
+.modal-content.pdf-viewer-content {
+  width: 98vw;
+  max-width: 98vw;
+  max-height: 96vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.5rem 1.5rem;
+}
+
+.pdf-viewer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.pdf-viewer-header h2 {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pdf-viewer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.pdf-viewer-zoom {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pdf-viewer-zoom-button {
+  background-color: var(--button-edit-background);
+  color: var(--button-edit-text);
+  border: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  line-height: 1;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.pdf-viewer-zoom-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pdf-viewer-zoom-level {
+  min-width: 3.25rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Plain block layout (not flex) so page canvases can be centered with
+   `margin: 0 auto` while still scrolling correctly in both directions once
+   zoomed content is wider than the container — centering via flexbox
+   align-items on an overflowing container clips the far side instead of
+   scrolling to it in most browsers. */
+.pdf-viewer-pages {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--table-header-border, #ccc);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.pdf-viewer-page {
+  display: block;
+  margin: 0 auto 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  background-color: #fff;
+}
+
+.pdf-viewer-page:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 700px) {
+  .modal-content.pdf-viewer-content {
+    width: 100%;
+    padding: 0.75rem;
+  }
+}

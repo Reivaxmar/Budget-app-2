@@ -47,7 +47,14 @@
     "create": "Create",
     "update": "Update",
     "save": "Save",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "close": "Close"
+  },
+  "pdfViewer": {
+    "loadError": "Failed to display the PDF preview. Please try again.",
+    "zoomGroupLabel": "Zoom",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -246,6 +253,9 @@
         "preview": "Preview",
         "previewing": "Generating preview…",
         "previewError": "Failed to generate the preview. Please try again.",
+        "downloadPreview": "Download preview",
+        "downloadingPreview": "Downloading…",
+        "downloadPreviewError": "Failed to download the preview. Please try again.",
         "name": "Name",
         "templateName": "Template name:",
         "pageLayout": "Page layout",

@@ -47,7 +47,14 @@
     "create": "Crear",
     "update": "Actualizar",
     "save": "Guardar",
-    "dismiss": "Descartar"
+    "dismiss": "Descartar",
+    "close": "Cerrar"
+  },
+  "pdfViewer": {
+    "loadError": "No se pudo mostrar la vista previa del PDF. Inténtalo de nuevo.",
+    "zoomGroupLabel": "Zoom",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar"
   },
   "dashboard": {
     "title": "Panel",
@@ -246,6 +253,9 @@
         "preview": "Vista previa",
         "previewing": "Generando vista previa…",
         "previewError": "No se pudo generar la vista previa. Inténtalo de nuevo.",
+        "downloadPreview": "Descargar vista previa",
+        "downloadingPreview": "Descargando…",
+        "downloadPreviewError": "No se pudo descargar la vista previa. Inténtalo de nuevo.",
         "name": "Nombre",
         "templateName": "Nombre de la plantilla:",
         "pageLayout": "Maquetación de página",

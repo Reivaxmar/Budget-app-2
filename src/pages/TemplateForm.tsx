@@ -4,6 +4,7 @@ import { defaultDocumentTemplate } from '../rendering/templateConfig';
 import { resizeImageToA4 } from '../utils/imageResize';
 import { resizePdfToA4 } from '../utils/pdfBackgroundResize';
 import { notify } from '../notifications';
+import { PdfViewerModal } from '../components/PdfViewerModal';
 import type { Template, TemplateConfig, TableColumnKey, CoverPosition } from '../domain/models';
 
 export const COVER_POSITIONS: CoverPosition[] = [
@@ -239,6 +240,75 @@ export function formStateToTemplateData(form: TemplateFormState): Omit<Template,
   return { name: form.name.trim(), ...formStateToTemplateConfig(form) };
 }
 
+export interface TemplatePreviewActionsProps {
+  /** Whatever is currently in the form, including unsaved edits — the whole
+   * point is checking a change before committing to it, not requiring a
+   * save first. */
+  formData: TemplateFormState;
+}
+
+/**
+ * "Preview"/"Download preview" buttons for a template being edited, meant to
+ * sit alongside the modal's own title rather than inside the scrollable
+ * field list (TemplateFormFields) below it. Preview opens the generated PDF
+ * directly in the in-app viewer (PdfViewerModal) without writing anything to
+ * disk; "Download preview" keeps the previous save-to-disk behavior for
+ * anyone who wants a copy.
+ */
+export const TemplatePreviewActions: React.FC<TemplatePreviewActionsProps> = ({ formData }) => {
+  const { t } = useTranslation();
+  const [previewing, setPreviewing] = React.useState(false);
+  const [downloading, setDownloading] = React.useState(false);
+  const [previewBlob, setPreviewBlob] = React.useState<Blob | null>(null);
+
+  const handlePreview = async () => {
+    setPreviewing(true);
+    try {
+      const { buildTemplatePreviewBlob } = await import('../services/templatePreviewService');
+      const blob = await buildTemplatePreviewBlob(formStateToTemplateConfig(formData));
+      setPreviewBlob(blob);
+    } catch (err) {
+      console.error('Failed to preview template:', { formData, error: err });
+      notify(err instanceof Error ? err.message : t('templates.modal.sections.previewError'), 'error');
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const { downloadTemplatePreview } = await import('../services/templatePreviewService');
+      await downloadTemplatePreview(formStateToTemplateConfig(formData), formData.name);
+    } catch (err) {
+      console.error('Failed to download template preview:', { formData, error: err });
+      notify(err instanceof Error ? err.message : t('templates.modal.sections.downloadPreviewError'), 'error');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <div className="template-preview-actions">
+      <button type="button" className="add-button" onClick={handlePreview} disabled={previewing}>
+        {previewing ? t('templates.modal.sections.previewing') : t('templates.modal.sections.preview')}
+      </button>
+      <button type="button" className="add-button" onClick={handleDownload} disabled={downloading}>
+        {downloading
+          ? t('templates.modal.sections.downloadingPreview')
+          : t('templates.modal.sections.downloadPreview')}
+      </button>
+      {previewBlob && (
+        <PdfViewerModal
+          blob={previewBlob}
+          title={formData.name.trim() || t('templates.modal.sections.preview')}
+          onClose={() => setPreviewBlob(null)}
+        />
+      )}
+    </div>
+  );
+};
+
 interface TemplateFormFieldsProps {
   formData: TemplateFormState;
   setFormData: React.Dispatch<React.SetStateAction<TemplateFormState>>;
@@ -252,23 +322,6 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
   showNameField = true,
 }) => {
   const { t } = useTranslation();
-  const [previewing, setPreviewing] = React.useState(false);
-
-  const handlePreview = async () => {
-    setPreviewing(true);
-    try {
-      // Previews whatever is currently in the form, including unsaved
-      // edits — the whole point is checking a change before committing to
-      // it, not requiring a save first.
-      const { previewTemplate } = await import('../services/templatePreviewService');
-      await previewTemplate(formStateToTemplateConfig(formData), formData.name);
-    } catch (err) {
-      console.error('Failed to preview template:', { formData, error: err });
-      notify(err instanceof Error ? err.message : t('templates.modal.sections.previewError'), 'error');
-    } finally {
-      setPreviewing(false);
-    }
-  };
 
   const handleColumnToggle = (key: TableColumnKey) => {
     setFormData((prev) => ({
@@ -344,11 +397,6 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
 
   return (
     <>
-      <div className="form-actions template-preview-action">
-        <button type="button" className="add-button" onClick={handlePreview} disabled={previewing}>
-          {previewing ? t('templates.modal.sections.previewing') : t('templates.modal.sections.preview')}
-        </button>
-      </div>
       {showNameField && (
         <fieldset>
           <legend>{t('templates.modal.sections.name')}</legend>

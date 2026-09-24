@@ -22,6 +22,7 @@ import {
   templateToFormState,
   TemplateFormFields,
   TemplateFormState,
+  TemplatePreviewActions,
 } from './TemplateForm';
 import './EstimatesPage.css';
 import './TemplatesPage.css';
@@ -1366,7 +1367,10 @@ const EstimateEditorPage: React.FC = () => {
       {templateModalOpen && (
         <div className="modal-overlay" onClick={closeOnOverlayClick(closeTemplateModal)}>
           <div className="modal-content template-modal-content">
-            <h2>{t('estimateEditor.templateModal.title')}</h2>
+            <div className="modal-title-row">
+              <h2>{t('estimateEditor.templateModal.title')}</h2>
+              <TemplatePreviewActions formData={templateFormData} />
+            </div>
             <p className="estimate-appearance-hint">{t('estimateEditor.templateModal.hint')}</p>
             <form onSubmit={handleSaveTemplateOverride} className="template-form">
               <TemplateFormFields formData={templateFormData} setFormData={setTemplateFormData} showNameField={false} />

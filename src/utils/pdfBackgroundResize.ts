@@ -3,14 +3,8 @@
 // user can pick a PDF (e.g. a vector letterhead exported from a design tool)
 // as a cover/page background exactly like an image, and the rendering
 // pipeline (EstimateDocument.tsx) never needs to know the difference.
-import * as pdfjsLib from 'pdfjs-dist';
-// Vite's `?url` import resolves to the built worker script's URL, which is
-// exactly what GlobalWorkerOptions.workerSrc expects (pdf.js constructs the
-// worker itself via `new Worker(workerSrc, { type: 'module' })`).
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { pdfjsLib, PDFJS_STANDARD_FONT_DATA_URL } from './pdfjsConfig';
 import { A4_WIDTH_PX, A4_HEIGHT_PX } from './imageResize';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
 
 /**
  * Renders page 1 of an uploaded PDF onto an A4 canvas (cover-fit: scaled up
@@ -20,7 +14,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc;
  */
 export async function resizePdfToA4(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pdf = await pdfjsLib.getDocument({
+    data: arrayBuffer,
+    standardFontDataUrl: PDFJS_STANDARD_FONT_DATA_URL,
+  }).promise;
   const page = await pdf.getPage(1);
 
   const baseViewport = page.getViewport({ scale: 1 });

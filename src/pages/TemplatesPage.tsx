@@ -10,6 +10,7 @@ import {
   templateToFormState,
   TemplateFormFields,
   TemplateFormState,
+  TemplatePreviewActions,
 } from './TemplateForm';
 import './TemplatesPage.css';
 
@@ -190,7 +191,10 @@ const TemplatesPage: React.FC = () => {
       {formVisible && (
         <div className="modal-overlay" onClick={closeOnOverlayClick(() => setFormVisible(false))}>
           <div className="modal-content template-modal-content">
-            <h2>{editingId ? t('templates.modal.editTitle') : t('templates.modal.newTitle')}</h2>
+            <div className="modal-title-row">
+              <h2>{editingId ? t('templates.modal.editTitle') : t('templates.modal.newTitle')}</h2>
+              <TemplatePreviewActions formData={formData} />
+            </div>
             <form onSubmit={handleSaveTemplate} className="template-form">
               <TemplateFormFields formData={formData} setFormData={setFormData} />
 
