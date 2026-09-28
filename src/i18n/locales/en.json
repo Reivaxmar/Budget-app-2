@@ -190,7 +190,7 @@
     },
     "errors": {
       "loadFailed": "Failed to load customers. Please try again.",
-      "requiredFields": "Name, address, and email are required.",
+      "requiredFields": "Name and address are required.",
       "invalidEmail": "Please enter a valid email address.",
       "saveFailed": "Failed to save customer. Please try again.",
       "deleteFailed": "Failed to delete customer. Please try again."

@@ -89,7 +89,8 @@ const CustomersPage: React.FC = () => {
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     // Basic validation
-    if (!formData.name || !formData.address || !formData.email) {
+    // Email is optional; only its format is checked when one is given.
+    if (!formData.name || !formData.address) {
       notify(t('customers.errors.requiredFields'), 'error');
       return;
     }
@@ -224,7 +225,7 @@ const CustomersPage: React.FC = () => {
 
       {/* Customer Form Modal */}
       {formVisible && (
-        <div className="modal-overlay" onClick={closeOnOverlayClick(() => setFormVisible(false))}>
+        <div className="modal-overlay" {...closeOnOverlayClick(() => setFormVisible(false))}>
           <div className="modal-content">
             <h2>{isEditing ? t('customers.editCustomer') : t('customers.addCustomer')}</h2>
             <form onSubmit={handleSaveCustomer} className="customer-form">
@@ -260,7 +261,6 @@ const CustomersPage: React.FC = () => {
                     name="email"
                     value={formData.email || ''}
                     onChange={handleFormChange}
-                    required
                   />
                 </label>
               </div>

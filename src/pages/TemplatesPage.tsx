@@ -189,7 +189,7 @@ const TemplatesPage: React.FC = () => {
       )}
 
       {formVisible && (
-        <div className="modal-overlay" onClick={closeOnOverlayClick(() => setFormVisible(false))}>
+        <div className="modal-overlay" {...closeOnOverlayClick(() => setFormVisible(false))}>
           <div className="modal-content template-modal-content">
             <div className="modal-title-row">
               <h2>{editingId ? t('templates.modal.editTitle') : t('templates.modal.newTitle')}</h2>

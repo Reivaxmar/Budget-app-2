@@ -190,7 +190,7 @@
     },
     "errors": {
       "loadFailed": "No se pudieron cargar los clientes. Inténtalo de nuevo.",
-      "requiredFields": "El nombre, la dirección y el correo electrónico son obligatorios.",
+      "requiredFields": "El nombre y la dirección son obligatorios.",
       "invalidEmail": "Introduce una dirección de correo electrónico válida.",
       "saveFailed": "No se pudo guardar el cliente. Inténtalo de nuevo.",
       "deleteFailed": "No se pudo eliminar el cliente. Inténtalo de nuevo."

@@ -208,7 +208,7 @@ const ItemLibraryPage: React.FC = () => {
       )}
 
       {formVisible && (
-        <div className="modal-overlay" onClick={closeOnOverlayClick(() => setFormVisible(false))}>
+        <div className="modal-overlay" {...closeOnOverlayClick(() => setFormVisible(false))}>
           <div className="modal-content">
             <h2>{isEditing ? t('itemLibrary.editItem') : t('itemLibrary.addItem')}</h2>
             <form onSubmit={handleSaveItem} className="item-form">

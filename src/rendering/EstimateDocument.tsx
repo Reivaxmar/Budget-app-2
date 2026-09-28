@@ -28,6 +28,11 @@ import i18n from '../i18n';
 const A4_WIDTH_PT = 595.28;
 const A4_HEIGHT_PT = 841.89;
 
+// react-pdf hyphenates long words by default ("presu- puesto"). Returning
+// each word as a single, unsplittable syllable makes the cover title wrap
+// only between whole words.
+const wholeWordsOnly = (word: string): string[] => [word];
+
 // Splits a CoverPosition ('top-left', 'middle-center', ...) into its two
 // independent axes.
 function parseCoverPosition(position: CoverPosition): {
@@ -75,6 +80,23 @@ function coverPositionOverlayStyle(position: CoverPosition, margin: number) {
     justifyContent: JUSTIFY_BY_VERTICAL[vertical],
     alignItems: ALIGN_BY_HORIZONTAL[horizontal],
   };
+}
+
+const PAGE_PADDING_VERTICAL = 64;
+
+/**
+ * Vertical space (pt) kept free at the end of the flow for the bottom-pinned
+ * total + signature block, so the conditions text can never run underneath
+ * it. Derived from the block's own styles below (total row + caption +
+ * paddings/margins, signature label + its 40pt signing gap + line), with
+ * ~1.2 line height per text line plus some slack for a label that wraps.
+ */
+function closingBlockReservedHeight(baseFontSize: number): number {
+  const line = (fontSize: number) => fontSize * 1.2;
+  const total = 1 + 8 + line(baseFontSize + 4) + 2 + line(baseFontSize - 1) + 24;
+  const signature = line(baseFontSize) + 40 + 1 + 4 + line(baseFontSize - 1);
+  const slack = 24;
+  return Math.ceil(total + signature + slack);
 }
 
 function buildStyles(template: DocumentTemplateConfig) {
@@ -128,8 +150,8 @@ function buildStyles(template: DocumentTemplateConfig) {
     },
 
     page: {
-      paddingTop: 64,
-      paddingBottom: 64,
+      paddingTop: PAGE_PADDING_VERTICAL,
+      paddingBottom: PAGE_PADDING_VERTICAL,
       paddingHorizontal: margin,
       fontFamily: typography.fontFamily,
       fontSize: typography.baseFontSize,
@@ -197,6 +219,18 @@ function buildStyles(template: DocumentTemplateConfig) {
     finalSection: {
       marginTop: 28,
     },
+    // Total + signature, pinned to the bottom of the document's last page
+    // (see the final-section comment in the component). Same bottom inset as
+    // the page's own paddingBottom, so it sits right above the footer.
+    closingBlock: {
+      position: 'absolute',
+      bottom: PAGE_PADDING_VERTICAL,
+      left: margin,
+      right: margin,
+    },
+    closingBlockSpacer: {
+      height: closingBlockReservedHeight(typography.baseFontSize),
+    },
     totalBlock: {
       alignSelf: 'flex-end',
       width: '55%',
@@ -218,7 +252,6 @@ function buildStyles(template: DocumentTemplateConfig) {
     },
     standardNoteBlock: {
       marginTop: 12,
-      marginBottom: 40,
     },
     standardNoteTitle: {
       fontSize: typography.baseFontSize + 1,
@@ -230,9 +263,7 @@ function buildStyles(template: DocumentTemplateConfig) {
       lineHeight: 1.4,
       color: '#333333',
     },
-    signatureBlock: {
-      marginTop: 40,
-    },
+    signatureBlock: {},
     signatureBox: {
       width: '50%',
     },
@@ -369,7 +400,10 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
 
         <View style={coverPositionOverlayStyle(subjectPosition, template.page.marginPt)}>
           <View style={[styles.coverSubjectBlock, subjectOffsetStyle]}>
-            <Text style={[styles.coverSubjectText, { textAlign: subjectHorizontal }]}>
+            <Text
+              style={[styles.coverSubjectText, { textAlign: subjectHorizontal }]}
+              hyphenationCallback={wholeWordsOnly}
+            >
               {estimate.subject}
             </Text>
           </View>
@@ -397,10 +431,14 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
             <Text style={styles.introFieldLabel}>{i18n.t('rendering.phoneLabel')}</Text>
             <Text>{customer.phone}</Text>
           </View>
-          <View style={styles.introFieldRow}>
-            <Text style={styles.introFieldLabel}>{i18n.t('rendering.emailLabel')}</Text>
-            <Text>{customer.email}</Text>
-          </View>
+          {/* Email is optional for customers — omit the row rather than
+              print an empty label. */}
+          {customer.email ? (
+            <View style={styles.introFieldRow}>
+              <Text style={styles.introFieldLabel}>{i18n.t('rendering.emailLabel')}</Text>
+              <Text>{customer.email}</Text>
+            </View>
+          ) : null}
           <View style={styles.introFieldRow}>
             <Text style={styles.introFieldLabel}>{i18n.t('rendering.siteLabel')}</Text>
             <Text>{estimate.site}</Text>
@@ -480,33 +518,55 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
         {/* `break` unconditionally starts a new page before this section —
             the conditions/total/signature always start on their own page,
             even when there'd be room to fit them after the last chapter.
-            The section itself stays wrappable (no `wrap={false}` here) so a
-            long conditions text can flow across as many pages as it needs;
-            conditions, total and signature simply follow one another in a
-            single flow with no further intentional page split between them.
-            Only the small, must-stay-together blocks (total, signature) are
-            themselves non-splittable. */}
+            The conditions text stays wrappable so a long one can flow across
+            as many pages as it needs. */}
         <View style={styles.finalSection} break>
           <View style={styles.standardNoteBlock}>
             <Text style={styles.standardNoteTitle}>{standardNote.title}</Text>
             <Text style={styles.standardNoteContent}>{standardNote.content}</Text>
           </View>
-
-          <View style={styles.totalBlock} wrap={false}>
-            <View style={styles.totalRow}>
-              <Text>{template.finalPage.totalLabel}</Text>
-              <Text>{formatCurrency(total)}</Text>
-            </View>
-            <Text style={styles.totalCaption}>{i18n.t('rendering.totalCaption')}</Text>
-          </View>
-
-          <View style={styles.signatureBlock} wrap={false}>
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureLabel}>{template.finalPage.signatureLabel}</Text>
-              <Text style={styles.signatureLine}>{customer.name}</Text>
-            </View>
-          </View>
+          {/* Reserves room for the closing block at the end of the flow.
+              Unsplittable, so if the conditions leave less than that on
+              their last page it moves to a fresh page — which then becomes
+              the document's last page, where the closing block is drawn. */}
+          <View style={styles.closingBlockSpacer} wrap={false} />
         </View>
+
+        {/* Total + signature, anchored to the bottom of the last page rather
+            than following straight after the conditions. A `fixed` node is
+            laid out on every page of this <Page>; `render` returns it only
+            on the document's final page (this is the last <Page>, so its
+            last physical page is the document's last one). Absolute
+            positioning keeps it out of the flow; the spacer above guarantees
+            it never overlaps the conditions. */}
+        <View
+          style={styles.closingBlock}
+          fixed
+          // react-pdf's View typings only list pageNumber/subPageNumber, but
+          // after pagination it re-runs render with totalPages too (the same
+          // pass that fills in "Page X of Y"). During the earlier splitting
+          // pass totalPages is undefined, so nothing is drawn yet.
+          render={(pageProps) =>
+            pageProps.pageNumber === (pageProps as { totalPages?: number }).totalPages ? (
+              <View>
+                <View style={styles.totalBlock} wrap={false}>
+                  <View style={styles.totalRow}>
+                    <Text>{template.finalPage.totalLabel}</Text>
+                    <Text>{formatCurrency(total)}</Text>
+                  </View>
+                  <Text style={styles.totalCaption}>{i18n.t('rendering.totalCaption')}</Text>
+                </View>
+
+                <View style={styles.signatureBlock} wrap={false}>
+                  <View style={styles.signatureBox}>
+                    <Text style={styles.signatureLabel}>{template.finalPage.signatureLabel}</Text>
+                    <Text style={styles.signatureLine}>{customer.name}</Text>
+                  </View>
+                </View>
+              </View>
+            ) : null
+          }
+        />
 
         {footerBlock}
       </Page>

@@ -119,7 +119,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({ blob, title, onC
   const zoomOut = () => setZoom((z) => Math.max(MIN_ZOOM, Math.round((z - ZOOM_STEP) * 100) / 100));
 
   return (
-    <div className="modal-overlay pdf-viewer-overlay" onClick={closeOnOverlayClick(onClose)}>
+    <div className="modal-overlay pdf-viewer-overlay" {...closeOnOverlayClick(onClose)}>
       <div className="modal-content pdf-viewer-content">
         <div className="pdf-viewer-header">
           <h2>{title}</h2>

@@ -115,9 +115,28 @@ describe('PdfViewerModal', () => {
     const { container } = render(<PdfViewerModal blob={blob} title="Estimate 001-26" onClose={onClose} />);
     await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
 
-    fireEvent.click(container.querySelector('.pdf-viewer-overlay')!);
+    const overlay = container.querySelector('.pdf-viewer-overlay')!;
+    fireEvent.mouseDown(overlay);
+    fireEvent.click(overlay);
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not close when a press starts inside the modal and ends on the backdrop', async () => {
+    vi.mocked(pdfjsLib.getDocument).mockReturnValue({
+      promise: Promise.resolve(fakePdfDocument(1)),
+    } as unknown as ReturnType<typeof pdfjsLib.getDocument>);
+    const onClose = vi.fn();
+
+    const { container } = render(<PdfViewerModal blob={blob} title="Estimate 001-26" onClose={onClose} />);
+    await waitFor(() => expect(screen.queryByText(/loading/i)).not.toBeInTheDocument());
+
+    // e.g. a text-selection drag released over the backdrop: mousedown on
+    // the content, click dispatched on the overlay (common ancestor).
+    fireEvent.mouseDown(container.querySelector('.pdf-viewer-overlay > *')!);
+    fireEvent.click(container.querySelector('.pdf-viewer-overlay')!);
+
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('does not close when clicking inside the modal content itself', async () => {

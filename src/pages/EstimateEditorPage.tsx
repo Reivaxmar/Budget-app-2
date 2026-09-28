@@ -320,12 +320,13 @@ const EstimateEditorPage: React.FC = () => {
 
   const handleSaveNewCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerForm.name || !customerForm.address || !customerForm.email) {
+    // Email is optional; only its format is checked when one is given.
+    if (!customerForm.name || !customerForm.address) {
       notify(t('customers.errors.requiredFields'), 'error');
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(customerForm.email)) {
+    if (customerForm.email && !emailRegex.test(customerForm.email)) {
       notify(t('customers.errors.invalidEmail'), 'error');
       return;
     }
@@ -1212,7 +1213,7 @@ const EstimateEditorPage: React.FC = () => {
 
       {/* Chapter Modal */}
       {chapterModalOpen && (
-        <div className="modal-overlay" onClick={closeOnOverlayClick(closeChapterModal)}>
+        <div className="modal-overlay" {...closeOnOverlayClick(closeChapterModal)}>
           <div className="modal-content">
             <h2>{editingChapterId ? t('estimateEditor.chapterModal.editTitle') : t('estimateEditor.chapterModal.addTitle')}</h2>
             <form className="customer-form" onSubmit={(e) => e.preventDefault()}>
@@ -1254,7 +1255,7 @@ const EstimateEditorPage: React.FC = () => {
 
       {/* Line Item Modal */}
       {lineItemModalOpen && (
-        <div className="modal-overlay" onClick={closeOnOverlayClick(closeLineItemModal)}>
+        <div className="modal-overlay" {...closeOnOverlayClick(closeLineItemModal)}>
           <div className="modal-content">
             <h2>{editingLineItemId ? t('estimateEditor.lineItemModal.editTitle') : t('estimateEditor.lineItemModal.addTitle')}</h2>
             <div className="form-group">
@@ -1403,7 +1404,7 @@ const EstimateEditorPage: React.FC = () => {
 
       {/* "Edit template" modal — full template editor, but scoped to this estimate only */}
       {templateModalOpen && (
-        <div className="modal-overlay" onClick={closeOnOverlayClick(closeTemplateModal)}>
+        <div className="modal-overlay" {...closeOnOverlayClick(closeTemplateModal)}>
           <div className="modal-content template-modal-content">
             <div className="modal-title-row">
               <h2>{t('estimateEditor.templateModal.title')}</h2>
@@ -1428,7 +1429,7 @@ const EstimateEditorPage: React.FC = () => {
 
       {/* Quick "add customer" modal */}
       {customerModalOpen && (
-        <div className="modal-overlay" onClick={closeOnOverlayClick(closeCustomerModal)}>
+        <div className="modal-overlay" {...closeOnOverlayClick(closeCustomerModal)}>
           <div className="modal-content">
             <h2>{t('customers.addCustomer')}</h2>
             <form onSubmit={handleSaveNewCustomer} className="customer-form">
@@ -1464,7 +1465,6 @@ const EstimateEditorPage: React.FC = () => {
                     name="email"
                     value={customerForm.email || ''}
                     onChange={handleCustomerFormChange}
-                    required
                   />
                 </label>
               </div>
