@@ -249,6 +249,28 @@ describe('EstimateDocument rendering: template configuration', () => {
     }
   });
 
+  it('renders with custom per-part font sizes (cover, footer, final page) without breaking pagination', async () => {
+    const customTemplate = {
+      ...defaultDocumentTemplate,
+      cover: { ...defaultDocumentTemplate.cover, headerFontSize: 16, sloganFontSize: 18 },
+      footer: { ...defaultDocumentTemplate.footer, fontSize: 6 },
+      finalPage: {
+        ...defaultDocumentTemplate.finalPage,
+        noteTitleFontSize: 16,
+        noteContentFontSize: 12,
+        totalFontSize: 28,
+        signatureFontSize: 16,
+      },
+    };
+
+    const defaultBuffer = await renderEstimateDocumentToBuffer(mockEstimateDocumentData);
+    const buffer = await renderEstimateDocumentToBuffer(mockEstimateDocumentData, customTemplate);
+    const pages = await loadPageDimensions(buffer);
+
+    expect(pages.length).toBeGreaterThanOrEqual(3);
+    expect(buffer.equals(defaultBuffer)).toBe(false);
+  });
+
   it('renders successfully with cover and other-pages background images set, without breaking pagination', async () => {
     // Minimal 1x1 PNG, data URI — same shape TemplateForm's resizeImageToA4 produces.
     const onePixelPng =

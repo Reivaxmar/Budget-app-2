@@ -8,8 +8,8 @@ import React from 'react';
 import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import type { DocumentProps } from '@react-pdf/renderer';
 import type { EstimateDocumentData } from './types';
-import { defaultDocumentTemplate, resolveColumnValue } from './templateConfig';
-import type { CoverPosition, DocumentTemplateConfig } from './templateConfig';
+import { defaultDocumentTemplate, resolveColumnValue, resolveFontSizes } from './templateConfig';
+import type { CoverPosition, DocumentTemplateConfig, ResolvedFontSizes } from './templateConfig';
 import { calculateChapterTotal, calculateEstimateTotal } from '../domain/calculations';
 // The i18n singleton (not the useTranslation() hook) — this component is
 // rendered outside the app's normal React tree, directly through
@@ -91,17 +91,24 @@ const PAGE_PADDING_VERTICAL = 64;
  * paddings/margins, signature label + its 40pt signing gap + line), with
  * ~1.2 line height per text line plus some slack for a label that wraps.
  */
-function closingBlockReservedHeight(baseFontSize: number): number {
+function closingBlockReservedHeight(sizes: ResolvedFontSizes): number {
   const line = (fontSize: number) => fontSize * 1.2;
-  const total = 1 + 8 + line(baseFontSize + 4) + 2 + line(baseFontSize - 1) + 24;
-  const signature = line(baseFontSize) + 40 + 1 + 4 + line(baseFontSize - 1);
+  const total = 1 + 8 + line(sizes.total) + 2 + line(totalCaptionSize(sizes)) + 24;
+  const signature = line(sizes.signature) + 40 + 1 + 4 + line(sizes.signature - 1);
   const slack = 24;
   return Math.ceil(total + signature + slack);
+}
+
+// The "VAT not included" caption scales with the total it annotates (it was
+// base - 1 next to a base + 4 total before sizes were configurable).
+function totalCaptionSize(sizes: ResolvedFontSizes): number {
+  return Math.max(sizes.total - 5, 6);
 }
 
 function buildStyles(template: DocumentTemplateConfig) {
   const margin = template.page.marginPt;
   const { colors, typography } = template;
+  const sizes = resolveFontSizes(template);
 
   return StyleSheet.create({
     coverPage: {
@@ -114,15 +121,18 @@ function buildStyles(template: DocumentTemplateConfig) {
       bottom: 64,
       right: margin,
       textAlign: 'right',
-      fontSize: typography.baseFontSize + 2,
+      fontSize: sizes.coverSlogan,
       fontStyle: 'italic',
       color: colors.muted,
     },
     coverSubjectBlock: {
       maxWidth: '80%',
     },
+    coverHeaderText: {
+      fontSize: sizes.coverHeader,
+    },
     coverSubjectText: {
-      fontSize: typography.titleFontSize,
+      fontSize: sizes.coverSubject,
       fontWeight: 700,
     },
 
@@ -176,7 +186,7 @@ function buildStyles(template: DocumentTemplateConfig) {
       right: margin,
       flexDirection: 'row',
       justifyContent: 'space-between',
-      fontSize: typography.baseFontSize - 1,
+      fontSize: sizes.footer,
       color: colors.muted,
       borderTop: `1pt solid ${colors.borderColor}`,
       paddingTop: 6,
@@ -229,7 +239,7 @@ function buildStyles(template: DocumentTemplateConfig) {
       right: margin,
     },
     closingBlockSpacer: {
-      height: closingBlockReservedHeight(typography.baseFontSize),
+      height: closingBlockReservedHeight(sizes),
     },
     totalBlock: {
       alignSelf: 'flex-end',
@@ -241,11 +251,11 @@ function buildStyles(template: DocumentTemplateConfig) {
     totalRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      fontSize: typography.baseFontSize + 4,
+      fontSize: sizes.total,
       fontWeight: 700,
     },
     totalCaption: {
-      fontSize: typography.baseFontSize - 1,
+      fontSize: totalCaptionSize(sizes),
       color: colors.muted,
       marginTop: 2,
       textAlign: 'right',
@@ -254,12 +264,12 @@ function buildStyles(template: DocumentTemplateConfig) {
       marginTop: 12,
     },
     standardNoteTitle: {
-      fontSize: typography.baseFontSize + 1,
+      fontSize: sizes.noteTitle,
       fontWeight: 700,
       marginBottom: 4,
     },
     standardNoteContent: {
-      fontSize: typography.baseFontSize,
+      fontSize: sizes.noteContent,
       lineHeight: 1.4,
       color: '#333333',
     },
@@ -268,14 +278,14 @@ function buildStyles(template: DocumentTemplateConfig) {
       width: '50%',
     },
     signatureLabel: {
-      fontSize: typography.baseFontSize,
+      fontSize: sizes.signature,
       fontWeight: 700,
       marginBottom: 40,
     },
     signatureLine: {
       borderTop: `1pt solid ${colors.text}`,
       paddingTop: 4,
-      fontSize: typography.baseFontSize - 1,
+      fontSize: sizes.signature - 1,
       color: colors.muted,
     },
     backgroundImage: {
@@ -390,10 +400,10 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
         {template.cover.showCreationLocationDate && (
           <View style={coverPositionOverlayStyle(headerPosition, template.page.marginPt)}>
             <View style={{ alignItems: ALIGN_BY_HORIZONTAL[headerHorizontal], ...headerOffsetStyle }}>
-              <Text style={{ textAlign: headerHorizontal }}>
+              <Text style={[styles.coverHeaderText, { textAlign: headerHorizontal }]}>
                 {i18n.t('rendering.estimateNumberLabel', { number: estimate.estimateNumber })}
               </Text>
-              <Text style={{ textAlign: headerHorizontal }}>{dateLabel}</Text>
+              <Text style={[styles.coverHeaderText, { textAlign: headerHorizontal }]}>{dateLabel}</Text>
             </View>
           </View>
         )}

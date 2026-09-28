@@ -157,6 +157,11 @@ export interface TemplateConfig {
      * positive X moves right, positive Y moves down. Defaults to 0. */
     subjectOffsetX?: number
     subjectOffsetY?: number
+    /** Font size (pt) of the estimate number/date block. Unset = body size.
+     * The subject's size is typography.titleFontSize. */
+    headerFontSize?: number
+    /** Font size (pt) of the slogan. Unset = body size + 2. */
+    sloganFontSize?: number
   }
   header: {
     showEstimateNumberAndDate: boolean
@@ -164,6 +169,8 @@ export interface TemplateConfig {
   footer: {
     showPageNumbers: boolean
     showCompanyInfo: boolean
+    /** Font size (pt) of the footer line. Unset = body size - 1. */
+    fontSize?: number
   }
   table: {
     columns: TableColumnConfig[]
@@ -177,6 +184,14 @@ export interface TemplateConfig {
     /** Default title/content for the final-page note, snapshotted onto new estimates that use this template. */
     noteTitle: string
     noteContent: string
+    // Per-part font sizes (pt). All optional: unset means "derived from
+    // typography.baseFontSize" exactly as before these existed, so older
+    // templates render unchanged and still follow body-size changes. See
+    // resolveFontSizes (rendering/templateConfig.ts) for the defaults.
+    noteTitleFontSize?: number
+    noteContentFontSize?: number
+    totalFontSize?: number
+    signatureFontSize?: number
   }
 }
 

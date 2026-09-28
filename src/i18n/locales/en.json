@@ -320,7 +320,15 @@
         "totalLabel": "Total label:",
         "signatureLabel": "Signature label:",
         "noteTitle": "Final-page note title:",
-        "noteContent": "Final-page note content:"
+        "noteContent": "Final-page note content:",
+        "autoFontSize": "Auto ({{size}})",
+        "coverHeaderSize": "Estimate number/date size:",
+        "sloganSize": "Slogan size:",
+        "footerSize": "Footer size:",
+        "noteTitleSize": "Note title size:",
+        "noteContentSize": "Note text size:",
+        "totalSize": "Total size:",
+        "signatureSize": "Signature size:"
       }
     }
   },

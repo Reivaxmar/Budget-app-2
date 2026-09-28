@@ -66,6 +66,37 @@ export const defaultDocumentTemplate: DocumentTemplateConfig = {
   },
 };
 
+/** Font sizes (pt) for every individually sizable part of the document. */
+export interface ResolvedFontSizes {
+  coverHeader: number;
+  coverSubject: number;
+  coverSlogan: number;
+  footer: number;
+  noteTitle: number;
+  noteContent: number;
+  total: number;
+  signature: number;
+}
+
+/**
+ * Resolves each part's font size: the template's explicit value when set,
+ * otherwise the historical size derived from the body size. Shared by the
+ * renderer and the template editor (which shows these as placeholders).
+ */
+export function resolveFontSizes(template: DocumentTemplateConfig): ResolvedFontSizes {
+  const base = template.typography.baseFontSize;
+  return {
+    coverHeader: template.cover.headerFontSize ?? base,
+    coverSubject: template.typography.titleFontSize,
+    coverSlogan: template.cover.sloganFontSize ?? base + 2,
+    footer: template.footer.fontSize ?? base - 1,
+    noteTitle: template.finalPage.noteTitleFontSize ?? base + 1,
+    noteContent: template.finalPage.noteContentFontSize ?? base,
+    total: template.finalPage.totalFontSize ?? base + 4,
+    signature: template.finalPage.signatureFontSize ?? base,
+  };
+}
+
 /** Resolves the display value for a table cell for a given column and line item. */
 export function resolveColumnValue(
   column: TableColumnConfig,

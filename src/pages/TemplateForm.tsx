@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { defaultDocumentTemplate } from '../rendering/templateConfig';
+import { defaultDocumentTemplate, resolveFontSizes } from '../rendering/templateConfig';
 import { resizeImageToA4 } from '../utils/imageResize';
 import { resizePdfToA4 } from '../utils/pdfBackgroundResize';
 import { notify } from '../notifications';
@@ -76,6 +76,16 @@ export interface TemplateFormState {
   /** Fine-tune offset (points) on top of subjectPosition. */
   subjectOffsetX: number;
   subjectOffsetY: number;
+  // Per-part font sizes (pt). `undefined` = automatic (derived from the body
+  // size, see resolveFontSizes) — kept distinct from a number so a template
+  // that never set one keeps following later body-size changes.
+  coverHeaderFontSize?: number;
+  coverSloganFontSize?: number;
+  footerFontSize?: number;
+  noteTitleFontSize?: number;
+  noteContentFontSize?: number;
+  totalFontSize?: number;
+  signatureFontSize?: number;
   showEstimateNumberAndDate: boolean;
   showPageNumbers: boolean;
   showCompanyInfo: boolean;
@@ -169,6 +179,13 @@ export function templateToFormState(template: TemplateConfig & Partial<Pick<Temp
     subjectPosition: template.cover.subjectPosition ?? 'middle-center',
     subjectOffsetX: template.cover.subjectOffsetX ?? 0,
     subjectOffsetY: template.cover.subjectOffsetY ?? 0,
+    coverHeaderFontSize: template.cover.headerFontSize,
+    coverSloganFontSize: template.cover.sloganFontSize,
+    footerFontSize: template.footer.fontSize,
+    noteTitleFontSize: template.finalPage.noteTitleFontSize,
+    noteContentFontSize: template.finalPage.noteContentFontSize,
+    totalFontSize: template.finalPage.totalFontSize,
+    signatureFontSize: template.finalPage.signatureFontSize,
     showEstimateNumberAndDate: template.header.showEstimateNumberAndDate,
     showPageNumbers: template.footer.showPageNumbers,
     showCompanyInfo: template.footer.showCompanyInfo,
@@ -207,6 +224,8 @@ export function formStateToTemplateConfig(form: TemplateFormState): TemplateConf
       subjectPosition: form.subjectPosition,
       subjectOffsetX: form.subjectOffsetX,
       subjectOffsetY: form.subjectOffsetY,
+      headerFontSize: form.coverHeaderFontSize,
+      sloganFontSize: form.coverSloganFontSize,
     },
     header: {
       showEstimateNumberAndDate: form.showEstimateNumberAndDate,
@@ -214,6 +233,7 @@ export function formStateToTemplateConfig(form: TemplateFormState): TemplateConf
     footer: {
       showPageNumbers: form.showPageNumbers,
       showCompanyInfo: form.showCompanyInfo,
+      fontSize: form.footerFontSize,
     },
     table: {
       showBorders: form.showTableBorders,
@@ -232,6 +252,10 @@ export function formStateToTemplateConfig(form: TemplateFormState): TemplateConf
       signatureLabel: form.signatureLabel,
       noteTitle: form.noteTitle,
       noteContent: form.noteContent,
+      noteTitleFontSize: form.noteTitleFontSize,
+      noteContentFontSize: form.noteContentFontSize,
+      totalFontSize: form.totalFontSize,
+      signatureFontSize: form.signatureFontSize,
     },
   };
 }
@@ -367,6 +391,43 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
     }
   };
 
+  // Sizes currently in effect (explicit or automatic), shown as placeholders
+  // so an empty "automatic" field still tells the user what it resolves to.
+  const effectiveSizes = resolveFontSizes(formStateToTemplateConfig(formData));
+
+  type OptionalFontSizeField =
+    | 'coverHeaderFontSize'
+    | 'coverSloganFontSize'
+    | 'footerFontSize'
+    | 'noteTitleFontSize'
+    | 'noteContentFontSize'
+    | 'totalFontSize'
+    | 'signatureFontSize';
+
+  const renderFontSizeInput = (
+    field: OptionalFontSizeField,
+    label: string,
+    effectiveSize: number,
+    disabled = false
+  ) => (
+    <label>
+      {label}
+      <input
+        type="number"
+        min="6"
+        step="0.5"
+        value={formData[field] ?? ''}
+        placeholder={t('templates.modal.sections.autoFontSize', { size: effectiveSize })}
+        disabled={disabled}
+        onChange={(e) => {
+          // Clearing the field goes back to the automatic size.
+          const parsed = parseFloat(e.target.value);
+          setFormData((prev) => ({ ...prev, [field]: Number.isFinite(parsed) && parsed > 0 ? parsed : undefined }));
+        }}
+      />
+    </label>
+  );
+
   const renderBackgroundImagePicker = (
     field: 'coverBackgroundImage' | 'pageBackgroundImage',
     label: string
@@ -468,17 +529,6 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
               }
             />
           </label>
-          <label>
-            {t('templates.modal.sections.titleSize')}
-            <input
-              type="number"
-              min="6"
-              value={formData.titleFontSize}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, titleFontSize: parseFloat(e.target.value) || 0 }))
-              }
-            />
-          </label>
         </div>
       </fieldset>
 
@@ -571,6 +621,12 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
               }
             />
           </label>
+          {renderFontSizeInput(
+            'coverHeaderFontSize',
+            t('templates.modal.sections.coverHeaderSize'),
+            effectiveSizes.coverHeader,
+            !formData.showCreationLocationDate
+          )}
         </div>
         <label className="checkbox-label">
           <input
@@ -580,6 +636,14 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
           />
           {t('templates.modal.sections.showSlogan')}
         </label>
+        <div className="form-row">
+          {renderFontSizeInput(
+            'coverSloganFontSize',
+            t('templates.modal.sections.sloganSize'),
+            effectiveSizes.coverSlogan,
+            !formData.showSlogan
+          )}
+        </div>
         <div className="form-group">
           <label>
             {t('templates.modal.sections.subjectPosition')}
@@ -618,6 +682,17 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
               }
             />
           </label>
+          <label>
+            {t('templates.modal.sections.titleSize')}
+            <input
+              type="number"
+              min="6"
+              value={formData.titleFontSize}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, titleFontSize: parseFloat(e.target.value) || 0 }))
+              }
+            />
+          </label>
         </div>
         {renderBackgroundImagePicker('coverBackgroundImage', t('templates.modal.sections.coverBackgroundImage'))}
       </fieldset>
@@ -652,6 +727,9 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
           />
           {t('templates.modal.sections.showCompanyInfo')}
         </label>
+        <div className="form-row">
+          {renderFontSizeInput('footerFontSize', t('templates.modal.sections.footerSize'), effectiveSizes.footer)}
+        </div>
       </fieldset>
 
       <fieldset>
@@ -781,6 +859,16 @@ export const TemplateFormFields: React.FC<TemplateFormFieldsProps> = ({
               onChange={(e) => setFormData((prev) => ({ ...prev, noteContent: e.target.value }))}
             />
           </label>
+        </div>
+        <div className="form-row">
+          {renderFontSizeInput('noteTitleFontSize', t('templates.modal.sections.noteTitleSize'), effectiveSizes.noteTitle)}
+          {renderFontSizeInput(
+            'noteContentFontSize',
+            t('templates.modal.sections.noteContentSize'),
+            effectiveSizes.noteContent
+          )}
+          {renderFontSizeInput('totalFontSize', t('templates.modal.sections.totalSize'), effectiveSizes.total)}
+          {renderFontSizeInput('signatureFontSize', t('templates.modal.sections.signatureSize'), effectiveSizes.signature)}
         </div>
       </fieldset>
     </>

@@ -320,7 +320,15 @@
         "totalLabel": "Etiqueta del total:",
         "signatureLabel": "Etiqueta de firma:",
         "noteTitle": "Título de la nota final:",
-        "noteContent": "Contenido de la nota final:"
+        "noteContent": "Contenido de la nota final:",
+        "autoFontSize": "Auto ({{size}})",
+        "coverHeaderSize": "Tamaño del nº/fecha:",
+        "sloganSize": "Tamaño del eslogan:",
+        "footerSize": "Tamaño del pie de página:",
+        "noteTitleSize": "Tamaño del título de la nota:",
+        "noteContentSize": "Tamaño del texto de la nota:",
+        "totalSize": "Tamaño del total:",
+        "signatureSize": "Tamaño de la firma:"
       }
     }
   },
