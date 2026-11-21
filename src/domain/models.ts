@@ -8,6 +8,12 @@ export interface Estimate {
   customerId: string // Reference to Customer
   subject: string
   site: string
+  // Per-estimate contact person (e.g. the site foreman), shown in the PDF's
+  // client section. Empty means "same as the customer" — the editor pre-fills
+  // these from the selected customer, and the renderer falls back to the
+  // customer's name/phone if they're still blank (see resolveEstimateContact).
+  contactName: string
+  contactPhone: string
   creationDate: string // ISO date string
   status: string // e.g., 'draft', 'issued', 'accepted'
   taxRate: number // Percentage (e.g., 19 for 19%)

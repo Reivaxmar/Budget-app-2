@@ -19,6 +19,8 @@ const baseEstimateInput = {
   customerId: 'customer-1',
   subject: 'Reforma integral',
   site: 'Carrer de Mallorca 245',
+  contactName: '',
+  contactPhone: '',
   creationDate: '2026-08-15',
   status: 'draft',
   taxRate: 21,

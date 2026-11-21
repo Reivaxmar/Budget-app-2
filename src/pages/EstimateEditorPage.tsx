@@ -166,6 +166,8 @@ const EstimateEditorPage: React.FC = () => {
             customerId: '',
             subject: '',
             site: '',
+            contactName: '',
+            contactPhone: '',
             creationDate: now.toISOString(),
             status: 'draft',
             taxRate: defaultTaxRate,
@@ -232,6 +234,28 @@ const EstimateEditorPage: React.FC = () => {
         [field]: value,
       };
     });
+  };
+
+  // Selecting a customer pre-fills the contact person with the customer's
+  // own name/phone when those fields are empty — or still hold the
+  // previously selected customer's values (i.e. were auto-filled, never
+  // edited) — so switching customers doesn't leave a stale contact behind,
+  // while a contact the user typed by hand is never overwritten.
+  const applyCustomerContact = (prev: Estimate, customerId: string, list: Customer[]): Estimate => {
+    const previous = list.find((c) => c.id === prev.customerId);
+    const next = list.find((c) => c.id === customerId);
+    const isAuto = (value: string, previousValue: string | undefined) =>
+      !value.trim() || (previousValue !== undefined && value === previousValue);
+    return {
+      ...prev,
+      customerId,
+      contactName: isAuto(prev.contactName ?? '', previous?.name) ? next?.name ?? '' : prev.contactName,
+      contactPhone: isAuto(prev.contactPhone ?? '', previous?.phone) ? next?.phone ?? '' : prev.contactPhone,
+    };
+  };
+
+  const handleCustomerChange = (customerId: string) => {
+    setEstimate((prev) => (prev ? applyCustomerContact(prev, customerId, customers) : null));
   };
 
   // Switching the template updates which one renders this estimate. If the
@@ -334,7 +358,7 @@ const EstimateEditorPage: React.FC = () => {
     try {
       const created = await customerRepository.create(customerForm as Omit<Customer, 'id'>);
       setCustomers((prev) => [...prev, created]);
-      handleEstimateChange('customerId', created.id);
+      setEstimate((prev) => (prev ? applyCustomerContact(prev, created.id, [...customers, created]) : null));
       setCustomerModalOpen(false);
       notify(t('estimateEditor.customerCreated'), 'success');
     } catch (err) {
@@ -940,9 +964,7 @@ const EstimateEditorPage: React.FC = () => {
                   {t('estimateEditor.fields.customer')}
                   <select
                     value={estimate.customerId || ''}
-                    onChange={(e) =>
-                      handleEstimateChange('customerId', e.target.value)
-                    }
+                    onChange={(e) => handleCustomerChange(e.target.value)}
                     required
                   >
                     <option value="">{t('estimateEditor.fields.selectCustomer')}</option>
@@ -964,6 +986,27 @@ const EstimateEditorPage: React.FC = () => {
                   </button>
                 )}
               </div>
+            </div>
+            <div className="form-group">
+              <label>
+                {t('estimateEditor.fields.contactName')}
+                <input
+                  type="text"
+                  value={estimate.contactName || ''}
+                  onChange={(e) => handleEstimateChange('contactName', e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="form-group">
+              <label>
+                {t('estimateEditor.fields.contactPhone')}
+                <PhoneNumberInput
+                  value={estimate.contactPhone || ''}
+                  onChange={(value) => handleEstimateChange('contactPhone', value)}
+                  countryAriaLabel={t('customers.fields.phoneCountry')}
+                  numberAriaLabel={t('estimateEditor.fields.contactPhone')}
+                />
+              </label>
             </div>
             <div className="form-group">
               <label>

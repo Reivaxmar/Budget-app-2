@@ -253,6 +253,8 @@ export const mockEstimateDocumentData: EstimateDocumentData = {
     customerId: 'customer-mock-001',
     subject: 'Reforma integral de vivienda',
     site: 'Carrer de Mallorca 245, 3º 1ª, 08036 Barcelona',
+    contactName: '',
+    contactPhone: '',
     creationDate: '2026-08-15',
     status: 'draft',
     taxRate: 21,

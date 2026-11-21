@@ -11,6 +11,7 @@ import type { EstimateDocumentData } from './types';
 import { defaultDocumentTemplate, resolveColumnValue, resolveFontSizes } from './templateConfig';
 import type { CoverPosition, DocumentTemplateConfig, ResolvedFontSizes } from './templateConfig';
 import { calculateChapterTotal, calculateEstimateTotal } from '../domain/calculations';
+import { resolveEstimateContact } from '../domain/contact';
 // The i18n singleton (not the useTranslation() hook) — this component is
 // rendered outside the app's normal React tree, directly through
 // react-pdf's pdf()/renderToBuffer APIs, so there's no I18nextProvider
@@ -149,10 +150,15 @@ function buildStyles(template: DocumentTemplateConfig) {
       marginBottom: 4,
     },
     introFieldLabel: {
-      width: 110,
+      // Wide enough for the longest label ("PERSONA DE CONTACTO") on one line.
+      width: 130,
       color: colors.muted,
       textTransform: 'uppercase',
       fontSize: typography.baseFontSize - 1,
+    },
+    introFieldValue: {
+      // Lets long values (e.g. addresses) wrap within the row.
+      flex: 1,
     },
     introText: {
       fontSize: typography.baseFontSize,
@@ -329,6 +335,16 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
   template = defaultDocumentTemplate,
 }) => {
   const { estimate, customer, chapters, company, standardNote, creationLocation } = data;
+  const contact = resolveEstimateContact(estimate, customer);
+  const clientFields: Array<[string, string]> = [
+    ['rendering.nameLabel', customer.name],
+    ['rendering.taxIdLabel', customer.taxId],
+    ['rendering.addressLabel', customer.address],
+    ['rendering.emailLabel', customer.email],
+    ['rendering.contactPersonLabel', contact.name],
+    ['rendering.phoneLabel', contact.phone],
+    ['rendering.siteLabel', estimate.site],
+  ];
   const styles = buildStyles(template);
   const total = calculateEstimateTotal({ ...estimate, chapters });
   const dateLabel = creationLocation
@@ -433,26 +449,15 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
 
         <View style={styles.introSection}>
           <Text style={styles.introSectionTitle}>{i18n.t('rendering.clientSectionTitle')}</Text>
-          <View style={styles.introFieldRow}>
-            <Text style={styles.introFieldLabel}>{i18n.t('rendering.nameLabel')}</Text>
-            <Text>{customer.name}</Text>
-          </View>
-          <View style={styles.introFieldRow}>
-            <Text style={styles.introFieldLabel}>{i18n.t('rendering.phoneLabel')}</Text>
-            <Text>{customer.phone}</Text>
-          </View>
-          {/* Email is optional for customers — omit the row rather than
-              print an empty label. */}
-          {customer.email ? (
-            <View style={styles.introFieldRow}>
-              <Text style={styles.introFieldLabel}>{i18n.t('rendering.emailLabel')}</Text>
-              <Text>{customer.email}</Text>
+          {/* Every row is always printed, even when its value is empty, so
+              the client block has the same fixed layout on every estimate
+              (and a blank can be filled in by hand on a printed copy). */}
+          {clientFields.map(([labelKey, value]) => (
+            <View key={labelKey} style={styles.introFieldRow}>
+              <Text style={styles.introFieldLabel}>{i18n.t(labelKey)}</Text>
+              <Text style={styles.introFieldValue}>{value}</Text>
             </View>
-          ) : null}
-          <View style={styles.introFieldRow}>
-            <Text style={styles.introFieldLabel}>{i18n.t('rendering.siteLabel')}</Text>
-            <Text>{estimate.site}</Text>
-          </View>
+          ))}
         </View>
 
         <View style={styles.introSection}>

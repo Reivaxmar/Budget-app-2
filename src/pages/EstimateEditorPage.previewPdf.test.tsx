@@ -43,6 +43,8 @@ describe('EstimateEditorPage — PDF preview', () => {
     customerId: 'customer-1',
     subject: 'Test subject',
     site: 'Test site',
+    contactName: '',
+    contactPhone: '',
     creationDate: new Date('2026-01-01').toISOString(),
     status: 'draft',
     taxRate: 0,

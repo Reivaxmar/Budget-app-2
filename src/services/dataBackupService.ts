@@ -222,6 +222,8 @@ export async function importAllData(backup: AccountBackup, password: string): Pr
       customer_id: estimate.customerId || null,
       subject: estimate.subject ?? '',
       site: estimate.site ?? '',
+      contact_name: estimate.contactName ?? '',
+      contact_phone: estimate.contactPhone ?? '',
       creation_date: estimate.creationDate ?? new Date().toISOString(),
       status: estimate.status ?? 'draft',
       tax_rate: estimate.taxRate ?? 0,

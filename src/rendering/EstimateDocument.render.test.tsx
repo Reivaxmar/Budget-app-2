@@ -347,6 +347,15 @@ describe('EstimateDocument rendering: client/introduction page', () => {
     expect(longPages.length).toBeGreaterThan(shortPages.length);
   });
 
+  it('renders the client section with every field empty (all rows are always printed)', async () => {
+    const data = buildEstimateData([chapter], { site: '', contactName: '', contactPhone: '' });
+    data.customer = { ...customer, name: '', taxId: '', address: '', email: '', phone: '' };
+    const buffer = await renderEstimateDocumentToBuffer(data);
+    const pages = await loadPageDimensions(buffer);
+
+    expect(pages.length).toBeGreaterThanOrEqual(3);
+  });
+
   it('renders correctly with an empty introduction (not yet filled in by the user)', async () => {
     const buffer = await renderEstimateDocumentToBuffer(buildEstimateData([chapter], { introduction: '' }));
     const pages = await loadPageDimensions(buffer);

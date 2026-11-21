@@ -18,6 +18,8 @@ function makeEstimate(overrides: Partial<Estimate>): Estimate {
     customerId: 'customer-1',
     subject: 'Subject',
     site: '',
+    contactName: '',
+    contactPhone: '',
     creationDate: '2026-01-01T00:00:00.000Z',
     status: 'draft',
     taxRate: 0,

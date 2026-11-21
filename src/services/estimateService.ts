@@ -145,6 +145,8 @@ export async function duplicateEstimate(id: string): Promise<Estimate> {
     customerId: original.customerId,
     subject: original.subject,
     site: original.site,
+    contactName: original.contactName,
+    contactPhone: original.contactPhone,
     creationDate: original.creationDate,
     status: original.status,
     taxRate: original.taxRate,

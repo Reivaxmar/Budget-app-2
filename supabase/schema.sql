@@ -71,6 +71,8 @@ create table if not exists estimates (
   customer_id uuid references customers(id) on delete set null,
   subject text not null default '',
   site text not null default '',
+  contact_name text not null default '',
+  contact_phone text not null default '',
   creation_date timestamptz not null default now(),
   status text not null default 'draft',
   tax_rate numeric not null default 0,
@@ -127,6 +129,8 @@ create table if not exists app_settings (
 -- Existing installs: re-running this file must add the column rather than
 -- silently no-op via `create table if not exists`.
 alter table app_settings add column if not exists next_estimate_number integer not null default 1;
+alter table estimates add column if not exists contact_name text not null default '';
+alter table estimates add column if not exists contact_phone text not null default '';
 
 -- ── Row Level Security ────────────────────────────────────────────────────
 -- Every table gets the same policy shape: a user may select/insert/update/

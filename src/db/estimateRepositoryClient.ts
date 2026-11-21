@@ -9,6 +9,8 @@ interface EstimateRow {
   customer_id: string
   subject: string
   site: string
+  contact_name: string
+  contact_phone: string
   creation_date: string
   status: string
   tax_rate: number
@@ -26,6 +28,8 @@ const estimateToRow = (estimate: Partial<Omit<Estimate, 'id'>>): Record<string, 
   ...(estimate.customerId !== undefined && { customer_id: estimate.customerId }),
   ...(estimate.subject !== undefined && { subject: estimate.subject }),
   ...(estimate.site !== undefined && { site: estimate.site }),
+  ...(estimate.contactName !== undefined && { contact_name: estimate.contactName }),
+  ...(estimate.contactPhone !== undefined && { contact_phone: estimate.contactPhone }),
   ...(estimate.creationDate !== undefined && { creation_date: estimate.creationDate }),
   ...(estimate.status !== undefined && { status: estimate.status }),
   ...(estimate.taxRate !== undefined && { tax_rate: estimate.taxRate }),
@@ -44,6 +48,10 @@ const estimateFromRow = (row: EstimateRow): Estimate => ({
   customerId: row.customer_id,
   subject: row.subject,
   site: row.site,
+  // `?? ''` guards against a database that hasn't had the contact columns
+  // migration applied yet.
+  contactName: row.contact_name ?? '',
+  contactPhone: row.contact_phone ?? '',
   creationDate: row.creation_date,
   status: row.status,
   taxRate: row.tax_rate,

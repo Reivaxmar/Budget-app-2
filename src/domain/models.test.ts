@@ -19,6 +19,8 @@ describe('Domain Models', () => {
         customerId: 'customer-1',
         subject: 'Test Estimate',
         site: 'Test Construction Site',
+        contactName: '',
+        contactPhone: '',
         creationDate: new Date().toISOString(),
         status: 'draft',
         taxRate: 19,
