@@ -356,6 +356,30 @@ describe('EstimateDocument rendering: client/introduction page', () => {
     expect(pages.length).toBeGreaterThanOrEqual(3);
   });
 
+  it('reserves more room at the end for long payment-condition notes shown above the total', async () => {
+    const noPayment = await renderEstimateDocumentToBuffer(
+      buildEstimateData([chapter], { paymentConditions: { stages: [], notes: '' } })
+    );
+    const longNotes = Array.from({ length: 25 }, (_, i) => `Línea ${i + 1} de condiciones de pago adicionales.`).join('\n');
+    const withPayment = await renderEstimateDocumentToBuffer(
+      buildEstimateData([chapter], {
+        paymentConditions: {
+          stages: [
+            { type: 'acceptance', percentage: 30 },
+            { type: 'certifications', percentage: 70 },
+          ],
+          notes: longNotes,
+        },
+      })
+    );
+
+    // The bigger closing block can only push the total/signature onto a
+    // later page, never fewer pages.
+    expect((await loadPageDimensions(withPayment)).length).toBeGreaterThanOrEqual(
+      (await loadPageDimensions(noPayment)).length
+    );
+  });
+
   it('renders correctly with an empty introduction (not yet filled in by the user)', async () => {
     const buffer = await renderEstimateDocumentToBuffer(buildEstimateData([chapter], { introduction: '' }));
     const pages = await loadPageDimensions(buffer);

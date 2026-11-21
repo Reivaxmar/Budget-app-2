@@ -13,6 +13,7 @@ import type { CoverPosition, DocumentTemplateConfig, ResolvedFontSizes } from '.
 import { calculateChapterTotal, calculateEstimateTotal } from '../domain/calculations';
 import { resolveEstimateContact } from '../domain/contact';
 import { hasPaymentConditions } from '../domain/paymentConditions';
+import type { PaymentConditions } from '../domain/models';
 // The i18n singleton (not the useTranslation() hook) — this component is
 // rendered outside the app's normal React tree, directly through
 // react-pdf's pdf()/renderToBuffer APIs, so there's no I18nextProvider
@@ -93,13 +94,50 @@ const PAGE_PADDING_VERTICAL = 64;
  * paddings/margins, signature label + its 40pt signing gap + line), with
  * ~1.2 line height per text line plus some slack for a label that wraps.
  */
-function closingBlockReservedHeight(sizes: ResolvedFontSizes): number {
+function closingBlockReservedHeight(
+  sizes: ResolvedFontSizes,
+  paymentConditions: PaymentConditions,
+  contentWidth: number
+): number {
   const line = (fontSize: number) => fontSize * 1.2;
   const total = 1 + 8 + line(sizes.total) + 2 + line(totalCaptionSize(sizes)) + 24;
   const signature = line(sizes.signature) + 40 + 1 + 4 + line(sizes.signature - 1);
   const slack = 24;
-  return Math.ceil(total + signature + slack);
+  return Math.ceil(
+    total + signature + slack + paymentConditionsHeight(sizes, paymentConditions, contentWidth)
+  );
 }
+
+/**
+ * Estimated height of the payment conditions block drawn above the total
+ * (0 when there's nothing to show). Its free-text notes can be any length,
+ * so their wrapped line count is estimated from character count with a
+ * deliberately generous average glyph width (0.55em, wider than typical
+ * Helvetica text) — overestimating only adds a little blank space above the
+ * block, while underestimating would let it overlap the conditions text.
+ */
+function paymentConditionsHeight(
+  sizes: ResolvedFontSizes,
+  paymentConditions: PaymentConditions,
+  contentWidth: number
+): number {
+  if (!hasPaymentConditions(paymentConditions)) return 0;
+  const title = sizes.noteTitle * 1.2 + 4;
+  const stages = paymentConditions.stages.length * (sizes.noteContent * 1.2 + 2);
+  const notes = paymentConditions.notes.trim();
+  let notesHeight = 0;
+  if (notes) {
+    const charsPerLine = Math.max(1, Math.floor(contentWidth / (sizes.noteContent * 0.55)));
+    const lines = notes
+      .split('\n')
+      .reduce((sum, paragraph) => sum + Math.max(1, Math.ceil(paragraph.length / charsPerLine)), 0);
+    notesHeight = 6 + lines * sizes.noteContent * 1.4;
+  }
+  return title + stages + notesHeight + PAYMENT_CONDITIONS_GAP;
+}
+
+/** Space between the payment conditions and the total line below them. */
+const PAYMENT_CONDITIONS_GAP = 16;
 
 // The "VAT not included" caption scales with the total it annotates (it was
 // base - 1 next to a base + 4 total before sizes were configurable).
@@ -107,7 +145,7 @@ function totalCaptionSize(sizes: ResolvedFontSizes): number {
   return Math.max(sizes.total - 5, 6);
 }
 
-function buildStyles(template: DocumentTemplateConfig) {
+function buildStyles(template: DocumentTemplateConfig, paymentConditions: PaymentConditions) {
   const margin = template.page.marginPt;
   const { colors, typography } = template;
   const sizes = resolveFontSizes(template);
@@ -254,7 +292,7 @@ function buildStyles(template: DocumentTemplateConfig) {
       right: margin,
     },
     closingBlockSpacer: {
-      height: closingBlockReservedHeight(sizes),
+      height: closingBlockReservedHeight(sizes, paymentConditions, A4_WIDTH_PT - 2 * margin),
     },
     totalBlock: {
       alignSelf: 'flex-end',
@@ -287,7 +325,7 @@ function buildStyles(template: DocumentTemplateConfig) {
       color: '#333333',
     },
     paymentConditionsBlock: {
-      marginTop: 16,
+      marginBottom: PAYMENT_CONDITIONS_GAP,
     },
     paymentStageRow: {
       flexDirection: 'row',
@@ -371,7 +409,7 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
     ['rendering.phoneLabel', contact.phone],
     ['rendering.siteLabel', estimate.site],
   ];
-  const styles = buildStyles(template);
+  const styles = buildStyles(template, estimate.paymentConditions);
   const total = calculateEstimateTotal({ ...estimate, chapters });
   const dateLabel = creationLocation
     ? `${creationLocation}, a ${formatDate(estimate.creationDate)}`
@@ -566,28 +604,6 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
             <Text style={styles.standardNoteTitle}>{standardNote.title}</Text>
             <Text style={styles.standardNoteContent}>{standardNote.content}</Text>
           </View>
-          {hasPaymentConditions(estimate.paymentConditions) && (
-            <View style={styles.paymentConditionsBlock}>
-              {/* Title kept with at least the first stage line so it's never
-                  stranded alone at the bottom of a page. */}
-              <Text style={styles.standardNoteTitle} minPresenceAhead={30}>
-                {i18n.t('rendering.paymentConditionsTitle')}
-              </Text>
-              {estimate.paymentConditions.stages.map((stage) => (
-                <View key={stage.type} style={styles.paymentStageRow} wrap={false}>
-                  <Text style={styles.paymentStageLabel}>
-                    {i18n.t(`rendering.paymentStages.${stage.type}`)}
-                  </Text>
-                  <Text>{formatPercentage(stage.percentage)}</Text>
-                </View>
-              ))}
-              {estimate.paymentConditions.notes.trim() !== '' && (
-                <Text style={[styles.standardNoteContent, styles.paymentConditionsNotes]}>
-                  {estimate.paymentConditions.notes}
-                </Text>
-              )}
-            </View>
-          )}
           {/* Reserves room for the closing block at the end of the flow.
               Unsplittable, so if the conditions leave less than that on
               their last page it moves to a fresh page — which then becomes
@@ -612,6 +628,28 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
           render={(pageProps) =>
             pageProps.pageNumber === (pageProps as { totalPages?: number }).totalPages ? (
               <View>
+                {/* Payment conditions sit just above the total, pinned with
+                    it to the bottom of the last page. Their height is part
+                    of closingBlockReservedHeight, so they never overlap the
+                    conditions text above. */}
+                {hasPaymentConditions(estimate.paymentConditions) && (
+                  <View style={styles.paymentConditionsBlock}>
+                    <Text style={styles.standardNoteTitle}>{i18n.t('rendering.paymentConditionsTitle')}</Text>
+                    {estimate.paymentConditions.stages.map((stage) => (
+                      <View key={stage.type} style={styles.paymentStageRow}>
+                        <Text style={styles.paymentStageLabel}>
+                          {i18n.t(`rendering.paymentStages.${stage.type}`)}
+                        </Text>
+                        <Text>{formatPercentage(stage.percentage)}</Text>
+                      </View>
+                    ))}
+                    {estimate.paymentConditions.notes.trim() !== '' && (
+                      <Text style={[styles.standardNoteContent, styles.paymentConditionsNotes]}>
+                        {estimate.paymentConditions.notes}
+                      </Text>
+                    )}
+                  </View>
+                )}
                 <View style={styles.totalBlock} wrap={false}>
                   <View style={styles.totalRow}>
                     <Text>{template.finalPage.totalLabel}</Text>
