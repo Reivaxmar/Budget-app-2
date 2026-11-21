@@ -393,3 +393,35 @@ td {
     padding: 0.35rem;
   }
 }
+/* Payment conditions fieldset in the estimate editor header. */
+.payment-conditions .payment-stage-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 2.25rem;
+}
+
+.payment-conditions .payment-stage-row .checkbox-label {
+  min-width: 10rem;
+  margin-bottom: 0;
+}
+
+.payment-conditions .payment-stage-percentage {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.payment-conditions .payment-stage-percentage input {
+  width: 6rem;
+}
+
+.payment-conditions .payment-total {
+  margin: 0.5rem 0;
+  font-weight: 600;
+}
+
+.payment-conditions .payment-total-warning {
+  font-weight: normal;
+  color: #b45309;
+}

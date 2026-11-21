@@ -27,6 +27,9 @@ export interface Estimate {
   // changes an already-issued estimate's rendered output.
   finalNoteTitle: string
   finalNoteContent: string
+  // Payment schedule printed after the final note: which stages apply, each
+  // with its percentage, plus optional free text. See domain/paymentConditions.
+  paymentConditions: PaymentConditions
   // A full per-estimate copy of the chosen Template's presentation config
   // (page layout, typography, colors, cover/header/footer toggles, table
   // columns, final-page labels) — e.g. a one-off client wants blue body text
@@ -39,6 +42,30 @@ export interface Estimate {
   // Stamped on creation and every header save (see estimateService); drives
   // the estimates list's default "last edited" sort.
   updatedAt: string
+}
+
+/** The fixed set of payment stages an estimate can use, in display order. */
+export const PAYMENT_STAGE_TYPES = [
+  'acceptance',
+  'start',
+  'midway',
+  'completion',
+  'certifications',
+] as const
+
+export type PaymentStageType = (typeof PAYMENT_STAGE_TYPES)[number]
+
+export interface PaymentStage {
+  type: PaymentStageType
+  /** Share of the total paid at this stage, e.g. 30 for 30%. */
+  percentage: number
+}
+
+export interface PaymentConditions {
+  /** Selected stages only, kept in PAYMENT_STAGE_TYPES order. */
+  stages: PaymentStage[]
+  /** Optional free text with additional payment details. */
+  notes: string
 }
 
 export interface Customer {

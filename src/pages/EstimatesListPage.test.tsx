@@ -20,6 +20,7 @@ function makeEstimate(overrides: Partial<Estimate>): Estimate {
     site: '',
     contactName: '',
     contactPhone: '',
+    paymentConditions: { stages: [], notes: '' },
     creationDate: '2026-01-01T00:00:00.000Z',
     status: 'draft',
     taxRate: 0,

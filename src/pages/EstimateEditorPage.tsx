@@ -12,10 +12,17 @@ import { appSettingsRepositoryClient } from '../db/appSettingsRepositoryClient';
 import { templateService } from '../services/templateService';
 import { createLineItemFromItem, ensureItemExists, findExistingItem, searchItems } from '../services/itemService';
 import { itemCategoryService } from '../services/itemCategoryService';
-import { Estimate, Chapter, Item, ItemCategory, LineItem, Customer, Template } from '../domain/models';
+import { Estimate, Chapter, Item, ItemCategory, LineItem, Customer, Template, PAYMENT_STAGE_TYPES } from '../domain/models';
+import type { PaymentConditions } from '../domain/models';
 import { notify } from '../notifications';
 import { closeOnOverlayClick } from '../utils/modal';
 import { PhoneNumberInput } from '../components/PhoneNumberInput';
+import {
+  emptyPaymentConditions,
+  setPaymentStagePercentage,
+  togglePaymentStage,
+  totalPaymentPercentage,
+} from '../domain/paymentConditions';
 import { PdfViewerModal } from '../components/PdfViewerModal';
 import {
   emptyFormState,
@@ -175,6 +182,7 @@ const EstimateEditorPage: React.FC = () => {
             templateId: defaultTemplate.id,
             finalNoteTitle: defaultTemplate.finalPage.noteTitle,
             finalNoteContent: defaultTemplate.finalPage.noteContent,
+            paymentConditions: emptyPaymentConditions(),
             templateOverrides: null,
             updatedAt: now.toISOString(),
           };
@@ -234,6 +242,10 @@ const EstimateEditorPage: React.FC = () => {
         [field]: value,
       };
     });
+  };
+
+  const updatePaymentConditions = (update: (conditions: PaymentConditions) => PaymentConditions) => {
+    setEstimate((prev) => (prev ? { ...prev, paymentConditions: update(prev.paymentConditions) } : null));
   };
 
   // Selecting a customer pre-fills the contact person with the customer's
@@ -1110,6 +1122,72 @@ const EstimateEditorPage: React.FC = () => {
                 />
               </label>
             </div>
+            <fieldset className="payment-conditions">
+              <legend>{t('estimateEditor.paymentConditions.title')}</legend>
+              {PAYMENT_STAGE_TYPES.map((type) => {
+                const stage = estimate.paymentConditions.stages.find((s) => s.type === type);
+                const stageLabel = t(`estimateEditor.paymentConditions.stages.${type}`);
+                return (
+                  <div key={type} className="payment-stage-row">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={!!stage}
+                        onChange={(e) =>
+                          updatePaymentConditions((c) => togglePaymentStage(c, type, e.target.checked))
+                        }
+                      />
+                      {stageLabel}
+                    </label>
+                    {stage && (
+                      <span className="payment-stage-percentage">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          value={stage.percentage}
+                          aria-label={t('estimateEditor.paymentConditions.percentageAriaLabel', {
+                            stage: stageLabel,
+                          })}
+                          onChange={(e) =>
+                            updatePaymentConditions((c) =>
+                              setPaymentStagePercentage(c, type, parseFloat(e.target.value) || 0)
+                            )
+                          }
+                        />
+                        %
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+              {estimate.paymentConditions.stages.length > 0 && (
+                <p className="payment-total">
+                  {t('estimateEditor.paymentConditions.total', {
+                    total: totalPaymentPercentage(estimate.paymentConditions),
+                  })}
+                  {/* A hint, not a hard error: "certificaciones" schedules
+                      don't always add up to a neat 100%. */}
+                  {totalPaymentPercentage(estimate.paymentConditions) !== 100 && (
+                    <span className="payment-total-warning">
+                      {' '}
+                      {t('estimateEditor.paymentConditions.totalNot100')}
+                    </span>
+                  )}
+                </p>
+              )}
+              <label>
+                {t('estimateEditor.paymentConditions.notes')}
+                <textarea
+                  value={estimate.paymentConditions.notes}
+                  onChange={(e) =>
+                    updatePaymentConditions((c) => ({ ...c, notes: e.target.value }))
+                  }
+                  rows={3}
+                />
+              </label>
+            </fieldset>
             <div className="form-actions">
               <button type="button" onClick={() => handleSaveHeader()} className="submit-button">
                 {t('estimateEditor.saveHeader')}

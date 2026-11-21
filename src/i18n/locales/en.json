@@ -13,7 +13,15 @@
     "introductionSectionTitle": "Introduction",
     "chapterSubtotalLabel": "Chapter subtotal: {{amount}}",
     "pageOfLabel": "Page {{pageNumber}} of {{totalPages}}",
-    "totalCaption": "VAT not included"
+    "totalCaption": "VAT not included",
+    "paymentConditionsTitle": "Payment conditions",
+    "paymentStages": {
+      "acceptance": "Acceptance",
+      "start": "Start",
+      "midway": "Midway",
+      "completion": "Completion",
+      "certifications": "Certifications"
+    }
   },
   "app": {
     "brandName": "Presupeitor2000",
@@ -498,6 +506,20 @@
       "saveLineItemFailed": "Failed to save line item.",
       "deleteLineItemFailed": "Failed to delete line item.",
       "deleteEstimateFailed": "Failed to delete estimate."
+    },
+    "paymentConditions": {
+      "title": "Payment conditions",
+      "stages": {
+        "acceptance": "Acceptance",
+        "start": "Start",
+        "midway": "Midway",
+        "completion": "Completion",
+        "certifications": "Certifications"
+      },
+      "percentageAriaLabel": "{{stage}} percentage",
+      "total": "Total: {{total}} %",
+      "totalNot100": "(does not add up to 100 %)",
+      "notes": "Additional payment conditions (optional):"
     }
   },
   "auth": {

@@ -1,4 +1,5 @@
 import type { Estimate, Chapter, LineItem, TemplateConfig } from '../domain/models'
+import { normalizePaymentConditions } from '../domain/paymentConditions'
 import { supabase } from '../lib/supabaseClient'
 import { createSupabaseCrudRepository } from './supabaseCrudRepository'
 
@@ -18,6 +19,7 @@ interface EstimateRow {
   template_id: string
   final_note_title: string
   final_note_content: string
+  payment_conditions: unknown
   template_overrides: TemplateConfig | null
   updated_at: string
 }
@@ -37,6 +39,7 @@ const estimateToRow = (estimate: Partial<Omit<Estimate, 'id'>>): Record<string, 
   ...(estimate.templateId !== undefined && { template_id: estimate.templateId }),
   ...(estimate.finalNoteTitle !== undefined && { final_note_title: estimate.finalNoteTitle }),
   ...(estimate.finalNoteContent !== undefined && { final_note_content: estimate.finalNoteContent }),
+  ...(estimate.paymentConditions !== undefined && { payment_conditions: estimate.paymentConditions }),
   ...(estimate.templateOverrides !== undefined && { template_overrides: estimate.templateOverrides }),
   ...(estimate.updatedAt !== undefined && { updated_at: estimate.updatedAt }),
 })
@@ -59,6 +62,7 @@ const estimateFromRow = (row: EstimateRow): Estimate => ({
   templateId: row.template_id,
   finalNoteTitle: row.final_note_title,
   finalNoteContent: row.final_note_content,
+  paymentConditions: normalizePaymentConditions(row.payment_conditions),
   templateOverrides: row.template_overrides,
   updatedAt: row.updated_at,
 })

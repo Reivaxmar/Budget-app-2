@@ -154,6 +154,7 @@ export async function duplicateEstimate(id: string): Promise<Estimate> {
     templateId: original.templateId,
     finalNoteTitle: original.finalNoteTitle,
     finalNoteContent: original.finalNoteContent,
+    paymentConditions: original.paymentConditions,
     templateOverrides: original.templateOverrides,
     updatedAt: new Date().toISOString(),
   });

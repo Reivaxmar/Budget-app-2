@@ -12,6 +12,7 @@ import { defaultDocumentTemplate, resolveColumnValue, resolveFontSizes } from '.
 import type { CoverPosition, DocumentTemplateConfig, ResolvedFontSizes } from './templateConfig';
 import { calculateChapterTotal, calculateEstimateTotal } from '../domain/calculations';
 import { resolveEstimateContact } from '../domain/contact';
+import { hasPaymentConditions } from '../domain/paymentConditions';
 // The i18n singleton (not the useTranslation() hook) — this component is
 // rendered outside the app's normal React tree, directly through
 // react-pdf's pdf()/renderToBuffer APIs, so there's no I18nextProvider
@@ -197,13 +198,20 @@ function buildStyles(template: DocumentTemplateConfig) {
       borderTop: `1pt solid ${colors.borderColor}`,
       paddingTop: 6,
     },
+    // Space between chapters lives at the *end* of each chapter rather than
+    // above its title: a top margin also showed up at the top of a page,
+    // leaving a blank gap under the header, while trailing space at a page
+    // bottom is invisible.
+    chapterBlock: {
+      marginBottom: 16,
+    },
     chapterTitleBlock: {
-      marginTop: 16,
       marginBottom: 6,
     },
     chapterTitle: {
       fontSize: typography.headingFontSize,
       fontWeight: 700,
+      marginBottom: 6,
     },
     tableHeaderRow: {
       flexDirection: 'row',
@@ -232,9 +240,10 @@ function buildStyles(template: DocumentTemplateConfig) {
       fontWeight: 700,
     },
 
-    finalSection: {
-      marginTop: 28,
-    },
+    // No top margin: this section always starts on a fresh page (`break`),
+    // so its title should sit right under the header like the client page's
+    // title does — a margin here only added a blank gap below the header.
+    finalSection: {},
     // Total + signature, pinned to the bottom of the document's last page
     // (see the final-section comment in the component). Same bottom inset as
     // the page's own paddingBottom, so it sits right above the footer.
@@ -266,9 +275,7 @@ function buildStyles(template: DocumentTemplateConfig) {
       marginTop: 2,
       textAlign: 'right',
     },
-    standardNoteBlock: {
-      marginTop: 12,
-    },
+    standardNoteBlock: {},
     standardNoteTitle: {
       fontSize: sizes.noteTitle,
       fontWeight: 700,
@@ -278,6 +285,20 @@ function buildStyles(template: DocumentTemplateConfig) {
       fontSize: sizes.noteContent,
       lineHeight: 1.4,
       color: '#333333',
+    },
+    paymentConditionsBlock: {
+      marginTop: 16,
+    },
+    paymentStageRow: {
+      flexDirection: 'row',
+      fontSize: sizes.noteContent,
+      marginBottom: 2,
+    },
+    paymentStageLabel: {
+      width: 120,
+    },
+    paymentConditionsNotes: {
+      marginTop: 6,
     },
     signatureBlock: {},
     signatureBox: {
@@ -309,6 +330,11 @@ function formatCurrency(amount: number): string {
     style: 'currency',
     currency: 'EUR',
   }).format(amount);
+}
+
+/** e.g. 30 → "30 %", 12.5 → "12,5 %" (Spanish formatting, like formatCurrency). */
+function formatPercentage(value: number): string {
+  return `${new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 }).format(value)} %`;
 }
 
 function formatDate(isoDate: string): string {
@@ -479,7 +505,7 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
           .slice()
           .sort((a, b) => a.order - b.order)
           .map((chapter, chapterIndex) => (
-            <View key={chapter.id}>
+            <View key={chapter.id} style={styles.chapterBlock}>
               <View style={styles.chapterTitleBlock} wrap={false} minPresenceAhead={60}>
                 <Text style={styles.chapterTitle}>
                   {chapterIndex + 1}. {chapter.title}
@@ -540,6 +566,28 @@ export const EstimateDocument: React.FC<EstimateDocumentProps> = ({
             <Text style={styles.standardNoteTitle}>{standardNote.title}</Text>
             <Text style={styles.standardNoteContent}>{standardNote.content}</Text>
           </View>
+          {hasPaymentConditions(estimate.paymentConditions) && (
+            <View style={styles.paymentConditionsBlock}>
+              {/* Title kept with at least the first stage line so it's never
+                  stranded alone at the bottom of a page. */}
+              <Text style={styles.standardNoteTitle} minPresenceAhead={30}>
+                {i18n.t('rendering.paymentConditionsTitle')}
+              </Text>
+              {estimate.paymentConditions.stages.map((stage) => (
+                <View key={stage.type} style={styles.paymentStageRow} wrap={false}>
+                  <Text style={styles.paymentStageLabel}>
+                    {i18n.t(`rendering.paymentStages.${stage.type}`)}
+                  </Text>
+                  <Text>{formatPercentage(stage.percentage)}</Text>
+                </View>
+              ))}
+              {estimate.paymentConditions.notes.trim() !== '' && (
+                <Text style={[styles.standardNoteContent, styles.paymentConditionsNotes]}>
+                  {estimate.paymentConditions.notes}
+                </Text>
+              )}
+            </View>
+          )}
           {/* Reserves room for the closing block at the end of the flow.
               Unsplittable, so if the conditions leave less than that on
               their last page it moves to a fresh page — which then becomes

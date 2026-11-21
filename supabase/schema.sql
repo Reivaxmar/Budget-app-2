@@ -80,6 +80,7 @@ create table if not exists estimates (
   template_id uuid references templates(id) on delete set null,
   final_note_title text not null default '',
   final_note_content text not null default '',
+  payment_conditions jsonb not null default '{"stages": [], "notes": ""}'::jsonb,
   template_overrides jsonb,
   updated_at timestamptz not null default now()
 );
@@ -131,6 +132,7 @@ create table if not exists app_settings (
 alter table app_settings add column if not exists next_estimate_number integer not null default 1;
 alter table estimates add column if not exists contact_name text not null default '';
 alter table estimates add column if not exists contact_phone text not null default '';
+alter table estimates add column if not exists payment_conditions jsonb not null default '{"stages": [], "notes": ""}'::jsonb;
 
 -- ── Row Level Security ────────────────────────────────────────────────────
 -- Every table gets the same policy shape: a user may select/insert/update/

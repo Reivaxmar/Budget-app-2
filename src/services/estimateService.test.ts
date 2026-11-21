@@ -21,6 +21,7 @@ const baseEstimateInput = {
   site: 'Carrer de Mallorca 245',
   contactName: '',
   contactPhone: '',
+  paymentConditions: { stages: [], notes: '' },
   creationDate: '2026-08-15',
   status: 'draft',
   taxRate: 21,

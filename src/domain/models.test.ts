@@ -21,6 +21,7 @@ describe('Domain Models', () => {
         site: 'Test Construction Site',
         contactName: '',
         contactPhone: '',
+        paymentConditions: { stages: [], notes: '' },
         creationDate: new Date().toISOString(),
         status: 'draft',
         taxRate: 19,

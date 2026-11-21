@@ -26,6 +26,7 @@ describe('EstimateEditorPage — insert from library', () => {
     site: 'Test site',
     contactName: '',
     contactPhone: '',
+    paymentConditions: { stages: [], notes: '' },
     creationDate: new Date('2026-01-01').toISOString(),
     status: 'draft',
     taxRate: 0,

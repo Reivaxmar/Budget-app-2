@@ -19,6 +19,7 @@ import { companyProfileRepositoryClient } from '../db/companyProfileRepositoryCl
 import { appSettingsRepositoryClient } from '../db/appSettingsRepositoryClient';
 import type { AppSettings } from '../db/appSettingsRepositoryClient';
 import type { CompanyProfileSettings } from '../db/companyProfileRepositoryClient';
+import { normalizePaymentConditions } from '../domain/paymentConditions';
 import type { Chapter, Customer, Estimate, Item, ItemCategory, LineItem, Template } from '../domain/models';
 
 /** The literal phrase the user must type to confirm a destructive import —
@@ -231,6 +232,8 @@ export async function importAllData(backup: AccountBackup, password: string): Pr
       template_id: estimate.templateId || null,
       final_note_title: estimate.finalNoteTitle ?? '',
       final_note_content: estimate.finalNoteContent ?? '',
+      // Normalized: older backups have no paymentConditions at all.
+      payment_conditions: normalizePaymentConditions(estimate.paymentConditions),
       template_overrides: estimate.templateOverrides ?? null,
       updated_at: estimate.updatedAt ?? estimate.creationDate ?? new Date().toISOString(),
     }))

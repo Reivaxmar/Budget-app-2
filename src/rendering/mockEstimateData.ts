@@ -255,6 +255,14 @@ export const mockEstimateDocumentData: EstimateDocumentData = {
     site: 'Carrer de Mallorca 245, 3º 1ª, 08036 Barcelona',
     contactName: '',
     contactPhone: '',
+    paymentConditions: {
+      stages: [
+        { type: 'acceptance', percentage: 30 },
+        { type: 'midway', percentage: 40 },
+        { type: 'completion', percentage: 30 },
+      ],
+      notes: 'Pagos mediante transferencia bancaria en un plazo de 5 días desde la emisión de cada factura.',
+    },
     creationDate: '2026-08-15',
     status: 'draft',
     taxRate: 21,
